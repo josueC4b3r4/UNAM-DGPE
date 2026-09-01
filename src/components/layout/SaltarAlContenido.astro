@@ -1,0 +1,40 @@
+---
+/**
+ * Enlace "saltar al contenido" (WCAG 2.4.1, Bypass Blocks).
+ *
+ * Es el PRIMER elemento enfocable de la página. Invisible hasta que recibe
+ * foco: quien navega con teclado pulsa Tab una vez y se brinca el header
+ * completo en lugar de tabular por todos los enlaces del menú en cada página.
+ *
+ * No se usa `display:none` ni `visibility:hidden` — eso lo sacaría del orden
+ * de tabulación y el enlace nunca podría recibir foco.
+ */
+---
+
+<a class="saltar" href="#contenido">Saltar al contenido principal</a>
+
+<style>
+  .saltar {
+    position: absolute;
+    inset-inline-start: var(--p-espacio-4);
+    inset-block-start: var(--p-espacio-4);
+    z-index: var(--capa-saltar);
+
+    /* Fuera de la pantalla, pero enfocable. */
+    transform: translateY(-200%);
+
+    padding: var(--p-espacio-3) var(--p-espacio-5);
+    background-color: var(--color-accion-primaria-fondo);
+    color: var(--color-accion-primaria-texto);
+    border: var(--p-borde-medio) solid var(--color-accion-primaria-texto);
+    border-radius: var(--radio-control);
+    font-weight: var(--p-tipografia-peso-semi);
+    text-decoration: none;
+
+    transition: transform var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .saltar:focus {
+    transform: translateY(0);
+  }
+</style>

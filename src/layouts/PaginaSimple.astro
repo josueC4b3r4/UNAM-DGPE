@@ -1,0 +1,54 @@
+---
+/**
+ * Layout para páginas de contenido plano (avisos legales, declaraciones).
+ * Ancho de lectura limitado y migas de pan; nada más.
+ */
+import BaseLayout from './BaseLayout.astro';
+import Migas from '../components/layout/Migas.astro';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  entradilla?: string;
+}
+
+const { titulo, descripcion, entradilla } = Astro.props;
+---
+
+<BaseLayout titulo={titulo} descripcion={descripcion}>
+  <div class="contenedor">
+    <Migas migas={[{ texto: titulo }]} />
+  </div>
+
+  <div class="contenedor pagina">
+    <header class="pagina__encabezado">
+      <h1>{titulo}</h1>
+      {entradilla && <p class="pagina__entradilla">{entradilla}</p>}
+    </header>
+
+    <div class="prosa">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .pagina {
+    max-width: var(--contenedor-ancho-texto);
+    padding-block-end: var(--espacio-seccion);
+  }
+
+  .pagina__encabezado {
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .pagina__encabezado h1 {
+    margin: 0;
+  }
+
+  .pagina__entradilla {
+    margin: var(--p-espacio-3) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+  }
+</style>

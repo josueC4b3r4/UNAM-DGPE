@@ -1,0 +1,38 @@
+# Dependencias
+node_modules/
+
+# Salida de build de Astro
+dist/
+.astro/
+
+# CSS generado a partir de design/tokens.json — NO se versiona.
+# Se regenera con `npm run tokens` (lo corre `npm run dev` automáticamente).
+# La fuente de verdad versionada es design/tokens.json.
+src/styles/tokens/
+
+# Variables de entorno
+.env
+.env.production
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# Reportes de Lighthouse generados localmente
+lighthouse-*.html
+lighthouse-*.json

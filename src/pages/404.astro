@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BuscadorTramites from '../components/home/BuscadorTramites.astro';
+import Boton from '../components/base/Boton.astro';
+import { construirIndiceBusqueda } from '../lib/tramites';
+
+const indice = await construirIndiceBusqueda();
+---
+
+<BaseLayout
+  titulo="Página no encontrada"
+  descripcion="La página que buscas no existe o cambió de dirección."
+>
+  <div class="contenedor error">
+    <p class="error__codigo" aria-hidden="true">404</p>
+
+    <h1 class="error__titulo">Esta página no existe</h1>
+
+    <p class="error__texto">
+      Puede que el enlace esté roto o que la página haya cambiado de dirección. En vez de dejarte
+      aquí, busca el trámite directamente:
+    </p>
+
+    <div class="error__buscador">
+      <BuscadorTramites indice={indice} />
+    </div>
+
+    <div class="error__salidas">
+      <Boton href="/" variante="primario">Ir al inicio</Boton>
+      <Boton href="/tramites/" variante="secundario">Ver todos los trámites</Boton>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .error {
+    max-width: var(--contenedor-ancho-texto);
+    padding-block: var(--espacio-seccion);
+  }
+
+  /*
+   * El "404" es decorativo y va con aria-hidden: el <h1> ya comunica el error.
+   * Leer "cuatrocientos cuatro" antes del título no aporta nada.
+   */
+  .error__codigo {
+    margin: 0;
+    font-size: var(--tipo-hero-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    line-height: 1;
+    color: var(--color-acento-linea);
+  }
+
+  .error__titulo {
+    margin: var(--p-espacio-3) 0 0;
+  }
+
+  .error__texto {
+    margin: var(--p-espacio-4) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+  }
+
+  .error__buscador {
+    margin-block-start: var(--p-espacio-7);
+  }
+
+  .error__salidas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--p-espacio-3);
+    margin-block-start: var(--p-espacio-7);
+  }
+</style>

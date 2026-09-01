@@ -1,0 +1,184 @@
+/*
+ * Estilos de elementos HTML sin clases. Todo consume tokens semánticos:
+ * ningún valor literal de color o tipografía vive aquí.
+ */
+
+html {
+  /*
+   * Control de tamaño de texto del header. --escala-texto la fija un script
+   * (1 | 1.15 | 1.3) y como TODA la escala tipográfica está en rem, cambiarla
+   * escala el sitio entero sin recalcular un solo componente.
+   * tokens-ok: es una multiplicación de la escala del usuario, no un tamaño fijo.
+   */
+  font-size: calc(100% * var(--escala-texto, 1));
+}
+
+body {
+  font-family: var(--tipo-familia-base);
+  font-size: var(--tipo-cuerpo-tamano);
+  line-height: var(--tipo-cuerpo-interlinea);
+  color: var(--color-texto-principal);
+  background-color: var(--color-superficie-base);
+}
+
+/* --------------------------------------------------------------------- */
+/* Títulos                                                                */
+/* --------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--tipo-titulo-peso);
+  line-height: var(--tipo-titulo-interlinea);
+  letter-spacing: var(--tipo-titulo-espaciado);
+  color: var(--color-texto-principal);
+}
+
+h1 {
+  font-size: var(--tipo-titulo-1-tamano);
+}
+h2 {
+  font-size: var(--tipo-titulo-2-tamano);
+}
+h3 {
+  font-size: var(--tipo-titulo-3-tamano);
+}
+h4,
+h5,
+h6 {
+  font-size: var(--tipo-titulo-4-tamano);
+}
+
+/* --------------------------------------------------------------------- */
+/* Enlaces                                                                */
+/* --------------------------------------------------------------------- */
+
+a {
+  color: var(--color-texto-enlace);
+  /*
+   * Subrayado presente por defecto: WCAG 1.4.1 exige que el enlace no se
+   * distinga SOLO por color. `from-font` respeta las métricas de la fuente y
+   * `skip-ink` evita que la línea corte los descendentes (g, j, p).
+   */
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.15em;
+  text-decoration-skip-ink: auto;
+}
+
+a:hover {
+  color: var(--color-texto-enlace-hover);
+  text-decoration-thickness: 2px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Foco de teclado                                                        */
+/* --------------------------------------------------------------------- */
+
+/*
+ * :focus-visible (no :focus) para que el anillo aparezca al navegar con
+ * teclado pero no al hacer clic con el ratón. El outline se dibuja fuera del
+ * elemento y NUNCA se recorta: por eso ningún contenedor usa overflow:hidden
+ * alrededor de elementos enfocables.
+ */
+:focus-visible {
+  outline: var(--foco-grosor) solid var(--color-borde-foco);
+  outline-offset: var(--foco-desplazamiento);
+  border-radius: var(--radio-control);
+}
+
+/* Navegadores viejos que no soportan :focus-visible siguen mostrando algo. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --------------------------------------------------------------------- */
+/* Selección y resaltado                                                  */
+/* --------------------------------------------------------------------- */
+
+::selection {
+  background-color: var(--color-resaltado-fondo);
+  color: var(--color-resaltado-texto);
+}
+
+mark {
+  background-color: var(--color-resaltado-fondo);
+  color: var(--color-resaltado-texto);
+  padding-inline: 0.15em;
+  border-radius: var(--p-radio-sm);
+}
+
+/* --------------------------------------------------------------------- */
+/* Otros elementos                                                        */
+/* --------------------------------------------------------------------- */
+
+hr {
+  border: none;
+  border-top: var(--p-borde-fino) solid var(--color-borde-sutil);
+  margin-block: var(--espacio-bloque);
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--tipo-familia-mono);
+  /* tokens-ok: relativo al texto que lo rodea, no un tamaño fijo. La monoespaciada
+     se ve más grande que la de texto al mismo tamaño nominal; este 0.9em las iguala
+     ópticamente sea cual sea el tamaño del párrafo que contiene el código. */
+  font-size: 0.9em;
+  background-color: var(--color-superficie-hundida);
+  padding: 0.1em 0.35em;
+  border-radius: var(--p-radio-sm);
+}
+
+blockquote {
+  border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea);
+  padding-inline-start: var(--espacio-componente);
+  color: var(--color-texto-secundario);
+}
+
+abbr[title] {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: start;
+  padding: var(--p-espacio-3);
+  border-bottom: var(--p-borde-fino) solid var(--color-borde-sutil);
+}
+
+th {
+  font-weight: var(--p-tipografia-peso-semi);
+  color: var(--color-texto-principal);
+}
+
+/* --------------------------------------------------------------------- */
+/* Modo de alto contraste de Windows (forced-colors)                      */
+/* --------------------------------------------------------------------- */
+
+/*
+ * Cuando Windows fuerza su propia paleta, los custom properties se ignoran.
+ * Aquí solo se garantiza que los bordes que llevan información sigan siendo
+ * visibles, usando las palabras clave del sistema.
+ */
+@media (forced-colors: active) {
+  /* tokens-ok: `ButtonText` es una palabra clave del sistema, no un color literal. */
+  :focus-visible {
+    outline-color: Highlight;
+  }
+
+  .tarjeta,
+  .boton {
+    border: 1px solid ButtonText;
+  }
+}

@@ -1,0 +1,103 @@
+---
+/**
+ * Layout base de todas las páginas.
+ *
+ * Responsabilidades:
+ * - <head>: metadatos, tipografía, hojas de estilo, tema sin parpadeo.
+ * - Estructura de landmarks: header / main / footer, con un solo <main>.
+ * - Enlace para saltar al contenido, como primer elemento enfocable.
+ *
+ * Todo lo demás lo aportan las páginas por el <slot />.
+ */
+import '@fontsource-variable/source-sans-3/wght.css';
+import '../styles/tokens/index.css';
+import '../styles/reset.css';
+import '../styles/base.css';
+import '../styles/utilities.css';
+
+import SaltarAlContenido from '../components/layout/SaltarAlContenido.astro';
+import Encabezado from '../components/layout/Encabezado.astro';
+import PieDePagina from '../components/layout/PieDePagina.astro';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /** Para <html lang>. Solo español por ahora, pero explícito, no implícito. */
+  idioma?: string;
+}
+
+const { titulo, descripcion, idioma = 'es-MX' } = Astro.props;
+
+const tituloCompleto = `${titulo} · DGPE UNAM`;
+const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+---
+
+<!doctype html>
+<html lang={idioma}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{tituloCompleto}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonica.href} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={tituloCompleto} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:locale" content="es_MX" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!--
+      Este script tiene que ser BLOQUEANTE y estar en el <head>.
+      Aplica el tema y la escala de texto guardados ANTES del primer pintado.
+      Si se ejecutara después, quien usa tema oscuro vería un destello blanco
+      en cada navegación — molesto para cualquiera, y un problema real para
+      personas con fotosensibilidad.
+
+      `is:inline` evita que Astro lo procese y lo mueva a un bundle diferido.
+    -->
+    <script is:inline>
+      (function () {
+        try {
+          var tema = localStorage.getItem('dgpe-tema');
+          if (tema === 'claro' || tema === 'oscuro') {
+            document.documentElement.dataset.tema = tema;
+          }
+
+          var escala = localStorage.getItem('dgpe-escala-texto');
+          if (escala) {
+            document.documentElement.style.setProperty('--escala-texto', escala);
+          }
+        } catch (e) {
+          /* Almacenamiento bloqueado: se usan los valores por defecto. */
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <SaltarAlContenido />
+    <Encabezado />
+
+    <!--
+      tabindex="-1" permite que el enlace "saltar al contenido" mueva el foco
+      aquí de verdad. Sin él, en varios navegadores el enlace desplaza la
+      página pero deja el foco en el header, y el siguiente Tab regresa al menú.
+    -->
+    <main id="contenido" tabindex="-1">
+      <slot />
+    </main>
+
+    <PieDePagina />
+  </body>
+</html>
+
+<style is:global>
+  /* El destino del salto no debe mostrar anillo de foco: recibe el foco por
+     programa, no por navegación de teclado del usuario. */
+  main:focus {
+    outline: none;
+  }
+</style>

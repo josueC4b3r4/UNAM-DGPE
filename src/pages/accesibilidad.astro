@@ -1,0 +1,123 @@
+---
+import PaginaSimple from '../layouts/PaginaSimple.astro';
+---
+
+<PaginaSimple
+  titulo="Declaración de accesibilidad"
+  descripcion="Nivel de conformidad, métodos de verificación y limitaciones conocidas de este prototipo."
+  entradilla="Qué se verificó, cómo se verificó y qué sigue pendiente. Sin declaraciones que no podamos sustentar."
+>
+  <h2>Nivel de conformidad</h2>
+
+  <p>
+    Este prototipo se diseñó para cumplir las <strong>Pautas de Accesibilidad para el Contenido
+    Web (WCAG) 2.1, nivel AA</strong>. La conformidad se verificó con las herramientas y métodos que
+    se describen abajo.
+  </p>
+
+  <p>
+    Se declara <strong>conformidad parcial</strong>: las páginas cumplen los criterios que se han
+    verificado, pero el sitio es un prototipo con contenido de ejemplo, parte de la verificación
+    sigue pendiente y no ha sido auditado por un tercero independiente.
+  </p>
+
+  <h2>Qué se verificó y cómo</h2>
+
+  <p>
+    Distinguimos entre lo que está <strong>comprobado</strong> y lo que está solo
+    <strong>implementado según la norma pero aún sin probar</strong>. Mezclar ambas cosas es la
+    forma más común de que una declaración de accesibilidad deje de ser confiable.
+
+  <h3>✅ Comprobado — contraste de color</h3>
+
+  <p>
+    Un script recorre los 36 pares de colores que el sistema de diseño usa en la interfaz y calcula
+    su razón de contraste en los temas claro y oscuro: <strong>72 combinaciones, todas conformes</strong>.
+    Es una prueba automatizada, reproducible con <code>npm run a11y:contraste</code>, que además
+    falla el build si algún par baja del umbral.
+  </p>
+
+  <h3>✅ Comprobado — centralización del sistema de diseño</h3>
+
+  <p>
+    Otro script verifica que no exista ningún color ni tipografía escritos directamente en el
+    código. Todo pasa por los tokens, que es lo que permite que cambiar el tema no rompa el
+    contraste en ningún punto.
+  </p>
+
+  <h3>⏳ Pendiente de prueba — navegación por teclado</h3>
+
+  <p>
+    El sitio está construido con elementos nativos (<code>button</code>, <code>a</code>,
+    <code>input</code>), orden de foco que sigue al orden visual, indicador de foco de 3 px y el
+    patrón ARIA de combobox en el buscador. <strong>Falta recorrerlo completo con teclado</strong> y
+    dejar constancia del resultado.
+  </p>
+
+  <h3>⏳ Pendiente de prueba — lector de pantalla</h3>
+
+  <p>
+    Está implementada la estructura que un lector de pantalla necesita: jerarquía de encabezados sin
+    saltos, puntos de referencia con nombre, regiones vivas para el conteo de resultados y textos
+    alternativos. <strong>Falta probarlo con NVDA y con el Narrador de Windows</strong>, idealmente
+    con personas que los usen a diario.
+  </p>
+
+  <h2>Características de accesibilidad</h2>
+
+  <ul>
+    <li>
+      <strong>Control de tamaño de texto</strong> en la barra superior, con tres niveles. Escala el
+      sitio completo y recuerda la elección.
+    </li>
+    <li>
+      <strong>Tema claro y oscuro</strong>, con contraste verificado en ambos. Respeta la
+      preferencia del sistema operativo mientras no elijas una.
+    </li>
+    <li>
+      <strong>Enlace para saltar al contenido</strong> como primer elemento enfocable de cada
+      página.
+    </li>
+    <li>
+      <strong>Respeto a <code>prefers-reduced-motion</code></strong>: si tu sistema pide menos
+      movimiento, no hay animaciones ni reproducción automática de video.
+    </li>
+    <li>
+      <strong>Áreas de toque de 44 píxeles</strong> como mínimo en todos los controles.
+    </li>
+    <li>
+      <strong>Funciona sin JavaScript</strong>: el contenido y la navegación siguen disponibles;
+      solo se pierden el autocompletado y los filtros.
+    </li>
+  </ul>
+
+  <h2>Limitaciones conocidas</h2>
+
+  <ul>
+    <li>
+      <strong>Contenido de ejemplo.</strong> Los trámites, plazos y datos de contacto son
+      ilustrativos y no tienen validez oficial.
+    </li>
+    <li>
+      <strong>Video del hero.</strong> Cuando se integre el asset definitivo habrá que revisar el
+      contraste del texto sobre él y, si llegara a contener texto o narración, agregar subtítulos y
+      una alternativa textual.
+    </li>
+    <li>
+      <strong>Sin auditoría externa.</strong> La verificación es interna y, de momento, solo
+      automatizada. Una revisión con personas usuarias de tecnología asistiva encontraría cosas que
+      ninguna herramienta detecta.
+    </li>
+    <li>
+      <strong>Tablas anchas.</strong> En pantallas angostas se desplazan horizontalmente dentro de
+      su propio contenedor. Es navegable con teclado, pero no es la solución ideal.
+    </li>
+  </ul>
+
+  <h2>Comentarios</h2>
+
+  <p>
+    Si encuentras una barrera de accesibilidad en este prototipo, avísanos: es exactamente el tipo
+    de hallazgo que buscamos antes de proponer el rediseño.
+  </p>
+</PaginaSimple>

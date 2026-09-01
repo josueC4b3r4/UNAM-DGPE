@@ -1,0 +1,14 @@
+Deja aquí los archivos del hero. Los nombres tienen que ser exactamente estos:
+
+  hero.webm    el video (formato preferido, pesa menos)
+  hero.mp4     el mismo video en mp4, respaldo para Safari viejo
+  poster.jpg   una imagen fija del video
+
+El componente los detecta solo al arrancar. No hay que tocar código.
+Mientras no existan, el hero dibuja un degradado con los colores de la marca.
+
+Recomendaciones: sin audio, menos de 10 segundos, menos de 2 MB, sin texto
+quemado dentro del video, y que se lea bien oscurecido (encima va un velo azul
+translúcido que garantiza el contraste del texto blanco).
+
+Ver README.md, sección "El video del hero".

@@ -1,0 +1,162 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroMedia from '../components/home/HeroMedia.astro';
+import BuscadorTramites from '../components/home/BuscadorTramites.astro';
+import RejillaRoles from '../components/home/RejillaRoles.astro';
+import TarjetaTramite from '../components/base/TarjetaTramite.astro';
+import Boton from '../components/base/Boton.astro';
+import Icono from '../components/base/Icono.astro';
+import { getCollection } from 'astro:content';
+import { aIndexado, construirIndiceBusqueda, obtenerTramitesDestacados } from '../lib/tramites';
+
+const indice = await construirIndiceBusqueda();
+const destacados = (await obtenerTramitesDestacados()).map(aIndexado);
+
+/* Los tres roles vienen del contenido; el cuarto acceso no es un rol sino una
+   salida directa al listado, para quien ya sabe qué busca. */
+const roles = [...(await getCollection('roles'))].sort((a, b) => a.data.orden - b.data.orden);
+
+const accesos = [
+  ...roles.map((rol) => ({
+    href: `/perfil/${rol.data.clave}/`,
+    etiqueta: rol.data.etiquetaHome,
+    descripcion: rol.data.descripcionHome,
+    icono: rol.data.icono,
+  })),
+  {
+    href: '/tramites/',
+    etiqueta: 'Busco un trámite',
+    descripcion: 'Ver los trámites en una sola lista, con filtros por categoría.',
+    icono: 'lupa' as const,
+    destacado: true,
+  },
+];
+---
+
+<BaseLayout
+  titulo="Inicio"
+  descripcion="Trámites de personal de la UNAM organizados por quién eres: personal académico, personal administrativo y jefaturas de dependencia."
+>
+  <HeroMedia
+    titulo="Tus trámites de personal, sin adivinar a qué área le tocan"
+    entradilla="Encuentra lo que necesitas por tu perfil o busca directamente el trámite. Sin recorrer el organigrama."
+  >
+    <BuscadorTramites indice={indice} />
+  </HeroMedia>
+
+  <RejillaRoles accesos={accesos} titulo="Empieza por quién eres" />
+
+  <section class="seccion seccion--sutil" aria-labelledby="destacados">
+    <div class="contenedor">
+      <div class="encabezado-seccion">
+        <div>
+          <h2 id="destacados">Los que más se consultan</h2>
+          <p class="encabezado-seccion__nota">
+            Cinco trámites concentran la mayoría de las visitas a esta dirección.
+          </p>
+        </div>
+        <Boton href="/tramites/" variante="secundario">
+          Ver los {indice.length} trámites
+          <Icono nombre="flecha" tamano={1} />
+        </Boton>
+      </div>
+
+      <ul class="rejilla lista-limpia" role="list" style="--rejilla-min: 19rem;">
+        {
+          destacados.map((tramite) => (
+            <li>
+              <TarjetaTramite tramite={tramite} nivel={3} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="que-cambia">
+    <div class="contenedor contenedor--texto flujo flujo--amplio">
+      <h2 id="que-cambia">Qué propone este prototipo</h2>
+
+      <p>
+        Este sitio es un ejercicio de rediseño, no el portal oficial. Se construyó para mostrar
+        cuatro cambios concretos frente a la versión actual, y para poder discutirlos sobre algo
+        navegable en lugar de sobre una lámina.
+      </p>
+
+      <ul class="propuestas lista-limpia" role="list">
+        <li class="propuesta">
+          <h3 class="propuesta__titulo">Navegación por rol, no por organigrama</h3>
+          <p>
+            Hoy hay que saber de qué subdirección depende un trámite antes de encontrarlo. Aquí la
+            primera pregunta es quién eres, que sí sabes responder.
+          </p>
+        </li>
+        <li class="propuesta">
+          <h3 class="propuesta__titulo">Buscador que entiende cómo hablas</h3>
+          <p>
+            Cada trámite guarda los términos con los que la gente lo busca de verdad. Escribir
+            &laquo;carta laboral&raquo; o &laquo;me incapacitaron&raquo; lleva al trámite correcto
+            aunque no se llame así.
+          </p>
+        </li>
+        <li class="propuesta">
+          <h3 class="propuesta__titulo">Accesibilidad verificable</h3>
+          <p>
+            Contraste AA comprobado por script en los dos temas, navegación completa por teclado y
+            control de tamaño de texto en el encabezado. Es una prueba que se puede volver a
+            correr, no una declaración.
+          </p>
+        </li>
+        <li class="propuesta">
+          <h3 class="propuesta__titulo">Una sola identidad visual</h3>
+          <p>
+            Todo vive bajo el mismo dominio y el mismo sistema de diseño. Sin saltos a subdominios
+            con otra apariencia a media ruta.
+          </p>
+        </li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .encabezado-seccion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--p-espacio-4);
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .encabezado-seccion h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+  }
+
+  .encabezado-seccion__nota {
+    margin: var(--p-espacio-2) 0 0;
+    color: var(--color-texto-secundario);
+  }
+
+  .propuestas {
+    display: grid;
+    gap: var(--p-espacio-5);
+    margin: 0;
+  }
+
+  .propuesta {
+    padding-inline-start: var(--p-espacio-4);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea);
+  }
+
+  .propuesta__titulo {
+    margin: 0 0 var(--p-espacio-2);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .propuesta p {
+    margin: 0;
+    color: var(--color-texto-secundario);
+  }
+</style>

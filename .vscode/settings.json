@@ -1,0 +1,49 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  "[astro]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": { "other": true }
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "files.associations": {
+    "*.astro": "astro"
+  },
+
+  "eslint.validate": ["javascript", "typescript", "astro"],
+
+  "cSpell.language": "en,es",
+  "cSpell.words": [
+    "astro",
+    "DGPE",
+    "fontsource",
+    "ISSSTE",
+    "PRIDE",
+    "tramite",
+    "tramites",
+    "UNAM"
+  ],
+
+  "//": "Los CSS de tokens son GENERADOS por `npm run tokens`. Se marcan como solo lectura para que nadie los edite a mano y pierda el cambio en el siguiente build.",
+  "files.readonlyInclude": {
+    "src/styles/tokens/**": true
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.astro": true,
+    "src/styles/tokens": true
+  }
+}

@@ -1,0 +1,173 @@
+---
+/**
+ * Pie de página.
+ *
+ * Incluye los enlaces de transparencia y aviso de privacidad que un sitio
+ * institucional necesita, y la declaración de accesibilidad — que la mayoría
+ * de los sitios universitarios omite.
+ */
+import Icono from '../base/Icono.astro';
+
+const COLUMNAS = [
+  {
+    titulo: 'Por quién eres',
+    enlaces: [
+      { texto: 'Personal académico', href: '/perfil/academico/' },
+      { texto: 'Personal administrativo', href: '/perfil/administrativo/' },
+      { texto: 'Jefaturas de dependencia', href: '/perfil/jefe/' },
+    ],
+  },
+  {
+    titulo: 'Trámites',
+    enlaces: [
+      { texto: 'Todos los trámites', href: '/tramites/' },
+      { texto: 'Constancia de servicios', href: '/tramites/constancia-de-servicios/' },
+      { texto: 'Alta ante el ISSSTE', href: '/tramites/alta-issste/' },
+    ],
+  },
+  {
+    titulo: 'Información',
+    enlaces: [
+      { texto: 'Aviso de privacidad', href: '/aviso-de-privacidad/' },
+      { texto: 'Declaración de accesibilidad', href: '/accesibilidad/' },
+      { texto: 'Transparencia', href: '/transparencia/' },
+    ],
+  },
+];
+
+const anio = new Date().getFullYear();
+---
+
+<footer class="pie">
+  <div class="contenedor">
+    <div class="pie__columnas">
+      <div class="pie__identidad">
+        <p class="pie__sigla">DGPE</p>
+        <p class="pie__nombre">Dirección General de Personal</p>
+        <p class="pie__direccion">
+          Universidad Nacional Autónoma de México<br />
+          Ciudad Universitaria, Coyoacán, 04510, Ciudad de México
+        </p>
+        <p class="pie__contacto">
+          <Icono nombre="telefono" tamano={1} />
+          <span>55 5622 0000</span>
+        </p>
+      </div>
+
+      {
+        COLUMNAS.map(({ titulo, enlaces }) => (
+          <nav class="pie__columna" aria-label={titulo}>
+            <h2 class="pie__titulo">{titulo}</h2>
+            <ul class="lista-limpia" role="list">
+              {enlaces.map(({ texto, href }) => (
+                <li>
+                  <a href={href}>{texto}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+
+    <div class="pie__legal">
+      <p>
+        <strong>Este sitio es un prototipo.</strong> Se elaboró como propuesta de rediseño en el
+        marco de un servicio social. Los trámites, plazos y datos de contacto son ejemplos
+        ilustrativos y <strong>no tienen validez oficial</strong>.
+      </p>
+      <p class="pie__derechos">
+        Hecho en la UNAM &middot; {anio}. Todos los derechos reservados.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    margin-block-start: var(--espacio-seccion);
+    padding-block: var(--espacio-seccion);
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    border-block-start: var(--p-borde-grueso) solid var(--color-acento-linea);
+  }
+
+  .pie__columnas {
+    display: grid;
+    gap: var(--p-espacio-7);
+    grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  }
+
+  .pie__sigla {
+    margin: 0;
+    font-size: var(--tipo-titulo-2-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    line-height: var(--p-tipografia-interlinea-apretada);
+  }
+
+  .pie__nombre {
+    margin: 0 0 var(--p-espacio-4);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .pie__direccion,
+  .pie__contacto {
+    margin: 0 0 var(--p-espacio-2);
+    color: var(--color-texto-tenue-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .pie__contacto {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+  }
+
+  .pie__titulo {
+    margin: 0 0 var(--p-espacio-3);
+    font-size: var(--tipo-titulo-4-tamano);
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .pie__columna ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-2);
+    margin: 0;
+  }
+
+  .pie a {
+    color: var(--color-texto-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+    /* Sobre fondo de marca el subrayado es la única señal de enlace que
+       sobrevive: aquí no hay diferencia de color contra el texto normal. */
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .pie a:hover {
+    color: var(--color-acento-fondo);
+    text-decoration-thickness: 2px;
+  }
+
+  .pie__legal {
+    margin-block-start: var(--p-espacio-7);
+    padding-block-start: var(--p-espacio-5);
+    border-block-start: var(--p-borde-fino) solid rgb(255 255 255 / 0.2); /* tokens-ok: separador translúcido sobre la marca. */
+    color: var(--color-texto-tenue-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .pie__legal p {
+    max-width: var(--contenedor-ancho-texto);
+    margin: 0 0 var(--p-espacio-3);
+  }
+
+  .pie__legal strong {
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .pie__derechos {
+    margin-block-end: 0;
+  }
+</style>

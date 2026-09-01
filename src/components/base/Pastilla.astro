@@ -1,0 +1,59 @@
+---
+/**
+ * Etiqueta compacta para metadatos: categoría, modalidad, duración.
+ *
+ * Es puramente informativa — nunca interactiva. Si necesitas un filtro
+ * clicable, usa un <button> o un <a> real, no esto con un onclick encima.
+ */
+import Icono from './Icono.astro';
+import type { NombreIcono } from './iconos';
+
+interface Props {
+  icono?: NombreIcono;
+  /** Contexto que el lector de pantalla necesita y el diseño no muestra. */
+  contexto?: string;
+  tono?: 'neutro' | 'marca' | 'acento';
+  class?: string;
+}
+
+const { icono, contexto, tono = 'neutro', class: clase } = Astro.props;
+---
+
+<span class:list={['pastilla', `pastilla--${tono}`, clase]}>
+  {icono && <Icono nombre={icono} tamano={0.95} />}
+  {contexto && <span class="visualmente-oculto">{contexto}: </span>}
+  <slot />
+</span>
+
+<style>
+  .pastilla {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-1);
+
+    padding: var(--p-espacio-1) var(--p-espacio-3);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-pastilla);
+
+    font-size: var(--tipo-menudo-tamano);
+    line-height: var(--p-tipografia-interlinea-apretada);
+    white-space: nowrap;
+  }
+
+  .pastilla--neutro {
+    background-color: var(--color-superficie-sutil);
+    color: var(--color-texto-secundario);
+  }
+
+  .pastilla--marca {
+    background-color: var(--color-superficie-marca-sutil);
+    border-color: var(--color-accion-secundaria-borde);
+    color: var(--color-accion-secundaria-texto);
+  }
+
+  .pastilla--acento {
+    background-color: var(--color-acento-fondo);
+    border-color: var(--color-acento-linea);
+    color: var(--color-acento-texto);
+  }
+</style>

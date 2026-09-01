@@ -1,0 +1,501 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Migas from '../../components/layout/Migas.astro';
+import Pastilla from '../../components/base/Pastilla.astro';
+import Icono from '../../components/base/Icono.astro';
+import TarjetaTramite from '../../components/base/TarjetaTramite.astro';
+import {
+  ETIQUETAS_MODALIDAD,
+  aIndexado,
+  etiquetaRol,
+  fechaISO,
+  formatearFecha,
+  obtenerTramites,
+  rutaTramite,
+} from '../../lib/tramites';
+
+export async function getStaticPaths() {
+  const tramites = await getCollection('tramites');
+  return tramites.map((tramite) => ({
+    params: { slug: tramite.id },
+    props: { tramite },
+  }));
+}
+
+const { tramite } = Astro.props;
+const datos = tramite.data;
+
+/* `headings` sale del Markdown ya parseado: el índice se mantiene solo cuando
+   alguien agrega o quita una sección del contenido. */
+const { Content, headings } = await render(tramite);
+const secciones = headings.filter((h) => h.depth === 2);
+
+/* `relacionados` está validado por el esquema, así que estos getEntry no
+   pueden devolver undefined por un slug mal escrito: el build habría fallado. */
+const relacionados = (
+  await Promise.all(datos.relacionados.map((ref) => getEntry(ref)))
+).filter((entrada) => entrada !== undefined);
+
+const todos = await obtenerTramites();
+const posicion = todos.findIndex((t) => t.id === tramite.id);
+---
+
+<BaseLayout titulo={datos.titulo} descripcion={datos.resumen}>
+  <div class="contenedor">
+    <Migas
+      migas={[
+        { texto: 'Trámites', href: '/tramites/' },
+        { texto: datos.titulo },
+      ]}
+    />
+  </div>
+
+  <article class="tramite">
+    <header class="tramite__encabezado">
+      <div class="contenedor">
+        <p class="tramite__categoria">{aIndexado(tramite).categoriaEtiqueta}</p>
+        <h1 class="tramite__titulo">{datos.titulo}</h1>
+        <p class="tramite__resumen">{datos.resumen}</p>
+
+        <ul class="tramite__meta lista-limpia" role="list">
+          <li>
+            <Pastilla
+              icono={datos.modalidad === 'presencial' ? 'ubicacion' : 'monitor'}
+              contexto="Modalidad"
+              tono="marca"
+            >
+              {ETIQUETAS_MODALIDAD[datos.modalidad]}
+            </Pastilla>
+          </li>
+          <li>
+            <Pastilla icono="reloj" contexto="Tiempo de resolución" tono="marca">
+              {datos.duracion}
+            </Pastilla>
+          </li>
+          <li>
+            <Pastilla icono="documento" contexto="Costo" tono="marca">{datos.costo}</Pastilla>
+          </li>
+        </ul>
+      </div>
+    </header>
+
+    <div class="contenedor tramite__cuerpo">
+      <div class="tramite__principal">
+        {
+          secciones.length > 2 && (
+            <nav class="indice" aria-labelledby="indice-titulo">
+              <h2 class="indice__titulo" id="indice-titulo">
+                En esta página
+              </h2>
+              <ol class="indice__lista lista-limpia" role="list">
+                {secciones.map((seccion) => (
+                  <li>
+                    <a href={`#${seccion.slug}`}>{seccion.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+
+        <div class="prosa">
+          <Content />
+        </div>
+
+        <p class="tramite__actualizado">
+          Última actualización:
+          <time datetime={fechaISO(datos.actualizado)}>{formatearFecha(datos.actualizado)}</time>
+        </p>
+      </div>
+
+      <aside class="tramite__lateral" aria-labelledby="datos-titulo">
+        <div class="ficha">
+          <h2 class="ficha__titulo" id="datos-titulo">Datos del trámite</h2>
+
+          <dl class="ficha__lista">
+            <dt>Dirigido a</dt>
+            <dd>
+              <ul class="lista-limpia" role="list">
+                {datos.roles.map((rol) => <li>{etiquetaRol(rol)}</li>)}
+              </ul>
+            </dd>
+
+            <dt>Área responsable</dt>
+            <dd>{datos.contacto.area}</dd>
+
+            <dt>Correo</dt>
+            <dd>
+              <a href={`mailto:${datos.contacto.correo}`}>
+                <Icono nombre="correo" tamano={1} />
+                {datos.contacto.correo}
+              </a>
+            </dd>
+
+            {
+              datos.contacto.telefono && (
+                <>
+                  <dt>Teléfono</dt>
+                  <dd>
+                    <Icono nombre="telefono" tamano={1} />
+                    {datos.contacto.telefono}
+                  </dd>
+                </>
+              )
+            }
+
+            {
+              datos.contacto.horario && (
+                <>
+                  <dt>Horario</dt>
+                  <dd>{datos.contacto.horario}</dd>
+                </>
+              )
+            }
+          </dl>
+
+          <p class="ficha__aviso">
+            <Icono nombre="aviso" tamano={1} />
+            <span>
+              Datos de ejemplo. Este prototipo no sustituye la información oficial de la DGPE.
+            </span>
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    {
+      relacionados.length > 0 && (
+        <section class="seccion seccion--sutil" aria-labelledby="relacionados-titulo">
+          <div class="contenedor">
+            <h2 id="relacionados-titulo">Trámites relacionados</h2>
+            <ul class="rejilla lista-limpia" role="list" style="--rejilla-min: 19rem;">
+              {relacionados.map((entrada) => (
+                <li>
+                  <TarjetaTramite tramite={aIndexado(entrada)} nivel={3} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    <nav class="contenedor paginacion" aria-label="Otros trámites">
+      {
+        posicion > 0 && todos[posicion - 1] && (
+          <a class="paginacion__enlace" href={rutaTramite(todos[posicion - 1]!.id)} rel="prev">
+            <span class="paginacion__etiqueta">Anterior</span>
+            <span class="paginacion__titulo">{todos[posicion - 1]!.data.titulo}</span>
+          </a>
+        )
+      }
+      {
+        posicion < todos.length - 1 && todos[posicion + 1] && (
+          <a
+            class="paginacion__enlace paginacion__enlace--siguiente"
+            href={rutaTramite(todos[posicion + 1]!.id)}
+            rel="next"
+          >
+            <span class="paginacion__etiqueta">Siguiente</span>
+            <span class="paginacion__titulo">{todos[posicion + 1]!.data.titulo}</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  /* --- Encabezado --------------------------------------------------- */
+
+  .tramite__encabezado {
+    padding-block: var(--p-espacio-7);
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    border-block-end: var(--p-borde-grueso) solid var(--color-acento-linea);
+  }
+
+  .tramite__categoria {
+    margin: 0 0 var(--p-espacio-2);
+    color: var(--color-acento-fondo);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .tramite__titulo {
+    margin: 0;
+    max-width: var(--contenedor-ancho-texto);
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .tramite__resumen {
+    margin: var(--p-espacio-4) 0 0;
+    max-width: var(--contenedor-ancho-texto);
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-tenue-sobre-marca);
+  }
+
+  .tramite__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--p-espacio-2);
+    margin: var(--p-espacio-5) 0 0;
+  }
+
+  /* --- Cuerpo a dos columnas ---------------------------------------- */
+
+  .tramite__cuerpo {
+    display: grid;
+    gap: var(--p-espacio-7);
+    padding-block: var(--espacio-seccion);
+  }
+
+  /*
+   * Móvil primero: una columna. La ficha lateral va DESPUÉS del contenido en
+   * el DOM, así que en móvil aparece al final — que es el orden correcto de
+   * lectura. No se reordena con CSS: el orden visual y el de tabulación
+   * coinciden siempre.
+   */
+  @media (min-width: 60rem) {
+    .tramite__cuerpo {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      align-items: start;
+    }
+
+    .tramite__lateral {
+      position: sticky;
+      inset-block-start: var(--p-espacio-4);
+    }
+  }
+
+  .tramite__principal {
+    min-width: 0;
+    max-width: var(--contenedor-ancho-texto);
+  }
+
+  .tramite__actualizado {
+    margin-block-start: var(--p-espacio-7);
+    padding-block-start: var(--p-espacio-4);
+    border-block-start: var(--p-borde-fino) solid var(--color-borde-sutil);
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  /* --- Índice de la página ------------------------------------------ */
+
+  .indice {
+    margin-block-end: var(--p-espacio-6);
+    padding: var(--p-espacio-4) var(--p-espacio-5);
+    background-color: var(--color-superficie-sutil);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea);
+    border-radius: var(--p-radio-sm);
+  }
+
+  .indice__titulo {
+    margin: 0 0 var(--p-espacio-2);
+    font-size: var(--tipo-titulo-4-tamano);
+  }
+
+  .indice__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+    margin: 0;
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  /* --- Ficha lateral ------------------------------------------------ */
+
+  .ficha {
+    padding: var(--p-espacio-5);
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+    box-shadow: var(--sombra-tarjeta);
+  }
+
+  .ficha__titulo {
+    margin: 0 0 var(--p-espacio-4);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .ficha__lista {
+    margin: 0;
+    display: grid;
+    gap: var(--p-espacio-1);
+  }
+
+  .ficha__lista dt {
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .ficha__lista dd {
+    margin: 0 0 var(--p-espacio-4);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .ficha__lista dd:last-of-type {
+    margin-block-end: 0;
+  }
+
+  .ficha__lista a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+    word-break: break-word;
+  }
+
+  .ficha__aviso {
+    display: flex;
+    align-items: start;
+    gap: var(--p-espacio-2);
+
+    margin: var(--p-espacio-5) 0 0;
+    padding: var(--p-espacio-3);
+
+    background-color: var(--color-alerta-fondo);
+    border: var(--p-borde-fino) solid var(--color-alerta-borde);
+    border-radius: var(--p-radio-sm);
+    color: var(--color-alerta-texto);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  /* --- Paginación --------------------------------------------------- */
+
+  .paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--p-espacio-4);
+    padding-block: var(--p-espacio-7);
+  }
+
+  .paginacion__enlace {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+    flex: 1 1 15rem;
+
+    padding: var(--p-espacio-4);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+    text-decoration: none;
+  }
+
+  .paginacion__enlace:hover {
+    border-color: var(--color-accion-secundaria-borde);
+    background-color: var(--color-superficie-sutil);
+  }
+
+  .paginacion__enlace--siguiente {
+    text-align: end;
+    margin-inline-start: auto;
+  }
+
+  .paginacion__etiqueta {
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .paginacion__titulo {
+    color: var(--color-texto-enlace);
+    font-weight: var(--p-tipografia-peso-semi);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+</style>
+
+<style is:global>
+  /*
+   * Estilos del Markdown renderizado. Global porque el HTML lo genera el
+   * compilador de Markdown y no lleva los atributos de scope de Astro.
+   * Acotado a .prosa para no filtrarse al resto del sitio.
+   */
+  .prosa {
+    max-width: var(--contenedor-ancho-texto);
+  }
+
+  .prosa > * + * {
+    margin-block-start: var(--p-espacio-4);
+  }
+
+  .prosa h2 {
+    margin-block-start: var(--p-espacio-7);
+    padding-block-end: var(--p-espacio-2);
+    border-block-end: var(--p-borde-fino) solid var(--color-borde-sutil);
+    font-size: var(--tipo-titulo-2-tamano);
+  }
+
+  .prosa h3 {
+    margin-block-start: var(--p-espacio-6);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .prosa ul,
+  .prosa ol {
+    padding-inline-start: var(--p-espacio-5);
+    display: grid;
+    gap: var(--p-espacio-2);
+  }
+
+  .prosa li::marker {
+    color: var(--color-texto-tenue);
+  }
+
+  .prosa ol > li::marker {
+    font-weight: var(--p-tipografia-peso-negrita);
+    color: var(--color-accion-primaria-fondo);
+  }
+
+  /*
+   * Las tablas se desbordan en 375 px. En vez de encogerlas hasta lo ilegible,
+   * se les da su propio scroll horizontal con role="region" y tabindex para
+   * que también se pueda desplazar con teclado (WCAG 2.1.1).
+   */
+  .prosa .tabla-envoltura {
+    overflow-x: auto;
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--p-radio-sm);
+  }
+
+  .prosa table {
+    min-width: 30rem;
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .prosa thead th {
+    background-color: var(--color-superficie-sutil);
+  }
+
+  .prosa tbody tr:last-child td {
+    border-block-end: none;
+  }
+</style>
+
+<script>
+  /*
+   * Envuelve cada tabla del contenido en un contenedor desplazable y enfocable.
+   * Se hace aquí y no en el Markdown para que quien escribe contenido no tenga
+   * que acordarse de ponerlo: escribe una tabla normal y el scroll accesible
+   * aparece solo.
+   */
+  for (const tabla of document.querySelectorAll('.prosa table')) {
+    if (tabla.parentElement?.classList.contains('tabla-envoltura')) continue;
+
+    const envoltura = document.createElement('div');
+    envoltura.className = 'tabla-envoltura';
+    envoltura.setAttribute('role', 'region');
+    envoltura.setAttribute('tabindex', '0');
+
+    /* La región necesita nombre accesible; se toma del <h2> o <h3> anterior. */
+    const titulo = tabla.previousElementSibling?.textContent?.trim();
+    envoltura.setAttribute('aria-label', titulo ? `Tabla: ${titulo}` : 'Tabla desplazable');
+
+    tabla.parentNode?.insertBefore(envoltura, tabla);
+    envoltura.appendChild(tabla);
+  }
+</script>

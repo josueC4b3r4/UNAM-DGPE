@@ -1,0 +1,81 @@
+---
+import PaginaSimple from '../layouts/PaginaSimple.astro';
+---
+
+<PaginaSimple
+  titulo="Aviso de privacidad"
+  descripcion="Qué datos recopila este prototipo y qué no. Versión simplificada, en lenguaje claro."
+  entradilla="Versión corta y honesta: este prototipo no recopila datos personales."
+>
+  <div class="destacado">
+    <p>
+      <strong>Este sitio es un prototipo académico.</strong> No tiene servidor, no tiene formularios
+      funcionales y no envía información a ningún lado. Este aviso existe para demostrar cómo debería
+      presentarse uno en el sitio real.
+    </p>
+  </div>
+
+  <h2>Qué datos se guardan</h2>
+
+  <p>Únicamente dos preferencias, y solo en tu propio navegador:</p>
+
+  <ul>
+    <li><strong>Tema visual</strong> — si elegiste claro u oscuro.</li>
+    <li><strong>Tamaño de texto</strong> — el nivel que seleccionaste en la barra superior.</li>
+  </ul>
+
+  <p>
+    Se guardan con <code>localStorage</code>, que es almacenamiento local del navegador. No salen de
+    tu dispositivo, no se envían a ningún servidor y no identifican a nadie. Puedes borrarlas
+    limpiando los datos del sitio desde tu navegador.
+  </p>
+
+  <h2>Qué NO hace este sitio</h2>
+
+  <ul>
+    <li>No usa cookies de análisis ni de publicidad.</li>
+    <li>No integra rastreadores de terceros.</li>
+    <li>No carga recursos externos: la tipografía se sirve desde este mismo sitio.</li>
+    <li>No registra tu dirección IP ni tu navegación.</li>
+    <li>No tiene formularios que envíen datos.</li>
+  </ul>
+
+  <h2>Cómo debería verse en el sitio real</h2>
+
+  <p>
+    El sitio productivo de la DGPE sí trata datos personales: número de trabajador, CURP, RFC,
+    domicilio, datos de familiares y documentos de identidad. Un aviso de privacidad para ese
+    contexto tendría que incluir, además de lo anterior:
+  </p>
+
+  <ul>
+    <li>La identidad y el domicilio del responsable del tratamiento.</li>
+    <li>Las finalidades del tratamiento, separando las necesarias de las adicionales.</li>
+    <li>Los datos sensibles que se tratan y el consentimiento expreso cuando proceda.</li>
+    <li>Las transferencias a terceros —el ISSSTE, por ejemplo— y su fundamento.</li>
+    <li>
+      El procedimiento para ejercer los derechos de acceso, rectificación, cancelación y oposición.
+    </li>
+    <li>Los medios para conocer los cambios al aviso.</li>
+  </ul>
+
+  <p>
+    Una recomendación que retomamos del sitio de la Facultad de Psicología: publicar el aviso
+    <strong>completo y también en versión corta</strong>, con lenguaje claro. La versión larga
+    cumple la obligación legal; la corta es la que la gente sí lee.
+  </p>
+</PaginaSimple>
+
+<style>
+  .destacado {
+    padding: var(--p-espacio-5);
+    margin-block-end: var(--p-espacio-6);
+    background-color: var(--color-superficie-marca-sutil);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea);
+    border-radius: var(--p-radio-sm);
+  }
+
+  .destacado p {
+    margin: 0;
+  }
+</style>

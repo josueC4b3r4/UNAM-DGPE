@@ -1,0 +1,132 @@
+---
+/**
+ * Tarjeta de trámite para listados y resultados.
+ *
+ * Decisiones de accesibilidad, porque las tarjetas clicables se hacen mal
+ * muchísimas veces:
+ *
+ * 1. El enlace envuelve SOLO el título. Su ::after se estira sobre toda la
+ *    tarjeta para que el área clicable sea grande. Alternativa descartada:
+ *    envolver toda la tarjeta en un <a> — el lector de pantalla leería título,
+ *    resumen, categoría y duración como un solo nombre de enlace kilométrico.
+ *
+ * 2. El anillo de foco se dibuja en la TARJETA (vía :has), no en el texto del
+ *    título. Con teclado se ve exactamente el área que se va a activar.
+ *
+ * 3. El nivel del <h> es un prop. Una tarjeta dentro de una sección con <h2>
+ *    necesita <h3>; hardcodear el nivel rompe la jerarquía de encabezados.
+ */
+import Pastilla from './Pastilla.astro';
+import { ETIQUETAS_MODALIDAD, rutaTramite, type TramiteIndexado } from '../../lib/tramites';
+
+interface Props {
+  tramite: TramiteIndexado;
+  /** Nivel del encabezado, para no romper la jerarquía de la página. */
+  nivel?: 2 | 3 | 4;
+  class?: string;
+}
+
+const { tramite, nivel = 3, class: clase } = Astro.props;
+const Titulo = `h${nivel}` as 'h2' | 'h3' | 'h4';
+---
+
+<article class:list={['tarjeta', clase]}>
+  <Titulo class="tarjeta__titulo">
+    <a class="tarjeta__enlace" href={rutaTramite(tramite.slug)}>{tramite.titulo}</a>
+  </Titulo>
+
+  <p class="tarjeta__resumen">{tramite.resumen}</p>
+
+  <div class="tarjeta__meta">
+    <Pastilla contexto="Categoría">{tramite.categoriaEtiqueta}</Pastilla>
+    <Pastilla
+      icono={tramite.modalidad === 'presencial' ? 'ubicacion' : 'monitor'}
+      contexto="Modalidad"
+    >
+      {ETIQUETAS_MODALIDAD[tramite.modalidad]}
+    </Pastilla>
+    <Pastilla icono="reloj" contexto="Tiempo de resolución">{tramite.duracion}</Pastilla>
+  </div>
+</article>
+
+<style>
+  .tarjeta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-3);
+
+    height: 100%;
+    padding: var(--p-espacio-5);
+
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+    box-shadow: var(--sombra-tarjeta);
+
+    transition:
+      border-color var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      box-shadow var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      transform var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .tarjeta:hover {
+    border-color: var(--color-accion-secundaria-borde);
+    box-shadow: var(--sombra-elevada);
+  }
+
+  /* El desplazamiento en hover solo para quien no pidió menos movimiento. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tarjeta:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  /* Anillo de foco sobre la tarjeta completa, no sobre el texto del título. */
+  .tarjeta:has(.tarjeta__enlace:focus-visible) {
+    outline: var(--foco-grosor) solid var(--color-borde-foco);
+    outline-offset: var(--foco-desplazamiento);
+  }
+
+  .tarjeta__titulo {
+    font-size: var(--tipo-titulo-4-tamano);
+    margin: 0;
+  }
+
+  .tarjeta__enlace {
+    color: var(--color-texto-enlace);
+    text-decoration: none;
+  }
+
+  .tarjeta__enlace:focus-visible {
+    /* El anillo lo dibuja la tarjeta; aquí sería un doble contorno. */
+    outline: none;
+  }
+
+  /* Extiende el área clicable a toda la tarjeta. */
+  .tarjeta__enlace::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .tarjeta:hover .tarjeta__enlace {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .tarjeta__resumen {
+    margin: 0;
+    color: var(--color-texto-secundario);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .tarjeta__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--p-espacio-2);
+    margin-block-start: auto;
+    padding-block-start: var(--p-espacio-2);
+  }
+</style>

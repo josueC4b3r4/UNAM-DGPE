@@ -1,0 +1,255 @@
+---
+/**
+ * Buscador de trámites con autocompletado.
+ *
+ * Es un <form> real que hace GET a /tramites/. Sin JavaScript sigue llevando
+ * al listado completo con la consulta aplicada; con JavaScript, además sugiere
+ * mientras escribes. La mejora es progresiva, no un requisito.
+ *
+ * El índice se serializa en un <script type="application/json"> en vez de
+ * incrustarlo en el bundle: así el navegador lo parsea como datos y no como
+ * código, y se puede cachear aparte.
+ *
+ * LIMITACIÓN: usa identificadores fijos, así que solo puede haber UNA
+ * instancia por página (hoy: home y 404). Dos instancias generarían IDs
+ * duplicados y romperían las relaciones ARIA. Si alguna vez se necesitan dos,
+ * hay que derivar los IDs de un prop en vez de fijarlos aquí.
+ */
+import Icono from '../base/Icono.astro';
+import type { TramiteIndexado } from '../../lib/tramites';
+
+interface Props {
+  indice: TramiteIndexado[];
+  /** Consulta inicial, para rellenar el campo al llegar desde otra página. */
+  valorInicial?: string;
+  autofocus?: boolean;
+}
+
+const { indice, valorInicial = '', autofocus = false } = Astro.props;
+
+const ID_CAMPO = 'dgpe-buscador-campo';
+const ID_LISTA = 'dgpe-buscador-lista';
+const ID_AYUDA = 'dgpe-buscador-ayuda';
+const ID_INDICE = 'dgpe-buscador-indice';
+---
+
+<search class="buscador">
+  <form class="buscador__form" action="/tramites/" method="get" role="search">
+    <label class="buscador__etiqueta" for={ID_CAMPO}> ¿Qué trámite necesitas? </label>
+
+    <p class="buscador__ayuda" id={ID_AYUDA}>
+      Escríbelo como lo conozcas. Buscar <em>&laquo;carta laboral&raquo;</em> encuentra
+      &laquo;Constancia de servicios&raquo;.
+    </p>
+
+    <div class="buscador__campo">
+      <span class="buscador__lupa"><Icono nombre="lupa" /></span>
+
+      <input
+        type="text"
+        id={ID_CAMPO}
+        name="q"
+        class="buscador__input"
+        value={valorInicial}
+        placeholder="Constancia, sabático, ISSSTE…"
+        role="combobox"
+        aria-expanded="false"
+        aria-controls={ID_LISTA}
+        aria-autocomplete="list"
+        aria-describedby={ID_AYUDA}
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        autofocus={autofocus || undefined}
+      />
+
+      <button class="buscador__enviar" type="submit">Buscar</button>
+    </div>
+
+    <ul id={ID_LISTA} class="buscador__lista" role="listbox" aria-label="Trámites sugeridos" hidden>
+    </ul>
+
+    <!--
+      Región viva: anuncia el número de resultados a quien usa lector de
+      pantalla. `role="status"` es educado — espera a que termine de hablar en
+      vez de interrumpir en cada tecla.
+    -->
+    <p class="visualmente-oculto" id="dgpe-buscador-estado" role="status" aria-live="polite"></p>
+  </form>
+</search>
+
+<script id={ID_INDICE} type="application/json" set:html={JSON.stringify(indice)} is:inline
+></script>
+
+<script>
+  import { iniciarBuscador, leerIndice } from '../../scripts/buscador';
+  /* Desde './rutas', NO desde './tramites': ese módulo importa astro:content
+     y acabaría en el bundle del navegador. */
+  import { rutaTramite } from '../../lib/rutas';
+
+  const formulario = document.querySelector<HTMLFormElement>('.buscador__form');
+  const campo = document.getElementById('dgpe-buscador-campo') as HTMLInputElement | null;
+  const lista = document.getElementById('dgpe-buscador-lista');
+  const estado = document.getElementById('dgpe-buscador-estado');
+
+  if (formulario && campo && lista && estado) {
+    iniciarBuscador({
+      formulario,
+      campo,
+      lista,
+      estado,
+      indice: leerIndice('dgpe-buscador-indice'),
+      ruta: rutaTramite,
+    });
+  }
+</script>
+
+<style>
+  .buscador {
+    display: block;
+    width: 100%;
+    max-width: 44rem;
+  }
+
+  .buscador__form {
+    position: relative;
+  }
+
+  .buscador__etiqueta {
+    display: block;
+    margin-block-end: var(--p-espacio-1);
+    font-size: var(--tipo-titulo-3-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    color: inherit;
+  }
+
+  .buscador__ayuda {
+    margin: 0 0 var(--p-espacio-3);
+    font-size: var(--tipo-menudo-tamano);
+    color: inherit;
+    opacity: 0.85;
+  }
+
+  /* --- Campo -------------------------------------------------------- */
+
+  .buscador__campo {
+    display: flex;
+    align-items: stretch;
+    gap: var(--p-espacio-2);
+
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-medio) solid var(--color-borde-fuerte);
+    border-radius: var(--radio-control);
+    padding: var(--p-espacio-2);
+  }
+
+  /* El anillo de foco se dibuja alrededor del campo COMPLETO, no del input
+     desnudo, para que se vea como una sola unidad. */
+  .buscador__campo:focus-within {
+    outline: var(--foco-grosor) solid var(--color-borde-foco);
+    outline-offset: var(--foco-desplazamiento);
+    border-color: var(--color-accion-primaria-fondo);
+  }
+
+  .buscador__lupa {
+    display: grid;
+    place-items: center;
+    padding-inline: var(--p-espacio-2);
+    color: var(--color-texto-tenue);
+  }
+
+  .buscador__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--objetivo-tactil-min);
+
+    border: none;
+    background: transparent;
+    color: var(--color-texto-principal);
+    font-size: var(--tipo-cuerpo-grande-tamano);
+  }
+
+  .buscador__input:focus {
+    /* El contorno lo pinta el contenedor. */
+    outline: none;
+  }
+
+  .buscador__input::placeholder {
+    color: var(--color-texto-tenue);
+    opacity: 1;
+  }
+
+  .buscador__enviar {
+    min-height: var(--objetivo-tactil-min);
+    padding-inline: var(--p-espacio-5);
+
+    background-color: var(--color-accion-primaria-fondo);
+    color: var(--color-accion-primaria-texto);
+    border-radius: var(--radio-control);
+    font-weight: var(--p-tipografia-peso-semi);
+
+    transition: background-color var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .buscador__enviar:hover {
+    background-color: var(--color-accion-primaria-fondo-hover);
+  }
+
+  /* --- Lista de sugerencias ----------------------------------------- */
+
+  .buscador__lista {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: calc(100% + var(--p-espacio-1));
+    z-index: var(--capa-menu);
+
+    max-height: 24rem;
+    overflow-y: auto;
+
+    margin: 0;
+    padding: var(--p-espacio-1);
+    list-style: none;
+
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-medio);
+    border-radius: var(--radio-control);
+    box-shadow: var(--sombra-elevada);
+  }
+
+  .buscador__opcion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+
+    padding: var(--p-espacio-3);
+    border-radius: var(--radio-control);
+    cursor: pointer;
+  }
+
+  /*
+   * La opción activa se distingue por fondo Y por una barra lateral. Con solo
+   * un cambio de color de fondo, en modo de alto contraste desaparecería.
+   */
+  .buscador__opcion[aria-selected='true'] {
+    background-color: var(--color-superficie-marca-sutil);
+    box-shadow: inset 3px 0 0 0 var(--color-accion-primaria-fondo);
+  }
+
+  .buscador__opcion-titulo {
+    color: var(--color-texto-principal);
+    font-weight: var(--p-tipografia-peso-medio);
+  }
+
+  .buscador__opcion-meta {
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  @media (forced-colors: active) {
+    .buscador__opcion[aria-selected='true'] {
+      /* tokens-ok: palabras clave del sistema en modo alto contraste. */
+      background-color: Highlight;
+      color: HighlightText;
+    }
+  }
+</style>

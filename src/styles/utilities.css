@@ -1,0 +1,120 @@
+/*
+ * Primitivas de layout reutilizables. Son POCAS a propósito: esto no es un
+ * framework de utilidades tipo Tailwind. Cualquier estilo específico de un
+ * componente vive en el <style> de ese componente .astro.
+ */
+
+/* --------------------------------------------------------------------- */
+/* Contenedores                                                           */
+/* --------------------------------------------------------------------- */
+
+.contenedor {
+  width: 100%;
+  max-width: var(--contenedor-ancho);
+  margin-inline: auto;
+  padding-inline: var(--contenedor-margen);
+}
+
+/* Para bloques de prosa: limita la medida a ~70 caracteres (WCAG 1.4.8). */
+.contenedor--texto {
+  max-width: var(--contenedor-ancho-texto);
+}
+
+.seccion {
+  padding-block: var(--espacio-seccion);
+}
+
+.seccion--sutil {
+  background-color: var(--color-superficie-sutil);
+}
+
+/* --------------------------------------------------------------------- */
+/* Ritmo vertical                                                         */
+/* --------------------------------------------------------------------- */
+
+/*
+ * "Lobotomized owl": separa hijos consecutivos sin tener que darle margen a
+ * cada uno. El espacio se puede sobrescribir por instancia con --flujo-espacio.
+ */
+.flujo > * + * {
+  margin-block-start: var(--flujo-espacio, var(--espacio-componente));
+}
+
+.flujo--amplio {
+  --flujo-espacio: var(--espacio-bloque);
+}
+
+.flujo--compacto {
+  --flujo-espacio: var(--espacio-elemento);
+}
+
+/* --------------------------------------------------------------------- */
+/* Rejilla responsiva sin media queries                                    */
+/* --------------------------------------------------------------------- */
+
+/*
+ * `auto-fit` + `minmax` reacomoda las columnas solo. En 375 px cae a una
+ * columna sin necesidad de un breakpoint.
+ * min() evita el desbordamiento cuando el viewport es más angosto que --rejilla-min.
+ */
+.rejilla {
+  display: grid;
+  gap: var(--rejilla-espacio, var(--espacio-componente));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--rejilla-min, 16rem), 100%), 1fr)
+  );
+}
+
+/* --------------------------------------------------------------------- */
+/* Flex                                                                   */
+/* --------------------------------------------------------------------- */
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fila-espacio, var(--espacio-elemento));
+}
+
+.fila--separada {
+  justify-content: space-between;
+}
+
+/* --------------------------------------------------------------------- */
+/* Accesibilidad                                                          */
+/* --------------------------------------------------------------------- */
+
+/*
+ * Oculta visualmente pero lo mantiene en el árbol de accesibilidad.
+ * Se usa para etiquetas de contexto que un vidente infiere del diseño pero
+ * un lector de pantalla no.
+ *
+ * No usar `display:none` ni `visibility:hidden`: eso lo esconde TAMBIÉN del
+ * lector de pantalla, que es justo lo contrario de lo que se busca.
+ */
+.visualmente-oculto:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+
+/* Área mínima de toque para cualquier control interactivo pequeño. */
+.objetivo-tactil {
+  min-width: var(--objetivo-tactil-min);
+  min-height: var(--objetivo-tactil-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Oculta a todos por igual — para SVG puramente decorativo se usa aria-hidden. */
+.oculto {
+  display: none !important;
+}

@@ -1,0 +1,265 @@
+---
+/**
+ * Hero con video de identidad.
+ *
+ * El asset lo entrega el perfil de diseño. Este componente ya está listo para
+ * recibirlo: basta con dejar los archivos en public/media/hero/ y el video
+ * aparece solo — no hay que tocar código.
+ *
+ *   public/media/hero/hero.webm   (preferido: pesa menos)
+ *   public/media/hero/hero.mp4    (respaldo para Safari viejo)
+ *   public/media/hero/poster.jpg  (imagen fija; se ve mientras carga y
+ *                                  sustituye al video si no hay video)
+ *
+ * Mientras no exista ningún archivo, se dibuja un degradado con los colores de
+ * la marca. La página nunca se ve rota ni "en construcción".
+ *
+ * Accesibilidad:
+ * - El video es DECORATIVO: aria-hidden y sin pista de audio. No transmite
+ *   información que no esté ya en el texto, así que no necesita subtítulos ni
+ *   audiodescripción. Si el asset llegara a contener texto o narración, habría
+ *   que agregar <track> y dejar de marcarlo como decorativo.
+ * - Con prefers-reduced-motion: reduce NO se reproduce. Se queda el póster.
+ * - Botón de pausa siempre disponible (WCAG 2.2.2): cualquier movimiento
+ *   automático de más de 5 segundos tiene que poder detenerse.
+ */
+import { existsSync } from 'node:fs';
+import Icono from '../base/Icono.astro';
+
+interface Props {
+  /** Encabezado principal de la página. Es el <h1>. */
+  titulo: string;
+  entradilla: string;
+}
+
+const { titulo, entradilla } = Astro.props;
+
+/* Detección en tiempo de build: el archivo existe o no, sin configuración. */
+const RUTA_PUBLICA = 'public/media/hero';
+const webm = existsSync(`${RUTA_PUBLICA}/hero.webm`) ? '/media/hero/hero.webm' : null;
+const mp4 = existsSync(`${RUTA_PUBLICA}/hero.mp4`) ? '/media/hero/hero.mp4' : null;
+const poster = existsSync(`${RUTA_PUBLICA}/poster.jpg`) ? '/media/hero/poster.jpg' : null;
+
+const hayVideo = Boolean(webm || mp4);
+---
+
+<section class="hero" data-tiene-video={hayVideo ? 'true' : undefined}>
+  <div class="hero__fondo" aria-hidden="true">
+    {
+      hayVideo ? (
+        <video
+          id="dgpe-hero-video"
+          class="hero__video"
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          poster={poster ?? undefined}
+          tabindex="-1"
+        >
+          {webm && <source src={webm} type="video/webm" />}
+          {mp4 && <source src={mp4} type="video/mp4" />}
+        </video>
+      ) : poster ? (
+        <img class="hero__video" src={poster} alt="" width="1920" height="1080" />
+      ) : null
+    }
+    <div class="hero__velo"></div>
+  </div>
+
+  <div class="contenedor hero__contenido">
+    <div class="hero__texto">
+      <p class="hero__antetitulo">Dirección General de Personal</p>
+      <h1 class="hero__titulo">{titulo}</h1>
+      <p class="hero__entradilla">{entradilla}</p>
+    </div>
+
+    <slot />
+  </div>
+
+  {
+    hayVideo && (
+      <button
+        id="dgpe-hero-control"
+        class="hero__control"
+        type="button"
+        data-estado="reproduciendo"
+        hidden
+      >
+        <span class="hero__control-icono hero__control-icono--pausa">
+          <Icono nombre="pausa" tamano={1} />
+        </span>
+        <span class="hero__control-icono hero__control-icono--reproducir">
+          <Icono nombre="reproducir" tamano={1} />
+        </span>
+        <span data-etiqueta>Pausar animación</span>
+      </button>
+    )
+  }
+</section>
+
+<script>
+  const video = document.getElementById('dgpe-hero-video') as HTMLVideoElement | null;
+  const control = document.getElementById('dgpe-hero-control');
+
+  if (video && control) {
+    const etiqueta = control.querySelector('[data-etiqueta]');
+    control.hidden = false;
+
+    const menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const sincronizar = () => {
+      if (etiqueta) {
+        etiqueta.textContent = video.paused ? 'Reproducir animación' : 'Pausar animación';
+      }
+      control.dataset.estado = video.paused ? 'pausado' : 'reproduciendo';
+    };
+
+    /*
+     * El autoplay NO va en el HTML. Si estuviera, el video empezaría a moverse
+     * antes de que JS pudiera comprobar prefers-reduced-motion, que es
+     * exactamente lo que se busca evitar.
+     */
+    const iniciar = () => {
+      if (menosMovimiento.matches) {
+        video.pause();
+      } else {
+        /* Un navegador puede rechazar la reproducción (ahorro de batería,
+           política de datos). No es un error: se queda el póster. */
+        video.play().catch(() => {});
+      }
+      sincronizar();
+    };
+
+    control.addEventListener('click', () => {
+      if (video.paused) video.play().catch(() => {});
+      else video.pause();
+      sincronizar();
+    });
+
+    video.addEventListener('play', sincronizar);
+    video.addEventListener('pause', sincronizar);
+
+    /* Si el usuario cambia la preferencia del sistema con la página abierta. */
+    menosMovimiento.addEventListener('change', iniciar);
+
+    iniciar();
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .hero__fondo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .hero__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /*
+   * Velo sobre el video. Es lo que garantiza que el texto blanco conserve su
+   * contraste sin importar qué asset entregue diseño: sin él, el contraste del
+   * hero dependería de lo claro que sea cada fotograma.
+   *
+   * Si el video resulta muy claro, subir la opacidad aquí — no aclarar el texto.
+   */
+  .hero__velo {
+    position: absolute;
+    inset: 0;
+    /* tokens-ok: velo de oscurecimiento sobre el video; su función es la opacidad, no el tono. */
+    background: linear-gradient(to right, rgb(6 33 58 / 0.92), rgb(6 33 58 / 0.72));
+  }
+
+  /* Sin video ni póster: degradado de marca, para que nunca se vea vacío. */
+  .hero:not([data-tiene-video]) .hero__fondo {
+    background: linear-gradient(
+      135deg,
+      var(--p-color-azul-900),
+      var(--p-color-azul-700) 55%,
+      var(--p-color-azul-800)
+    );
+  }
+
+  .hero__contenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-7);
+    padding-block: var(--espacio-seccion);
+  }
+
+  .hero__texto {
+    max-width: 40rem;
+  }
+
+  .hero__antetitulo {
+    margin: 0 0 var(--p-espacio-2);
+    color: var(--color-acento-fondo);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .hero__titulo {
+    margin: 0;
+    font-size: var(--tipo-hero-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    color: var(--color-texto-sobre-marca);
+    text-wrap: balance;
+  }
+
+  .hero__entradilla {
+    margin: var(--p-espacio-4) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-tenue-sobre-marca);
+    max-width: var(--contenedor-ancho-texto);
+  }
+
+  /* --- Control de pausa -------------------------------------------- */
+
+  .hero__control {
+    position: absolute;
+    inset-block-end: var(--p-espacio-3);
+    inset-inline-end: var(--p-espacio-3);
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+
+    min-height: var(--objetivo-tactil-min);
+    padding-inline: var(--p-espacio-4);
+
+    background-color: rgb(6 33 58 / 0.85); /* tokens-ok: fondo translúcido sobre el video. */
+    border: var(--p-borde-fino) solid var(--color-texto-tenue-sobre-marca);
+    border-radius: var(--radio-control);
+    color: var(--color-texto-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .hero__control:hover {
+    border-color: var(--color-acento-fondo);
+  }
+
+  /* Se muestra el icono de la ACCIÓN disponible, no el del estado actual:
+     mientras se reproduce, el botón ofrece pausar. */
+  .hero__control-icono {
+    display: none;
+  }
+
+  .hero__control[data-estado='reproduciendo'] .hero__control-icono--pausa,
+  .hero__control[data-estado='pausado'] .hero__control-icono--reproducir {
+    display: inline-flex;
+  }
+</style>

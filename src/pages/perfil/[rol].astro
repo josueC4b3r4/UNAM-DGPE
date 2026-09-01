@@ -1,0 +1,182 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Migas from '../../components/layout/Migas.astro';
+import TarjetaTramite from '../../components/base/TarjetaTramite.astro';
+import Boton from '../../components/base/Boton.astro';
+import Icono from '../../components/base/Icono.astro';
+import { aIndexado, obtenerTramitesPorRol } from '../../lib/tramites';
+
+export async function getStaticPaths() {
+  const roles = await getCollection('roles');
+  return roles.map((rol) => ({
+    params: { rol: rol.data.clave },
+    props: { rol },
+  }));
+}
+
+const { rol } = Astro.props;
+const datos = rol.data;
+
+const { Content } = await render(rol);
+
+const destacados = (await Promise.all(datos.destacados.map((ref) => getEntry(ref))))
+  .filter((entrada) => entrada !== undefined)
+  .map(aIndexado);
+
+const todosDelRol = (await obtenerTramitesPorRol(datos.clave)).map(aIndexado);
+
+/* El resto: los del rol que no están ya arriba, para no repetir tarjetas. */
+const slugsDestacados = new Set(destacados.map((t) => t.slug));
+const resto = todosDelRol.filter((t) => !slugsDestacados.has(t.slug));
+---
+
+<BaseLayout titulo={datos.titulo} descripcion={datos.entradilla}>
+  <div class="contenedor">
+    <Migas migas={[{ texto: datos.titulo }]} />
+  </div>
+
+  <header class="perfil__encabezado">
+    <div class="contenedor perfil__encabezado-fila">
+      <span class="perfil__icono" aria-hidden="true">
+        <Icono nombre={datos.icono} tamano={2.25} />
+      </span>
+      <div>
+        <h1 class="perfil__titulo">{datos.titulo}</h1>
+        <p class="perfil__entradilla">{datos.entradilla}</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="contenedor perfil__cuerpo">
+    {
+      destacados.length > 0 && (
+        <section aria-labelledby="empieza-aqui">
+          <h2 id="empieza-aqui">Empieza por aquí</h2>
+          <p class="perfil__nota">
+            Los tres trámites que más consulta este perfil, en orden de frecuencia.
+          </p>
+          <ul class="rejilla lista-limpia" role="list" style="--rejilla-min: 19rem;">
+            {destacados.map((tramite) => (
+              <li>
+                <TarjetaTramite tramite={tramite} nivel={3} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section class="prosa" aria-labelledby="orientacion">
+      <h2 id="orientacion" class="visualmente-oculto">Orientación para este perfil</h2>
+      <Content />
+    </section>
+
+    {
+      resto.length > 0 && (
+        <section aria-labelledby="resto-tramites">
+          <h2 id="resto-tramites">Los demás trámites de este perfil</h2>
+          <ul class="rejilla lista-limpia" role="list" style="--rejilla-min: 19rem;">
+            {resto.map((tramite) => (
+              <li>
+                <TarjetaTramite tramite={tramite} nivel={3} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section class="perfil__salida" aria-labelledby="no-encuentro">
+      <h2 id="no-encuentro">¿No encuentras tu trámite aquí?</h2>
+      <p>
+        Puede que corresponda a otro perfil, o que se llame distinto a como lo conoces. El listado
+        completo tiene buscador y filtros.
+      </p>
+      <Boton href="/tramites/" variante="primario">
+        Ver todos los trámites
+        <Icono nombre="flecha" tamano={1} />
+      </Boton>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .perfil__encabezado {
+    padding-block: var(--p-espacio-7);
+    background-color: var(--color-superficie-marca-sutil);
+    border-block: var(--p-borde-fino) solid var(--color-borde-sutil);
+  }
+
+  .perfil__encabezado-fila {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-5);
+  }
+
+  .perfil__icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+
+    width: 4.5rem;
+    height: 4.5rem;
+
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    border-radius: var(--radio-tarjeta);
+  }
+
+  .perfil__titulo {
+    margin: 0;
+  }
+
+  .perfil__entradilla {
+    margin: var(--p-espacio-2) 0 0;
+    max-width: var(--contenedor-ancho-texto);
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+  }
+
+  /* En 375 px el icono compite con el título por el ancho: se apila. */
+  @media (max-width: 34rem) {
+    .perfil__encabezado-fila {
+      flex-direction: column;
+      align-items: start;
+      gap: var(--p-espacio-4);
+    }
+  }
+
+  .perfil__cuerpo {
+    display: grid;
+    gap: var(--espacio-seccion);
+    padding-block: var(--espacio-seccion);
+  }
+
+  .perfil__cuerpo h2 {
+    margin: 0 0 var(--p-espacio-2);
+    font-size: var(--tipo-titulo-1-tamano);
+  }
+
+  .perfil__nota {
+    margin: 0 0 var(--p-espacio-5);
+    color: var(--color-texto-secundario);
+  }
+
+  .perfil__cuerpo ul.rejilla {
+    margin-block-start: var(--p-espacio-5);
+  }
+
+  .perfil__salida {
+    padding: var(--p-espacio-6);
+    background-color: var(--color-superficie-sutil);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea);
+    border-radius: var(--p-radio-sm);
+  }
+
+  .perfil__salida p {
+    max-width: var(--contenedor-ancho-texto);
+    margin: 0 0 var(--p-espacio-5);
+    color: var(--color-texto-secundario);
+  }
+</style>

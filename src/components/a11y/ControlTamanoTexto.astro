@@ -1,0 +1,195 @@
+---
+/**
+ * Control de tamaño de texto, visible en el header.
+ *
+ * Multiplica --escala-texto en <html>. Como TODA la escala tipográfica del
+ * sistema está en rem, cambiar ese único valor reescala el sitio completo sin
+ * que ningún componente tenga que enterarse.
+ *
+ * Se usan radios reales (no botones con aria-pressed) porque las opciones son
+ * mutuamente excluyentes: así el lector de pantalla anuncia "1 de 3" y las
+ * flechas del teclado navegan entre opciones sin una línea de JavaScript.
+ */
+const OPCIONES = [
+  { valor: '1', etiqueta: 'Normal', abreviatura: 'A' },
+  { valor: '1.15', etiqueta: 'Grande', abreviatura: 'A' },
+  { valor: '1.3', etiqueta: 'Muy grande', abreviatura: 'A' },
+] as const;
+---
+
+<fieldset id="dgpe-control-texto" class="control-texto" hidden>
+  <legend class="control-texto__leyenda">Tamaño de texto</legend>
+
+  <div class="control-texto__opciones">
+    {
+      OPCIONES.map(({ valor, etiqueta, abreviatura }, i) => (
+        <div class="control-texto__opcion">
+          <input
+            type="radio"
+            name="escala-texto"
+            id={`escala-${i}`}
+            value={valor}
+            checked={valor === '1'}
+            class="control-texto__radio"
+          />
+          <label for={`escala-${i}`} class="control-texto__etiqueta" data-nivel={i}>
+            <span aria-hidden="true">{abreviatura}</span>
+            <span class="visualmente-oculto">{etiqueta}</span>
+          </label>
+        </div>
+      ))
+    }
+  </div>
+</fieldset>
+
+<script>
+  const CLAVE = 'dgpe-escala-texto';
+  const grupo = document.getElementById('dgpe-control-texto') as HTMLFieldSetElement | null;
+
+  if (grupo) {
+    /* Sin JS este control no puede hacer nada, así que solo existe con JS. */
+    grupo.hidden = false;
+
+    const radios = Array.from(
+      grupo.querySelectorAll<HTMLInputElement>('input[name="escala-texto"]')
+    );
+
+    const aplicar = (valor: string, persistir: boolean) => {
+      document.documentElement.style.setProperty('--escala-texto', valor);
+
+      if (persistir) {
+        try {
+          localStorage.setItem(CLAVE, valor);
+        } catch {
+          /* Almacenamiento bloqueado: aplica igual, solo no se recuerda. */
+        }
+      }
+    };
+
+    /*
+     * El layout ya aplicó la escala guardada en el <head>. Aquí solo se
+     * sincroniza cuál radio aparece marcado, para que el control refleje el
+     * estado real en vez de mostrar siempre "Normal".
+     */
+    let guardado = '1';
+    try {
+      guardado = localStorage.getItem(CLAVE) ?? '1';
+    } catch {
+      /* sin almacenamiento: se queda en Normal */
+    }
+
+    const inicial = radios.find((r) => r.value === guardado) ?? radios[0];
+    if (inicial) inicial.checked = true;
+
+    for (const radio of radios) {
+      radio.addEventListener('change', () => {
+        if (radio.checked) aplicar(radio.value, true);
+      });
+    }
+  }
+</script>
+
+<style>
+  .control-texto {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .control-texto__leyenda {
+    /* En pantalla la <legend> ocuparía espacio que el header no tiene; el
+       lector de pantalla la sigue anunciando como nombre del grupo. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .control-texto__opciones {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-1);
+  }
+
+  .control-texto__opcion {
+    display: flex;
+  }
+
+  /*
+   * El radio se oculta visualmente pero NO con display:none, para que siga
+   * siendo enfocable y el foco pueda dibujarse sobre su <label>.
+   */
+  .control-texto__radio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .control-texto__etiqueta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: var(--objetivo-tactil-min);
+    min-height: var(--objetivo-tactil-min);
+
+    border: var(--p-borde-fino) solid transparent;
+    border-radius: var(--radio-control);
+
+    color: var(--color-texto-sobre-marca);
+    line-height: 1;
+    cursor: pointer;
+
+    transition:
+      background-color var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      border-color var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  /* La A crece con cada nivel: la forma comunica la función. */
+  .control-texto__etiqueta[data-nivel='0'] {
+    font-size: var(--p-tipografia-tamano-200);
+  }
+  .control-texto__etiqueta[data-nivel='1'] {
+    font-size: var(--p-tipografia-tamano-300);
+  }
+  .control-texto__etiqueta[data-nivel='2'] {
+    font-size: var(--p-tipografia-tamano-500);
+  }
+
+  .control-texto__etiqueta:hover {
+    background-color: rgb(255 255 255 / 0.12); /* tokens-ok: velo translúcido sobre la marca, no un color de paleta. */
+  }
+
+  /*
+   * La opción activa se distingue por fondo Y borde, no solo por color
+   * (WCAG 1.4.1) — y en modo de alto contraste el borde sobrevive.
+   */
+  .control-texto__radio:checked + .control-texto__etiqueta {
+    background-color: var(--color-acento-fondo);
+    border-color: var(--color-acento-linea);
+    color: var(--color-acento-texto);
+    font-weight: var(--p-tipografia-peso-negrita);
+  }
+
+  /* El foco del radio invisible se dibuja sobre su etiqueta visible. */
+  .control-texto__radio:focus-visible + .control-texto__etiqueta {
+    outline: var(--foco-grosor) solid var(--color-acento-linea);
+    outline-offset: var(--foco-desplazamiento);
+  }
+
+  /*
+   * Deliberadamente NO se oculta en móvil. El requisito es que el control sea
+   * visible en el header, y quien más lo necesita suele estar justamente en un
+   * teléfono. Por eso vive en la barra de utilidades, que tiene espacio propio
+   * en 375 px, y no apretujado junto al logotipo.
+   */
+</style>

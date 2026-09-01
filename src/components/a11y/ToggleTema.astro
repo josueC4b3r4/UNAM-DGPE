@@ -1,0 +1,130 @@
+---
+/**
+ * Cambia entre tema claro y oscuro.
+ *
+ * Estado inicial: lo que pida el sistema operativo (prefers-color-scheme).
+ * Al pulsar, el usuario fija una preferencia explícita que gana sobre el
+ * sistema y persiste en localStorage.
+ *
+ * El atributo data-tema lo escribe un script en línea en el <head> del layout,
+ * ANTES del primer pintado. Si se hiciera desde aquí, el sitio parpadearía en
+ * blanco antes de ponerse oscuro.
+ */
+import Icono from '../base/Icono.astro';
+---
+
+<button id="dgpe-toggle-tema" class="toggle-tema objetivo-tactil" type="button" hidden>
+  <span class="toggle-tema__icono toggle-tema__icono--claro">
+    <Icono nombre="sol" tamano={1.15} />
+  </span>
+  <span class="toggle-tema__icono toggle-tema__icono--oscuro">
+    <Icono nombre="luna" tamano={1.15} />
+  </span>
+  <span class="toggle-tema__texto" data-etiqueta>Tema oscuro</span>
+</button>
+
+<script>
+  const CLAVE = 'dgpe-tema';
+  const boton = document.getElementById('dgpe-toggle-tema');
+
+  if (boton) {
+    const etiqueta = boton.querySelector('[data-etiqueta]');
+    const raiz = document.documentElement;
+
+    /*
+     * El botón nace con `hidden` y JS lo revela. Sin JavaScript no puede
+     * funcionar, y un control muerto en pantalla es peor que no tenerlo.
+     */
+    boton.hidden = false;
+
+    const consultaOscuro = window.matchMedia('(prefers-color-scheme: dark)');
+
+    /** Tema efectivo: el forzado por el usuario o, si no hay, el del sistema. */
+    const temaActual = (): 'claro' | 'oscuro' => {
+      const forzado = raiz.dataset.tema;
+      if (forzado === 'claro' || forzado === 'oscuro') return forzado;
+      return consultaOscuro.matches ? 'oscuro' : 'claro';
+    };
+
+    /*
+     * El nombre accesible describe LA ACCIÓN, no el estado: "Tema oscuro"
+     * significa "pulsa para cambiar a oscuro". Es lo que espera quien navega
+     * por voz o con lector de pantalla.
+     */
+    const sincronizarEtiqueta = () => {
+      const siguiente = temaActual() === 'oscuro' ? 'claro' : 'oscuro';
+      if (etiqueta) etiqueta.textContent = `Tema ${siguiente}`;
+      boton.setAttribute('data-tema-activo', temaActual());
+    };
+
+    boton.addEventListener('click', () => {
+      const siguiente = temaActual() === 'oscuro' ? 'claro' : 'oscuro';
+      raiz.dataset.tema = siguiente;
+
+      try {
+        localStorage.setItem(CLAVE, siguiente);
+      } catch {
+        /* Modo privado o almacenamiento bloqueado: el tema aplica igual,
+           solo no se recuerda en la siguiente visita. */
+      }
+
+      sincronizarEtiqueta();
+    });
+
+    /* Si el usuario nunca eligió, el sitio sigue al sistema en tiempo real. */
+    consultaOscuro.addEventListener('change', () => {
+      if (!raiz.dataset.tema) sincronizarEtiqueta();
+    });
+
+    sincronizarEtiqueta();
+  }
+</script>
+
+<style>
+  .toggle-tema {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+
+    padding: var(--p-espacio-2) var(--p-espacio-3);
+    border: var(--p-borde-fino) solid transparent;
+    border-radius: var(--radio-control);
+
+    color: var(--color-texto-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+    line-height: var(--p-tipografia-interlinea-apretada);
+
+    transition: background-color var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .toggle-tema:hover {
+    background-color: rgb(255 255 255 / 0.12); /* tokens-ok: velo translúcido sobre la marca; no es un color de la paleta sino una opacidad sobre lo que haya debajo. */
+    border-color: var(--color-texto-tenue-sobre-marca);
+  }
+
+  /* Se muestra el icono del tema ACTUAL; el texto dice a cuál se cambia. */
+  .toggle-tema__icono {
+    display: none;
+  }
+
+  .toggle-tema[data-tema-activo='claro'] .toggle-tema__icono--claro,
+  .toggle-tema[data-tema-activo='oscuro'] .toggle-tema__icono--oscuro {
+    display: inline-flex;
+  }
+
+  /*
+   * Bajo 30rem el texto se oculta VISUALMENTE pero sigue en el árbol de
+   * accesibilidad: el lector de pantalla y el control por voz lo siguen
+   * encontrando como "Tema oscuro".
+   */
+  @media (max-width: 30rem) {
+    .toggle-tema__texto {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+</style>

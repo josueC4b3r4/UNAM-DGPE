@@ -1,0 +1,53 @@
+---
+/**
+ * Iconos SVG en línea.
+ *
+ * En línea y no como <img> por tres razones: heredan `currentColor` (así
+ * cambian solos con el tema), no cuestan una petición extra, y no pueden
+ * fallar al cargar dejando un hueco en el layout.
+ *
+ * Por defecto son DECORATIVOS: aria-hidden="true". Un icono decorativo que el
+ * lector de pantalla anuncia es ruido. Si el icono es la única forma de
+ * entender un control, pásale `etiqueta` y se convierte en una imagen con
+ * nombre accesible.
+ */
+import { TRAZOS, type NombreIcono } from './iconos';
+
+interface Props {
+  nombre: NombreIcono;
+  /** Tamaño en em: escala con la tipografía del contexto, no con un px fijo. */
+  tamano?: number;
+  /** Si se pasa, el icono deja de ser decorativo y se anuncia con este texto. */
+  etiqueta?: string;
+  class?: string;
+}
+
+const { nombre, tamano = 1.25, etiqueta, class: clase } = Astro.props;
+
+const decorativo = etiqueta === undefined;
+const contenido = (etiqueta ? `<title>${etiqueta}</title>` : '') + TRAZOS[nombre];
+---
+
+<svg
+  class:list={['icono', clase]}
+  viewBox="0 0 24 24"
+  width={`${tamano}em`}
+  height={`${tamano}em`}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden={decorativo ? 'true' : undefined}
+  role={decorativo ? undefined : 'img'}
+  focusable="false"
+  set:html={contenido}
+/>
+
+<style>
+  .icono {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: -0.15em;
+  }
+</style>

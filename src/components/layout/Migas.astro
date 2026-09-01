@@ -1,0 +1,80 @@
+---
+/**
+ * Migas de pan.
+ *
+ * Detalles que importan:
+ * - Va dentro de un <nav> con aria-label propio: puede haber varios <nav> en la
+ *   página y el lector de pantalla necesita distinguirlos por nombre.
+ * - El último elemento NO es un enlace (ya estás ahí) y lleva aria-current="page".
+ * - Los separadores "/" se dibujan con CSS, no con texto. Un separador en el
+ *   HTML se leería en voz alta como "diagonal" entre cada nivel.
+ */
+interface Miga {
+  texto: string;
+  href?: string;
+}
+
+interface Props {
+  migas: Miga[];
+}
+
+const { migas } = Astro.props;
+---
+
+<nav class="migas" aria-label="Ruta de navegación">
+  <ol class="migas__lista lista-limpia" role="list">
+    <li class="migas__item">
+      <a href="/">Inicio</a>
+    </li>
+    {
+      migas.map(({ texto, href }, i) => {
+        const ultima = i === migas.length - 1;
+        return (
+          <li class="migas__item">
+            {href && !ultima ? (
+              <a href={href}>{texto}</a>
+            ) : (
+              <span aria-current="page">{texto}</span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .migas {
+    padding-block: var(--p-espacio-4);
+  }
+
+  .migas__lista {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--p-espacio-2);
+    margin: 0;
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .migas__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+  }
+
+  /* Separador decorativo: fuera del árbol de accesibilidad. */
+  .migas__item + .migas__item::before {
+    content: '/';
+    color: var(--color-texto-tenue);
+  }
+
+  .migas__item a {
+    color: var(--color-texto-enlace);
+  }
+
+  .migas__item [aria-current='page'] {
+    color: var(--color-texto-tenue);
+    font-weight: var(--p-tipografia-peso-medio);
+  }
+</style>

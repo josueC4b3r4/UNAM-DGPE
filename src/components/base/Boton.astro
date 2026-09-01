@@ -1,0 +1,134 @@
+---
+/**
+ * Botón / enlace de acción.
+ *
+ * Regla que respeta: si NAVEGA es un <a>, si ACTÚA es un <button>. Un <div>
+ * con onclick no se puede enfocar con Tab, no responde a Enter y el lector de
+ * pantalla no lo anuncia como control. Por eso este componente decide la
+ * etiqueta a partir de si recibe `href`, no a partir de cómo se ve.
+ */
+interface Props {
+  href?: string;
+  variante?: 'primario' | 'secundario' | 'fantasma';
+  tamano?: 'normal' | 'grande';
+  tipo?: 'button' | 'submit' | 'reset';
+  /** Solo para <a> que apunta fuera del sitio: agrega rel y aviso accesible. */
+  externo?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  href,
+  variante = 'primario',
+  tamano = 'normal',
+  tipo = 'button',
+  externo = false,
+  class: clase,
+  ...resto
+} = Astro.props;
+
+const Etiqueta = href ? 'a' : 'button';
+
+const atributos = href
+  ? { href, ...(externo ? { rel: 'noopener noreferrer', target: '_blank' } : {}) }
+  : { type: tipo };
+---
+
+<Etiqueta
+  class:list={['boton', `boton--${variante}`, `boton--${tamano}`, clase]}
+  {...atributos}
+  {...resto}
+>
+  <slot />
+  {externo && <span class="visualmente-oculto">(se abre en una pestaña nueva)</span>}
+</Etiqueta>
+
+<style>
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--p-espacio-2);
+
+    /* Garantiza el área mínima de toque aunque el texto sea corto. */
+    min-height: var(--objetivo-tactil-min);
+    padding: var(--p-espacio-3) var(--p-espacio-5);
+
+    border: var(--p-borde-medio) solid transparent;
+    border-radius: var(--radio-control);
+
+    font-size: var(--tipo-cuerpo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    line-height: var(--p-tipografia-interlinea-apretada);
+    text-align: center;
+    text-decoration: none;
+
+    cursor: pointer;
+    transition:
+      background-color var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      border-color var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      color var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .boton--grande {
+    padding: var(--p-espacio-4) var(--p-espacio-6);
+    font-size: var(--tipo-cuerpo-grande-tamano);
+  }
+
+  /* --- Primario --------------------------------------------------------- */
+
+  .boton--primario {
+    background-color: var(--color-accion-primaria-fondo);
+    border-color: var(--color-accion-primaria-fondo);
+    color: var(--color-accion-primaria-texto);
+  }
+
+  .boton--primario:hover {
+    background-color: var(--color-accion-primaria-fondo-hover);
+    border-color: var(--color-accion-primaria-fondo-hover);
+    color: var(--color-accion-primaria-texto);
+  }
+
+  /* --- Secundario ------------------------------------------------------- */
+
+  .boton--secundario {
+    background-color: var(--color-accion-secundaria-fondo);
+    border-color: var(--color-accion-secundaria-borde);
+    color: var(--color-accion-secundaria-texto);
+  }
+
+  .boton--secundario:hover {
+    background-color: var(--color-accion-secundaria-fondo-hover);
+    color: var(--color-accion-secundaria-texto);
+  }
+
+  /* --- Fantasma --------------------------------------------------------- */
+
+  .boton--fantasma {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-texto-enlace);
+    padding-inline: var(--p-espacio-3);
+  }
+
+  .boton--fantasma:hover {
+    background-color: var(--color-superficie-hundida);
+    color: var(--color-texto-enlace-hover);
+  }
+
+  /*
+   * El botón nunca se distingue solo por color: las variantes difieren también
+   * en borde y peso de fondo (WCAG 1.4.1). El subrayado se quita porque la
+   * forma de botón ya comunica que es accionable.
+   */
+  a.boton {
+    text-decoration: none;
+  }
+
+  .boton:disabled,
+  .boton[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+</style>

@@ -1,0 +1,176 @@
+---
+/**
+ * Navegación por rol: el cambio central frente al sitio actual.
+ *
+ * El sitio de la DGPE hoy organiza el menú por la estructura interna de la
+ * dependencia (subdirecciones y departamentos). Eso obliga al usuario a
+ * adivinar de qué área depende su trámite antes de poder buscarlo.
+ *
+ * Aquí la primera pregunta es "¿quién eres?", que sí sabe responder.
+ *
+ * Accesibilidad:
+ * - Es una <ul> de enlaces reales, no <div> con onclick: navegable con Tab,
+ *   activable con Enter, y anunciada como "lista de 4 elementos".
+ * - El <h2> de la sección le da nombre a la región con aria-labelledby.
+ * - El icono es decorativo (aria-hidden): el texto del enlace ya lo dice todo.
+ */
+import Icono from '../base/Icono.astro';
+import type { NombreIcono } from '../base/iconos';
+
+interface Acceso {
+  href: string;
+  etiqueta: string;
+  descripcion: string;
+  icono: NombreIcono;
+  destacado?: boolean;
+}
+
+interface Props {
+  accesos: Acceso[];
+  titulo: string;
+  id?: string;
+}
+
+const { accesos, titulo, id = 'accesos-por-rol' } = Astro.props;
+---
+
+<section class="roles seccion" aria-labelledby={id}>
+  <div class="contenedor">
+    <h2 class="roles__titulo" id={id}>{titulo}</h2>
+
+    <ul class="roles__lista lista-limpia" role="list">
+      {
+        accesos.map(({ href, etiqueta, descripcion, icono, destacado }) => (
+          <li>
+            <a class:list={['rol', destacado && 'rol--destacado']} href={href}>
+              <span class="rol__icono">
+                <Icono nombre={icono} tamano={1.75} />
+              </span>
+              <span class="rol__texto">
+                <span class="rol__etiqueta">{etiqueta}</span>
+                <span class="rol__descripcion">{descripcion}</span>
+              </span>
+              <span class="rol__flecha">
+                <Icono nombre="flecha" tamano={1.15} />
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .roles__titulo {
+    margin: 0 0 var(--p-espacio-5);
+    font-size: var(--tipo-titulo-1-tamano);
+  }
+
+  .roles__lista {
+    display: grid;
+    gap: var(--p-espacio-4);
+    margin: 0;
+    /* Una columna en 375 px, dos cuando quepan 20rem, sin media queries. */
+    grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+  }
+
+  .rol {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-4);
+    height: 100%;
+
+    padding: var(--p-espacio-5);
+
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-medio) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+    box-shadow: var(--sombra-tarjeta);
+
+    color: var(--color-texto-principal);
+    text-decoration: none;
+
+    transition:
+      border-color var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      box-shadow var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      transform var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .rol:hover {
+    border-color: var(--color-accion-primaria-fondo);
+    box-shadow: var(--sombra-elevada);
+    color: var(--color-texto-principal);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .rol:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  /* El cuarto acceso ("Busco un trámite") se distingue por color Y por borde
+     de acento: nunca solo por color. */
+  .rol--destacado {
+    background-color: var(--color-superficie-marca-sutil);
+    border-color: var(--color-accion-secundaria-borde);
+  }
+
+  .rol__icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+
+    width: 3.25rem;
+    height: 3.25rem;
+
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    border-radius: var(--radio-control);
+  }
+
+  .rol--destacado .rol__icono {
+    background-color: var(--color-acento-fondo);
+    color: var(--color-acento-texto);
+  }
+
+  .rol__texto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+  }
+
+  .rol__etiqueta {
+    font-size: var(--tipo-titulo-3-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    line-height: var(--p-tipografia-interlinea-titulo);
+  }
+
+  .rol:hover .rol__etiqueta {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .rol__descripcion {
+    color: var(--color-texto-secundario);
+    font-size: var(--tipo-menudo-tamano);
+    line-height: var(--p-tipografia-interlinea-normal);
+  }
+
+  .rol__flecha {
+    margin-inline-start: auto;
+    color: var(--color-texto-enlace);
+  }
+
+  /* La flecha se desplaza en hover: refuerzo visual, nunca portador de
+     información. Quien pidió menos movimiento no la ve moverse. */
+  @media (prefers-reduced-motion: no-preference) {
+    .rol__flecha {
+      transition: transform var(--movimiento-duracion-rapida) var(--movimiento-curva);
+    }
+
+    .rol:hover .rol__flecha {
+      transform: translateX(0.25rem);
+    }
+  }
+</style>

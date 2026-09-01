@@ -1,0 +1,286 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Migas from '../../components/layout/Migas.astro';
+import TarjetaTramite from '../../components/base/TarjetaTramite.astro';
+import { ETIQUETAS_ROL, ROLES } from '../../lib/constantes';
+import { construirIndiceBusqueda, obtenerCategoriasConConteo } from '../../lib/tramites';
+
+const indice = await construirIndiceBusqueda();
+const categorias = await obtenerCategoriasConConteo();
+---
+
+<BaseLayout
+  titulo="Todos los trámites"
+  descripcion="Listado completo de trámites de la Dirección General de Personal, con filtros por categoría y por perfil."
+>
+  <div class="contenedor">
+    <Migas migas={[{ texto: 'Trámites' }]} />
+  </div>
+
+  <div class="contenedor listado">
+    <header class="listado__encabezado">
+      <h1>Todos los trámites</h1>
+      <p class="listado__entradilla">
+        {indice.length} trámites. Filtra por categoría o por perfil, o escribe lo que buscas — funciona
+        también con el nombre coloquial.
+      </p>
+    </header>
+
+    <!--
+      Los filtros nacen ocultos y JS los revela. Sin JavaScript no podrían
+      hacer nada (el sitio es estático, no hay servidor que filtre), y un
+      control que no responde es peor que no ofrecerlo: abajo se ve la lista
+      completa, que sigue siendo perfectamente utilizable.
+    -->
+    <form class="filtros" id="dgpe-filtros" hidden>
+      <div class="filtros__campo filtros__campo--texto">
+        <label for="filtro-texto">Buscar</label>
+        <input type="search" id="filtro-texto" name="q" placeholder="Nombre o palabra clave" />
+      </div>
+
+      <div class="filtros__campo">
+        <label for="filtro-categoria">Categoría</label>
+        <select id="filtro-categoria" name="categoria">
+          <option value="">Todas</option>
+          {
+            categorias.map(({ clave, etiqueta, total }) => (
+              <option value={clave}>
+                {etiqueta} ({total})
+              </option>
+            ))
+          }
+        </select>
+      </div>
+
+      <div class="filtros__campo">
+        <label for="filtro-rol">Perfil</label>
+        <select id="filtro-rol" name="rol">
+          <option value="">Todos</option>
+          {ROLES.map((rol) => <option value={rol}>{ETIQUETAS_ROL[rol]}</option>)}
+        </select>
+      </div>
+
+      <button type="reset" class="filtros__limpiar">Limpiar</button>
+    </form>
+
+    <!-- Conteo visible para todos y anunciado a lectores de pantalla. -->
+    <p class="listado__conteo" id="dgpe-conteo" role="status" aria-live="polite">
+      Mostrando los {indice.length} trámites
+    </p>
+
+    <ul class="rejilla lista-limpia" id="dgpe-listado" role="list" style="--rejilla-min: 20rem;">
+      {
+        indice.map((tramite) => (
+          <li data-slug={tramite.slug}>
+            <TarjetaTramite tramite={tramite} nivel={2} />
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="listado__vacio" id="dgpe-vacio" hidden>
+      Ningún trámite coincide con esos filtros. Prueba con menos palabras, o
+      <button type="button" class="enlace-boton" id="dgpe-limpiar-vacio">quita los filtros</button>
+      para ver los {indice.length}.
+    </p>
+  </div>
+</BaseLayout>
+
+<script id="dgpe-listado-indice" type="application/json" set:html={JSON.stringify(indice)} is:inline
+></script>
+
+<script>
+  import { filtrar, textoConteo } from '../../lib/busqueda';
+  import type { TramiteIndexado } from '../../lib/tramites';
+
+  const formulario = document.getElementById('dgpe-filtros') as HTMLFormElement | null;
+  const listado = document.getElementById('dgpe-listado');
+  const conteo = document.getElementById('dgpe-conteo');
+  const vacio = document.getElementById('dgpe-vacio');
+  const limpiarVacio = document.getElementById('dgpe-limpiar-vacio');
+  const datos = document.getElementById('dgpe-listado-indice');
+
+  if (formulario && listado && conteo && vacio && datos?.textContent) {
+    const indice: TramiteIndexado[] = JSON.parse(datos.textContent);
+
+    formulario.hidden = false;
+
+    const campoTexto = formulario.elements.namedItem('q') as HTMLInputElement;
+    const campoCategoria = formulario.elements.namedItem('categoria') as HTMLSelectElement;
+    const campoRol = formulario.elements.namedItem('rol') as HTMLSelectElement;
+
+    const elementos = new Map<string, HTMLElement>();
+    for (const li of listado.querySelectorAll<HTMLElement>('[data-slug]')) {
+      elementos.set(li.dataset.slug!, li);
+    }
+
+    function aplicar() {
+      const visibles = filtrar(indice, {
+        texto: campoTexto.value,
+        categoria: campoCategoria.value,
+        rol: campoRol.value,
+      });
+
+      const slugsVisibles = new Set(visibles.map((t) => t.slug));
+
+      for (const [slug, elemento] of elementos) {
+        elemento.hidden = !slugsVisibles.has(slug);
+      }
+
+      conteo!.textContent =
+        visibles.length === indice.length
+          ? `Mostrando los ${indice.length} trámites`
+          : textoConteo(visibles.length);
+
+      vacio!.hidden = visibles.length > 0;
+      listado!.hidden = visibles.length === 0;
+
+      /* Refleja el estado en la URL para que se pueda compartir o recargar,
+         sin agregar una entrada al historial en cada tecla. */
+      const parametros = new URLSearchParams();
+      if (campoTexto.value) parametros.set('q', campoTexto.value);
+      if (campoCategoria.value) parametros.set('categoria', campoCategoria.value);
+      if (campoRol.value) parametros.set('rol', campoRol.value);
+
+      const cadena = parametros.toString();
+      history.replaceState(null, '', cadena ? `?${cadena}` : location.pathname);
+    }
+
+    /* Estado inicial desde la URL: es como llega quien buscó en el home. */
+    const parametros = new URLSearchParams(location.search);
+    campoTexto.value = parametros.get('q') ?? '';
+    campoCategoria.value = parametros.get('categoria') ?? '';
+    campoRol.value = parametros.get('rol') ?? '';
+
+    if (campoTexto.value || campoCategoria.value || campoRol.value) aplicar();
+
+    formulario.addEventListener('input', aplicar);
+    formulario.addEventListener('change', aplicar);
+
+    /* `reset` dispara ANTES de que los campos se limpien: hay que esperar
+       al siguiente tick para leer los valores ya vacíos. */
+    formulario.addEventListener('reset', () => {
+      setTimeout(aplicar, 0);
+    });
+
+    limpiarVacio?.addEventListener('click', () => {
+      formulario.reset();
+      setTimeout(() => {
+        aplicar();
+        campoTexto.focus();
+      }, 0);
+    });
+  }
+</script>
+
+<style>
+  .listado {
+    padding-block-end: var(--espacio-seccion);
+  }
+
+  .listado__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .listado__encabezado h1 {
+    margin: 0;
+  }
+
+  .listado__entradilla {
+    margin: var(--p-espacio-3) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+  }
+
+  /* --- Filtros ------------------------------------------------------ */
+
+  .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--p-espacio-4);
+
+    padding: var(--p-espacio-5);
+    margin-block-end: var(--p-espacio-5);
+
+    background-color: var(--color-superficie-sutil);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+  }
+
+  .filtros__campo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+    flex: 1 1 12rem;
+  }
+
+  .filtros__campo--texto {
+    flex-basis: 18rem;
+  }
+
+  .filtros label {
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    color: var(--color-texto-secundario);
+  }
+
+  .filtros input,
+  .filtros select {
+    min-height: var(--objetivo-tactil-min);
+    padding: var(--p-espacio-2) var(--p-espacio-3);
+
+    background-color: var(--color-superficie-elevada);
+    color: var(--color-texto-principal);
+    border: var(--p-borde-fino) solid var(--color-borde-fuerte);
+    border-radius: var(--radio-control);
+  }
+
+  .filtros__limpiar {
+    min-height: var(--objetivo-tactil-min);
+    padding-inline: var(--p-espacio-4);
+
+    background-color: var(--color-accion-secundaria-fondo);
+    color: var(--color-accion-secundaria-texto);
+    border: var(--p-borde-medio) solid var(--color-accion-secundaria-borde);
+    border-radius: var(--radio-control);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .filtros__limpiar:hover {
+    background-color: var(--color-accion-secundaria-fondo-hover);
+  }
+
+  /* --- Estado ------------------------------------------------------- */
+
+  .listado__conteo {
+    margin: 0 0 var(--p-espacio-4);
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .listado__vacio {
+    padding: var(--p-espacio-6);
+    background-color: var(--color-superficie-sutil);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+    text-align: center;
+  }
+
+  /*
+   * Botón con apariencia de enlace. Es un <button> de verdad porque su acción
+   * es cambiar el estado de la página, no navegar. La apariencia sigue a la
+   * expectativa del usuario; la etiqueta HTML, a la semántica.
+   */
+  .enlace-boton {
+    color: var(--color-texto-enlace);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .enlace-boton:hover {
+    color: var(--color-texto-enlace-hover);
+  }
+</style>

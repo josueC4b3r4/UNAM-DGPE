@@ -1,0 +1,125 @@
+/*
+ * Reset mínimo. Normaliza diferencias entre navegadores SIN borrar semántica
+ * que la accesibilidad necesita (por ejemplo, no se quitan los estilos de
+ * :focus, ni los marcadores de lista de forma global).
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  /* Mejora el renderizado de texto sin sacrificar legibilidad en pantallas
+     de baja densidad. */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * Las imágenes son bloque y nunca desbordan. `height: auto` junto con los
+ * width/height que inyecta astro:assets evita el layout shift que castiga
+ * la métrica CLS de Lighthouse.
+ */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Los controles de formulario no heredan la tipografía por defecto. */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Evita que una palabra larga (un correo, una URL) rompa el layout en 375 px. */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li,
+dd,
+dt {
+  overflow-wrap: break-word;
+}
+
+/* Equilibra los saltos de línea de los títulos: sin "viudas" de una palabra. */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+/*
+ * Listas sin marcador SOLO cuando se les quita explícitamente con la clase.
+ * Quitar `list-style` globalmente hace que VoiceOver y Safari dejen de
+ * anunciarlas como lista, así que se hace por opt-in.
+ */
+.lista-limpia {
+  list-style: none;
+  padding: 0;
+}
+
+/*
+ * `role="list"` restaura el anuncio del lector de pantalla cuando el CSS
+ * quitó el marcador. Se aplica en el marcado, no aquí.
+ */
+
+/* El scroll suave molesta a quien pidió menos movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+/*
+ * Desactiva animaciones para quien lo pidió a nivel de sistema.
+ * No se ponen en 0s (algunos scripts esperan el evento `transitionend`):
+ * se dejan en 1 ms para que el evento siga disparándose.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

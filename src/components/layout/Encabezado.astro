@@ -1,0 +1,385 @@
+---
+/**
+ * Encabezado del sitio.
+ *
+ * Dos franjas:
+ *   1. Barra de utilidades — controles de accesibilidad. Siempre visible,
+ *      también en 375 px, con espacio propio para no competir con el logotipo.
+ *   2. Franja principal — identidad y navegación.
+ *
+ * La navegación está organizada POR ROL, que es la corrección central frente
+ * al sitio actual: primero se pregunta quién eres, no de qué subdirección
+ * depende el trámite.
+ */
+import ControlTamanoTexto from '../a11y/ControlTamanoTexto.astro';
+import ToggleTema from '../a11y/ToggleTema.astro';
+import Icono from '../base/Icono.astro';
+
+const ENLACES = [
+  { href: '/tramites/', texto: 'Trámites' },
+  { href: '/perfil/academico/', texto: 'Personal académico' },
+  { href: '/perfil/administrativo/', texto: 'Personal administrativo' },
+  { href: '/perfil/jefe/', texto: 'Jefaturas' },
+];
+
+/** Normaliza para comparar rutas con y sin barra final. */
+const normalizar = (ruta: string) => (ruta.endsWith('/') ? ruta : `${ruta}/`);
+const rutaActual = normalizar(Astro.url.pathname);
+
+const esActual = (href: string) => rutaActual === normalizar(href);
+/** Un enlace de sección se marca como "actual" también en sus páginas hijas. */
+const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
+---
+
+<header class="encabezado" id="dgpe-encabezado">
+  <div class="utilidades">
+    <div class="contenedor utilidades__fila">
+      <p class="utilidades__aviso">
+        <Icono nombre="aviso" tamano={1} />
+        <span>Prototipo de rediseño &middot; datos de ejemplo</span>
+      </p>
+
+      <div class="utilidades__controles">
+        <ControlTamanoTexto />
+        <ToggleTema />
+      </div>
+    </div>
+  </div>
+
+  <div class="encabezado__principal">
+    <div class="contenedor encabezado__fila">
+      <!--
+        El escudo NO lleva aria-hidden: es parte del nombre accesible del
+        enlace, que queda como "UNAM DGPE Dirección General de Personal".
+        Ocultarlo y poner un aria-label en su lugar rompería el criterio 2.5.3
+        (Label in Name), porque el nombre dejaría de contener el texto visible.
+      -->
+      <a class="marca" href="/">
+        <span class="marca__escudo">UNAM</span>
+        <span class="marca__texto">
+          <span class="marca__sigla">DGPE</span>
+          <span class="marca__nombre">Dirección General de Personal</span>
+        </span>
+      </a>
+
+      <button
+        id="dgpe-boton-menu"
+        class="menu-boton"
+        type="button"
+        aria-expanded="false"
+        aria-controls="dgpe-nav-principal"
+      >
+        <span class="menu-boton__barras" aria-hidden="true"></span>
+        <span>Menú</span>
+      </button>
+
+      <nav id="dgpe-nav-principal" class="nav" aria-label="Navegación principal">
+        <ul class="nav__lista lista-limpia" role="list">
+          {
+            ENLACES.map(({ href, texto }) => (
+              <li>
+                <a
+                  href={href}
+                  class="nav__enlace"
+                  aria-current={esActual(href) ? 'page' : undefined}
+                  data-en-seccion={enSeccion(href) ? 'true' : undefined}
+                >
+                  {texto}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  const encabezado = document.getElementById('dgpe-encabezado');
+  const boton = document.getElementById('dgpe-boton-menu');
+  const nav = document.getElementById('dgpe-nav-principal');
+
+  if (encabezado && boton && nav) {
+    /*
+     * Marca el encabezado como "con JavaScript". Hasta que esta línea corre,
+     * el CSS mantiene la navegación SIEMPRE visible y el botón de menú oculto.
+     *
+     * Es lo contrario de lo habitual, y es deliberado: si el JavaScript no
+     * carga, el menú plegado quedaría cerrado para siempre y el botón sería un
+     * control muerto. Así, sin JS se ven todos los enlaces apilados —
+     * menos elegante, pero utilizable.
+     */
+    encabezado.dataset.js = 'true';
+
+    const abierto = () => boton.getAttribute('aria-expanded') === 'true';
+
+    const fijar = (valor: boolean) => {
+      boton.setAttribute('aria-expanded', String(valor));
+      nav.dataset.abierto = String(valor);
+    };
+
+    boton.addEventListener('click', () => fijar(!abierto()));
+
+    /*
+     * Escape cierra el menú y DEVUELVE EL FOCO al botón. Sin esa segunda parte
+     * el foco se quedaría dentro de un menú ya invisible y la siguiente
+     * pulsación de Tab llevaría a un lugar impredecible.
+     */
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape' && abierto()) {
+        fijar(false);
+        boton.focus();
+      }
+    });
+
+    /* Un clic fuera cierra, pero sin robar el foco: quien usa ratón no lo espera. */
+    document.addEventListener('click', (evento) => {
+      const destino = evento.target as Node;
+      if (abierto() && !nav.contains(destino) && !boton.contains(destino)) {
+        fijar(false);
+      }
+    });
+
+    /*
+     * Al pasar a escritorio el menú siempre se ve, así que se reinicia el
+     * estado. Si no, aria-expanded="true" quedaría mintiendo sobre un menú
+     * que ya no es plegable.
+     */
+    const escritorio = window.matchMedia('(min-width: 48rem)');
+    escritorio.addEventListener('change', (e) => {
+      if (e.matches) fijar(false);
+    });
+  }
+</script>
+
+<style>
+  .encabezado {
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    border-block-end: var(--p-borde-grueso) solid var(--color-acento-linea);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Barra de utilidades                                               */
+  /* ---------------------------------------------------------------- */
+
+  .utilidades {
+    border-block-end: var(--p-borde-fino) solid rgb(255 255 255 / 0.15); /* tokens-ok: separador translúcido sobre la marca. */
+  }
+
+  .utilidades__fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--p-espacio-2);
+    padding-block: var(--p-espacio-1);
+  }
+
+  .utilidades__aviso {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+    margin: 0;
+    color: var(--color-texto-tenue-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .utilidades__controles {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-3);
+    margin-inline-start: auto;
+  }
+
+  /*
+   * En pantallas angostas el aviso compite por el espacio con los controles.
+   * Se oculta VISUALMENTE, no con display:none, para que el lector de pantalla
+   * siga anunciando que esto es un prototipo. Para quien ve, el aviso vuelve a
+   * aparecer completo en el pie de página.
+   */
+  @media (max-width: 34rem) {
+    .utilidades__aviso span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Franja principal                                                  */
+  /* ---------------------------------------------------------------- */
+
+  .encabezado__fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--p-espacio-4);
+    padding-block: var(--p-espacio-4);
+  }
+
+  .marca {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-3);
+    margin-inline-end: auto;
+    color: var(--color-texto-sobre-marca);
+    text-decoration: none;
+  }
+
+  .marca__escudo {
+    display: grid;
+    place-items: center;
+    min-width: 3rem;
+    padding: var(--p-espacio-2);
+    border: var(--p-borde-medio) solid var(--color-acento-linea);
+    border-radius: var(--p-radio-sm);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+  }
+
+  .marca__texto {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .marca__sigla {
+    font-size: var(--tipo-titulo-3-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    line-height: var(--p-tipografia-interlinea-apretada);
+  }
+
+  .marca__nombre {
+    font-size: var(--tipo-menudo-tamano);
+    color: var(--color-texto-tenue-sobre-marca);
+  }
+
+  .marca:hover .marca__sigla {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Navegación                                                        */
+  /* ---------------------------------------------------------------- */
+
+  .menu-boton {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+
+    min-height: var(--objetivo-tactil-min);
+    padding-inline: var(--p-espacio-3);
+
+    border: var(--p-borde-fino) solid var(--color-texto-tenue-sobre-marca);
+    border-radius: var(--radio-control);
+    color: var(--color-texto-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .menu-boton__barras,
+  .menu-boton__barras::before,
+  .menu-boton__barras::after {
+    display: block;
+    width: 1.1rem;
+    height: 2px;
+    background-color: currentColor;
+  }
+
+  .menu-boton__barras {
+    position: relative;
+  }
+
+  .menu-boton__barras::before,
+  .menu-boton__barras::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+  }
+
+  .menu-boton__barras::before {
+    inset-block-start: -0.35rem;
+  }
+  .menu-boton__barras::after {
+    inset-block-start: 0.35rem;
+  }
+
+  .nav__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+    margin: 0;
+  }
+
+  .nav__enlace {
+    display: block;
+    padding: var(--p-espacio-3);
+    border-radius: var(--radio-control);
+    color: var(--color-texto-sobre-marca);
+    font-weight: var(--p-tipografia-peso-medio);
+    text-decoration: none;
+  }
+
+  .nav__enlace:hover {
+    background-color: rgb(255 255 255 / 0.12); /* tokens-ok: velo translúcido sobre la marca. */
+    color: var(--color-texto-sobre-marca);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /*
+   * La página actual se marca con aria-current="page" (para lector de pantalla)
+   * Y con una barra de acento (para quien ve). Nunca solo con color.
+   */
+  .nav__enlace[data-en-seccion] {
+    background-color: rgb(255 255 255 / 0.1); /* tokens-ok: velo translúcido sobre la marca. */
+  }
+
+  .nav__enlace[aria-current='page'] {
+    font-weight: var(--p-tipografia-peso-negrita);
+    box-shadow: inset 0 -3px 0 0 var(--color-acento-linea);
+  }
+
+  /* --- Móvil -------------------------------------------------------- */
+
+  @media (max-width: 47.99rem) {
+    .nav {
+      flex-basis: 100%;
+      padding-block-end: var(--p-espacio-3);
+    }
+
+    /* Sin JavaScript el botón no sirve, así que no se muestra. */
+    .encabezado:not([data-js='true']) .menu-boton {
+      display: none;
+    }
+
+    /* El menú solo se pliega cuando hay JavaScript para desplegarlo. */
+    .encabezado[data-js='true'] .nav {
+      display: none;
+    }
+
+    .encabezado[data-js='true'] .nav[data-abierto='true'] {
+      display: block;
+    }
+  }
+
+  /* --- Escritorio: menú siempre visible ---------------------------- */
+
+  @media (min-width: 48rem) {
+    .menu-boton {
+      display: none;
+    }
+
+    .nav__lista {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--p-espacio-2);
+    }
+  }
+</style>
