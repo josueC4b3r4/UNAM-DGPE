@@ -18,8 +18,8 @@ destacado: false
 actualizado: 2026-07-22
 contacto:
   area: Dirección de Relaciones Laborales
-  correo: licencias@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40320
+  correo: licencias@dgpe.example
+  telefono: 55 0000 0000 ext. 40320
   horario: Lunes a viernes, 9:00 a 14:00 h
 relacionados:
   - ano-sabatico

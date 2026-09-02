@@ -42,6 +42,19 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
     <meta name="description" content={descripcion} />
     <link rel="canonical" href={canonica.href} />
 
+    <!--
+      Prototipo con contenido ficticio sobre una dependencia REAL. Si esto se
+      indexara, alguien buscando un trámite de verdad podría llegar aquí y
+      tomar por buenos requisitos, plazos y contactos inventados.
+
+      Va junto con public/robots.txt, y hacen falta los dos: robots.txt pide
+      que no lo rastreen; esta etiqueta pide que no lo indexen aunque lleguen
+      siguiendo un enlace desde otro sitio.
+
+      Quitar ambos SÓLO si el proyecto deja de ser una maqueta.
+    -->
+    <meta name="robots" content="noindex, nofollow" />
+
     <meta property="og:type" content="website" />
     <meta property="og:title" content={tituloCompleto} />
     <meta property="og:description" content={descripcion} />

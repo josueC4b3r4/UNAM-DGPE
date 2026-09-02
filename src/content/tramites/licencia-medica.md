@@ -18,8 +18,8 @@ destacado: false
 actualizado: 2026-08-18
 contacto:
   area: Subdirección de Prestaciones y Seguridad Social
-  correo: incapacidades@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40430
+  correo: incapacidades@dgpe.example
+  telefono: 55 0000 0000 ext. 40430
   horario: Lunes a viernes, 9:00 a 15:00 h
 relacionados:
   - alta-issste

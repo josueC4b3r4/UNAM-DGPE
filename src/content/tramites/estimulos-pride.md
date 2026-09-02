@@ -17,8 +17,8 @@ destacado: false
 actualizado: 2026-06-15
 contacto:
   area: Dirección de Estímulos al Personal Académico
-  correo: pride@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40610
+  correo: pride@dgpe.example
+  telefono: 55 0000 0000 ext. 40610
   horario: Lunes a viernes, 10:00 a 14:00 h
 relacionados:
   - ano-sabatico

@@ -18,8 +18,8 @@ destacado: false
 actualizado: 2026-07-10
 contacto:
   area: Subdirección de Servicios al Personal
-  correo: credenciales@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40130
+  correo: credenciales@dgpe.example
+  telefono: 55 0000 0000 ext. 40130
   horario: Lunes a viernes, 9:00 a 14:30 h
 relacionados:
   - constancia-de-servicios

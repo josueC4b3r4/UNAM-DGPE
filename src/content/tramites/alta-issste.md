@@ -18,8 +18,8 @@ destacado: true
 actualizado: 2026-08-20
 contacto:
   area: Subdirección de Prestaciones y Seguridad Social
-  correo: issste@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40420
+  correo: issste@dgpe.example
+  telefono: 55 0000 0000 ext. 40420
   horario: Lunes a viernes, 9:00 a 15:00 h
 relacionados:
   - licencia-medica

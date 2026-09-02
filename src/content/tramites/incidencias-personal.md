@@ -18,8 +18,8 @@ destacado: false
 actualizado: 2026-08-22
 contacto:
   area: Subdirección de Nómina
-  correo: incidencias@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40540
+  correo: incidencias@dgpe.example
+  telefono: 55 0000 0000 ext. 40540
   horario: Lunes a viernes, 9:00 a 15:00 h
 relacionados:
   - licencia-medica

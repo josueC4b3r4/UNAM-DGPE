@@ -19,7 +19,8 @@
     "a11y:contraste": "node scripts/check-contraste.mjs",
     "a11y:tokens": "node scripts/check-hardcoded.mjs",
     "lighthouse": "node scripts/lighthouse.mjs",
-    "verificar": "npm run tokens && npm run test && npm run a11y:contraste && npm run a11y:tokens && npm run check",
+    "check:ficticios": "node scripts/check-datos-ficticios.mjs",
+    "verificar": "npm run tokens && npm run test && npm run a11y:contraste && npm run a11y:tokens && npm run check:ficticios && npm run check",
     "format": "prettier --write \"**/*.{astro,ts,js,mjs,json,css,md}\"",
     "lint": "eslint ."
   },

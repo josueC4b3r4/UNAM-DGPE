@@ -17,8 +17,8 @@ destacado: false
 actualizado: 2026-07-30
 contacto:
   area: Subdirección de Registro y Control de Personal
-  correo: hus@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40210
+  correo: hus@dgpe.example
+  telefono: 55 0000 0000 ext. 40210
   horario: Lunes a viernes, 9:00 a 14:00 h
 relacionados:
   - constancia-de-servicios

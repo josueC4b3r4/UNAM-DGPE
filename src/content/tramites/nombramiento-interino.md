@@ -17,8 +17,8 @@ destacado: false
 actualizado: 2026-08-05
 contacto:
   area: Dirección de Administración de Personal
-  correo: nombramientos@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40710
+  correo: nombramientos@dgpe.example
+  telefono: 55 0000 0000 ext. 40710
   horario: Lunes a viernes, 9:00 a 15:00 h
 relacionados:
   - licencia-sin-goce

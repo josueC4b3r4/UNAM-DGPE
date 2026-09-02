@@ -18,8 +18,8 @@ destacado: true
 actualizado: 2026-08-28
 contacto:
   area: Unidad de Orientación para el Retiro
-  correo: retiro@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40810
+  correo: retiro@dgpe.example
+  telefono: 55 0000 0000 ext. 40810
   horario: Lunes a viernes, 9:00 a 14:00 h, con cita
 relacionados:
   - hoja-unica-de-servicios

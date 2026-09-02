@@ -3,9 +3,16 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  // Cambiar cuando se publique (p. ej. 'https://dgpe-prototipo.netlify.app').
-  // Con deploy local no afecta a nada más que a los enlaces canónicos.
-  site: 'http://localhost:4321',
+  /*
+   * URL pública del sitio. Sólo afecta a los enlaces canónicos y a las
+   * etiquetas Open Graph.
+   *
+   * Se lee de una variable de entorno para no tener que tocar este archivo al
+   * publicar: Netlify expone URL con la dirección del despliegue, y en local
+   * no hay variable y se usa el puerto de desarrollo. Si se despliega en otro
+   * sitio, basta con definir SITE_URL en el panel del proveedor.
+   */
+  site: process.env.SITE_URL ?? process.env.URL ?? 'http://localhost:4321',
 
   // Sitio 100 % estático: cada página se pre-renderiza a HTML en el build.
   output: 'static',

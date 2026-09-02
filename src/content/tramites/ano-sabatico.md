@@ -16,8 +16,8 @@ destacado: true
 actualizado: 2026-08-01
 contacto:
   area: Dirección de Relaciones Laborales Académicas
-  correo: sabatico@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40350
+  correo: sabatico@dgpe.example
+  telefono: 55 0000 0000 ext. 40350
   horario: Lunes a viernes, 10:00 a 14:00 h
 relacionados:
   - licencia-sin-goce

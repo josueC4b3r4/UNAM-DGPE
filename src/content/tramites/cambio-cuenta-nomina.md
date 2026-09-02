@@ -18,8 +18,8 @@ destacado: true
 actualizado: 2026-08-25
 contacto:
   area: Subdirección de Nómina
-  correo: nomina@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40510
+  correo: nomina@dgpe.example
+  telefono: 55 0000 0000 ext. 40510
   horario: Lunes a viernes, 9:00 a 15:00 h
 relacionados:
   - constancia-de-percepciones

@@ -1,0 +1,14 @@
+# Prototipo académico de servicio social. NO es el sitio oficial de la
+# Dirección General de Personal de la UNAM, y su contenido es ficticio.
+#
+# Se bloquea la indexación a propósito: si este sitio apareciera en resultados
+# de búsqueda, alguien que busca un trámite real de la UNAM podría llegar aquí
+# y tomar por buenos unos requisitos, plazos y contactos que están inventados.
+#
+# Si algún día esto deja de ser una maqueta y pasa a ser oficial, hay que
+# quitar este archivo Y la etiqueta <meta name="robots"> de BaseLayout.astro.
+# Están los dos porque uno solo no basta: robots.txt pide que no lo rastreen,
+# la metaetiqueta pide que no lo indiquen aunque lleguen por un enlace.
+
+User-agent: *
+Disallow: /

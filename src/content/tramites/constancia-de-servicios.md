@@ -18,8 +18,8 @@ destacado: true
 actualizado: 2026-08-14
 contacto:
   area: Subdirección de Servicios al Personal
-  correo: constancias@dgpe.unam.mx
-  telefono: 55 5622 0000 ext. 40100
+  correo: constancias@dgpe.example
+  telefono: 55 0000 0000 ext. 40100
   horario: Lunes a viernes, 9:00 a 15:00 h
 relacionados:
   - hoja-unica-de-servicios
