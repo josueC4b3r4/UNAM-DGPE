@@ -95,6 +95,13 @@ const PARES = [
   ['color.bordeFoco', 'color.superficieBase', AA_UI, 'Anillo de foco de teclado'],
   ['color.bordeFoco', 'color.superficieSutil', AA_UI, 'Anillo de foco sobre sección alterna'],
   ['color.bordeFoco', 'color.superficieElevada', AA_UI, 'Anillo de foco dentro de tarjeta'],
+  /* Faltaba, y el hueco costó caro: el anillo se comprobaba contra las tres
+     superficies claras pero nunca contra la de marca. Sobre el azul del
+     encabezado y del pie daba 1.2:1 — invisible — y la verificación pasaba. */
+  ['color.bordeFocoSobreMarca', 'color.superficieMarca', AA_UI, 'Anillo de foco sobre la marca'],
+  /* La isla clara: el campo del buscador vive dentro del hero azul pero su
+     propio fondo es claro, y ahí el anillo tiene que volver al valor oscuro. */
+  ['color.bordeFocoEnClaro', 'color.superficieElevada', AA_UI, 'Anillo de foco en isla clara'],
   ['color.accionPrimariaFondo', 'color.superficieBase', AA_UI, 'Silueta del botón primario'],
   ['color.accionSecundariaBorde', 'color.superficieBase', AA_UI, 'Borde del botón secundario'],
   ['color.acentoLinea', 'color.superficieBase', AA_UI, 'Línea de acento decorativa-informativa'],

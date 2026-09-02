@@ -15,4 +15,4 @@ Medido sobre el build estático servido en `http://localhost:4322`, con la confi
 
 | Auditoría | Nota | Detalle | Afecta a |
 | --- | --- | --- | --- |
-| First Contentful Paint | 99 | 1.1 s | Rendimiento |
+| First Contentful Paint | 99 | 1.2 s | Rendimiento |

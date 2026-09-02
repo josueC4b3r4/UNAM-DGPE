@@ -10,8 +10,8 @@ npm run a11y:contraste
 
 ## Resumen
 
-- **Pares evaluados:** 72 (36 combinaciones × 2 temas)
-- **Cumplen WCAG 2.1 AA:** 72
+- **Pares evaluados:** 76 (38 combinaciones × 2 temas)
+- **Cumplen WCAG 2.1 AA:** 76
 - **No cumplen:** 0
 - **Par con menor margen:** Línea de acento decorativa-informativa en tema claro — 4.41:1 (mínimo 3.0:1)
 
@@ -58,6 +58,8 @@ npm run a11y:contraste
 | claro | Anillo de foco de teclado | `bordeFoco` sobre `superficieBase` | #0d3073 / #ffffff | **12.44:1** | 3.0:1 | ✅ |
 | claro | Anillo de foco sobre sección alterna | `bordeFoco` sobre `superficieSutil` | #0d3073 / #f7f8fa | **11.71:1** | 3.0:1 | ✅ |
 | claro | Anillo de foco dentro de tarjeta | `bordeFoco` sobre `superficieElevada` | #0d3073 / #ffffff | **12.44:1** | 3.0:1 | ✅ |
+| claro | Anillo de foco sobre la marca | `bordeFocoSobreMarca` sobre `superficieMarca` | #ffffff / #08245a | **14.89:1** | 3.0:1 | ✅ |
+| claro | Anillo de foco en isla clara | `bordeFocoEnClaro` sobre `superficieElevada` | #0d3073 / #ffffff | **12.44:1** | 3.0:1 | ✅ |
 | claro | Silueta del botón primario | `accionPrimariaFondo` sobre `superficieBase` | #0d3073 / #ffffff | **12.44:1** | 3.0:1 | ✅ |
 | claro | Borde del botón secundario | `accionSecundariaBorde` sobre `superficieBase` | #0d3073 / #ffffff | **12.44:1** | 3.0:1 | ✅ |
 | claro | Línea de acento decorativa-informativa | `acentoLinea` sobre `superficieBase` | #947400 / #ffffff | **4.41:1** | 3.0:1 | ✅ |
@@ -94,6 +96,8 @@ npm run a11y:contraste
 | oscuro | Anillo de foco de teclado | `bordeFoco` sobre `superficieBase` | #efcc4d / #0f1319 | **11.90:1** | 3.0:1 | ✅ |
 | oscuro | Anillo de foco sobre sección alterna | `bordeFoco` sobre `superficieSutil` | #efcc4d / #1a1f27 | **10.57:1** | 3.0:1 | ✅ |
 | oscuro | Anillo de foco dentro de tarjeta | `bordeFoco` sobre `superficieElevada` | #efcc4d / #29313b | **8.40:1** | 3.0:1 | ✅ |
+| oscuro | Anillo de foco sobre la marca | `bordeFocoSobreMarca` sobre `superficieMarca` | #ffffff / #05193d | **17.31:1** | 3.0:1 | ✅ |
+| oscuro | Anillo de foco en isla clara | `bordeFocoEnClaro` sobre `superficieElevada` | #efcc4d / #29313b | **8.40:1** | 3.0:1 | ✅ |
 | oscuro | Silueta del botón primario | `accionPrimariaFondo` sobre `superficieBase` | #82a4e3 / #0f1319 | **7.42:1** | 3.0:1 | ✅ |
 | oscuro | Borde del botón secundario | `accionSecundariaBorde` sobre `superficieBase` | #82a4e3 / #0f1319 | **7.42:1** | 3.0:1 | ✅ |
 | oscuro | Línea de acento decorativa-informativa | `acentoLinea` sobre `superficieBase` | #efcc4d / #0f1319 | **11.90:1** | 3.0:1 | ✅ |

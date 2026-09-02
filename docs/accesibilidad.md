@@ -140,10 +140,47 @@ Incluido en los 72 pares: bordes de campos, anillo de foco, siluetas de botones 
 | | Criterio | Cómo se resolvió |
 | --- | --- | --- |
 | 🔧 | Sin elementos falsos | Todo lo interactivo es `<button>`, `<a>` o `<input>` nativo. Cero `<div onclick>`. |
-| ✅ | Buscador | Ejercitado en navegador: `ArrowDown` fija `aria-activedescendant="dgpe-opcion-0"` y marca `aria-selected="true"`, **y `document.activeElement` sigue siendo el campo** — el foco nunca salta a la lista. |
+| ✅ | Buscador | Patrón completo ejercitado: ↓ ↑ Home End recorren la lista, `aria-activedescendant` sigue a la opción activa, **y `document.activeElement` no deja de ser el campo en ningún momento**. |
 | ✅ | Escape de dos niveles | Primer `Escape`: `aria-expanded="false"` conservando el texto escrito. Segundo `Escape`: el campo queda vacío. |
-| 🔧 | Tablas desplazables | `tabindex="0"` sobre la región, para poder desplazarlas con teclado. |
-| ⏳ | Recorrido completo de la página con Tab | Pendiente. Falta comprobar el orden de tabulación de principio a fin en cada plantilla. Lo verificado hasta ahora es el buscador, no la página entera. |
+| ✅ | Tab nunca queda atrapado | Con la lista abierta, `Tab` la cierra siempre (`aria-expanded` pasa a `false`). |
+| ✅ | Tablas desplazables | La región lleva `tabindex="0"`, `role="region"` y nombre accesible generado del encabezado anterior (comprobado: «Tabla: Documentos que necesitas»). |
+| ✅ | Menú móvil | A 375 px: cerrado `aria-expanded="false"` y **cero enlaces alcanzables con Tab**; abierto, `true` y los 4 enlaces alcanzables; `Escape` cierra, vuelve a dejar 0 alcanzables y **devuelve el foco al botón**. El fallo habitual —ocultar el menú a la vista pero dejarlo tabulable, con lo que el foco desaparece de pantalla— no se produce. |
+
+### Recorrido con teclado — ✅ VERIFICADO
+
+Recorrido ejecutado sobre las tres plantillas, en los dos temas:
+
+| Plantilla | Paradas de tabulación | Sin indicador de foco | Anillo por debajo de 3:1 | Sin nombre accesible |
+| --- | --- | --- | --- | --- |
+| Inicio | 31 | 0 | 0 | 0 |
+| Listado de trámites | 38 | 0 | 0 | 0 |
+| Landing de trámite | 35 | 0 | 0 | 0 |
+
+Cero `tabindex` positivos en todo el proyecto, lo que importa más de lo que parece: **sin ellos el orden de tabulación es exactamente el orden del DOM**, así que es determinista y se puede razonar leyendo el marcado. Un solo `tabindex="1"` bastaría para romper esa garantía en toda la página.
+
+Anillo de 3 px en todas las paradas. El peor contraste medido es 11.71:1 en tema claro y 8.4:1 en oscuro, muy por encima del 3:1 exigido.
+
+#### El fallo que encontró este recorrido
+
+El anillo de foco usaba `bordeFoco` = azul.700, pensado para superficies claras, donde da 12.44:1. Pero el encabezado y el pie tienen fondo `#08245A`, que es casi el mismo azul: ahí el anillo daba **1.2:1 y era invisible**.
+
+Afectaba a **19 de las 31 paradas del home**: los 9 controles del encabezado (los tres tamaños de texto, el cambio de tema, la marca y los cuatro enlaces del menú), el campo del buscador, y los 9 enlaces del pie. En la práctica, quien navega con teclado no podía ver dónde estaba el foco en todo el menú principal ni en el pie entero.
+
+La verificación de contraste no lo detectaba porque comprobaba el anillo contra `superficieBase`, `superficieSutil` y `superficieElevada` — **nunca contra `superficieMarca`**. Ese par ya está añadido.
+
+Se corrigió con el token `bordeFocoSobreMarca` (blanco, 14.89:1). Se eligió blanco y no el oro porque el oro ya marca la página activa del menú y el foco no debe confundirse con ella. Los contenedores de marca redefinen `--color-borde-foco`, y como las custom properties heredan, todo control que se agregue después dentro de ellos recibe el anillo correcto sin tocar nada más.
+
+El primer intento de arreglo se pasó de largo: la herencia llegaba también al campo del buscador, que es una **isla clara dentro del hero azul**, y dejaba el anillo blanco sobre fondo blanco en el botón «Buscar» — 1:1. De ahí sale `bordeFocoEnClaro`, que existe únicamente para poder restaurar el valor dentro de esas islas.
+
+#### Qué no cubre este recorrido
+
+Las pulsaciones de `Tab` reales no llegan al documento en el entorno donde se ejecutó, así que **no se comprobó empíricamente el movimiento nativo del foco**. Lo que sí se hizo:
+
+- El orden de tabulación se calculó sobre el DOM. Sin `tabindex` positivos eso **es** el orden del navegador, no una aproximación.
+- Cada parada se enfocó por programa y se midió su indicador real.
+- Los manejadores propios (buscador, menú, Escape) se ejercitaron con eventos de teclado, que es exactamente lo que escuchan.
+
+Queda pendiente confirmarlo pulsando Tab a mano, y una pasada con lector de pantalla — ninguna comprobación automática sustituye eso.
 
 ### 2.1.2 Sin trampas de teclado (A)
 

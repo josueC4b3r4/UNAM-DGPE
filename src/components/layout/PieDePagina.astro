@@ -90,6 +90,10 @@ const anio = new Date().getFullYear();
     background-color: var(--color-superficie-marca);
     color: var(--color-texto-sobre-marca);
     border-block-start: var(--p-borde-grueso) solid var(--color-acento-linea-sobre-marca);
+
+    /* Mismo motivo que en el encabezado: sobre este azul el anillo de foco
+       por defecto se queda en 1.2:1. Aquí afectaba a los nueve enlaces. */
+    --color-borde-foco: var(--color-borde-foco-sobre-marca);
   }
 
   .pie__columnas {

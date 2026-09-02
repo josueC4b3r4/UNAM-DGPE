@@ -154,6 +154,10 @@ const hayVideo = Boolean(webm || mp4);
     overflow: hidden;
     background-color: var(--color-superficie-marca);
     color: var(--color-texto-sobre-marca);
+
+    /* El buscador vive aquí dentro, sobre el azul: su anillo de foco necesita
+       la variante clara o se queda en 1.2:1 contra el fondo. */
+    --color-borde-foco: var(--color-borde-foco-sobre-marca);
   }
 
   .hero__fondo {

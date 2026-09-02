@@ -141,12 +141,25 @@ const ID_INDICE = 'dgpe-buscador-indice';
     border: var(--p-borde-medio) solid var(--color-borde-fuerte);
     border-radius: var(--radio-control);
     padding: var(--p-espacio-2);
+
+    /*
+     * Isla clara dentro del hero azul. El hero redefine --color-borde-foco al
+     * anillo blanco porque sus controles caen sobre el azul; aquí dentro el
+     * fondo vuelve a ser blanco, así que ese anillo blanco quedaría invisible
+     * (medido: 1:1 en el botón "Buscar"). Se restaura el valor claro.
+     *
+     * El anillo del CAMPO ENTERO sí debe ser el de marca: se dibuja por fuera,
+     * sobre el azul del hero. Va explícito en la regla :focus-within de abajo.
+     */
+    --color-borde-foco: var(--color-borde-foco-en-claro);
   }
 
   /* El anillo de foco se dibuja alrededor del campo COMPLETO, no del input
      desnudo, para que se vea como una sola unidad. */
   .buscador__campo:focus-within {
-    outline: var(--foco-grosor) solid var(--color-borde-foco);
+    /* Este anillo cae sobre el azul del hero, no sobre el campo: usa la
+       variante de marca (14.89:1) y no el valor claro restaurado arriba. */
+    outline: var(--foco-grosor) solid var(--color-borde-foco-sobre-marca);
     outline-offset: var(--foco-desplazamiento);
     border-color: var(--color-accion-primaria-fondo);
   }

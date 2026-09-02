@@ -214,6 +214,9 @@ const posicion = todos.findIndex((t) => t.id === tramite.id);
     background-color: var(--color-superficie-marca);
     color: var(--color-texto-sobre-marca);
     border-block-end: var(--p-borde-grueso) solid var(--color-acento-linea-sobre-marca);
+
+    /* Cabecera de marca: el anillo de foco por defecto no contrasta aquí. */
+    --color-borde-foco: var(--color-borde-foco-sobre-marca);
   }
 
   .tramite__categoria {

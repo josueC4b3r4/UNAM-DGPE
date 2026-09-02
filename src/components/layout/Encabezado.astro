@@ -158,6 +158,17 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
     background-color: var(--color-superficie-marca);
     color: var(--color-texto-sobre-marca);
     border-block-end: var(--p-borde-grueso) solid var(--color-acento-linea-sobre-marca);
+
+    /*
+     * El anillo de foco se redefine para todo lo que viva aquí dentro. El
+     * valor global es azul.700, casi el mismo color que este fondo: daba
+     * 1.2:1 y no se veía dónde estaba el foco al recorrer el menú.
+     *
+     * Se hace con la variable y no control por control porque las custom
+     * properties heredan: cualquier control que se agregue después al
+     * encabezado recibe el anillo correcto sin tocar nada.
+     */
+    --color-borde-foco: var(--color-borde-foco-sobre-marca);
   }
 
   /* ---------------------------------------------------------------- */
