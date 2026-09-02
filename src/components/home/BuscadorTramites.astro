@@ -216,7 +216,31 @@ const ID_INDICE = 'dgpe-buscador-indice';
     box-shadow: var(--sombra-elevada);
   }
 
-  .buscador__opcion {
+  /* Las opciones se estilan en el bloque global de abajo — ver el porqué ahí. */
+</style>
+
+<style is:global>
+  /*
+   * ESTE BLOQUE TIENE QUE SER GLOBAL. No es una preferencia de estilo.
+   *
+   * Astro encapsula el CSS de cada componente añadiendo un atributo
+   * `[data-astro-cid-…]` a cada selector y a cada elemento del archivo .astro.
+   * Las opciones de esta lista NO están en el archivo: las crea el controlador
+   * con `document.createElement` cuando el usuario escribe. Esos nodos nunca
+   * reciben el atributo, así que ninguna regla encapsulada les aplicaba.
+   *
+   * El síntoma era grave y silencioso: sin `color` propio, las opciones
+   * heredaban el blanco del hero y quedaban en blanco sobre blanco — contraste
+   * 1:1, sugerencias invisibles en tema claro. En tema oscuro no se notaba,
+   * porque ahí el texto heredado sí contrasta con el panel.
+   *
+   * Un verificador de pares de tokens no puede cazar esto: cada token es
+   * correcto por separado; lo que falla es la composición.
+   *
+   * Los selectores van acotados bajo `.buscador__lista` y usan nombres BEM del
+   * componente, así que no se filtran a nada más.
+   */
+  .buscador__lista .buscador__opcion {
     display: flex;
     flex-direction: column;
     gap: var(--p-espacio-1);
@@ -230,23 +254,26 @@ const ID_INDICE = 'dgpe-buscador-indice';
    * La opción activa se distingue por fondo Y por una barra lateral. Con solo
    * un cambio de color de fondo, en modo de alto contraste desaparecería.
    */
-  .buscador__opcion[aria-selected='true'] {
+  .buscador__lista .buscador__opcion[aria-selected='true'] {
     background-color: var(--color-superficie-marca-sutil);
     box-shadow: inset 3px 0 0 0 var(--color-accion-primaria-fondo);
   }
 
-  .buscador__opcion-titulo {
+  .buscador__lista .buscador__opcion-titulo {
     color: var(--color-texto-principal);
     font-weight: var(--p-tipografia-peso-medio);
   }
 
-  .buscador__opcion-meta {
+  .buscador__lista .buscador__opcion-meta {
     color: var(--color-texto-tenue);
     font-size: var(--tipo-menudo-tamano);
   }
 
+  /* El <mark> del resaltado no necesita regla aquí: base.css lo estiliza a
+     nivel global con los mismos tokens, y esa hoja no está encapsulada. */
+
   @media (forced-colors: active) {
-    .buscador__opcion[aria-selected='true'] {
+    .buscador__lista .buscador__opcion[aria-selected='true'] {
       /* tokens-ok: palabras clave del sistema en modo alto contraste. */
       background-color: Highlight;
       color: HighlightText;

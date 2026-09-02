@@ -1,6 +1,6 @@
 ---
 titulo: Alta ante el ISSSTE
-resumen: Registro que activa tu seguridad social y la de tu familia: atención médica, guardería, préstamos y fondo de vivienda. Se hace al iniciar tu nombramiento.
+resumen: 'Registro que activa tu seguridad social y la de tu familia: atención médica, guardería, préstamos y fondo de vivienda. Se hace al iniciar tu nombramiento.'
 roles:
   - academico
   - administrativo

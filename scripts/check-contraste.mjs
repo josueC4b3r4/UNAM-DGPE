@@ -103,7 +103,7 @@ const PARES = [
   ['color.errorBorde', 'color.errorFondo', AA_UI, 'Borde del mensaje de error'],
 
   // --- Títulos grandes: umbral relajado a 3:1 (WCAG 1.4.3 "large text") ----
-  ['color.acentoLinea', 'color.superficieMarca', AA_TEXTO_GRANDE, 'Acento oro sobre marca'],
+  ['color.acentoLineaSobreMarca', 'color.superficieMarca', AA_TEXTO_GRANDE, 'Acento oro sobre marca'],
 ];
 
 const tokens = leerTokens();

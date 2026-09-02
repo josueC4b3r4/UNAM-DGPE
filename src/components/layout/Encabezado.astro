@@ -157,7 +157,7 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
   .encabezado {
     background-color: var(--color-superficie-marca);
     color: var(--color-texto-sobre-marca);
-    border-block-end: var(--p-borde-grueso) solid var(--color-acento-linea);
+    border-block-end: var(--p-borde-grueso) solid var(--color-acento-linea-sobre-marca);
   }
 
   /* ---------------------------------------------------------------- */
@@ -236,7 +236,7 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
     place-items: center;
     min-width: 3rem;
     padding: var(--p-espacio-2);
-    border: var(--p-borde-medio) solid var(--color-acento-linea);
+    border: var(--p-borde-medio) solid var(--color-acento-linea-sobre-marca);
     border-radius: var(--p-radio-sm);
     font-size: var(--tipo-menudo-tamano);
     font-weight: var(--p-tipografia-peso-negrita);
@@ -343,7 +343,7 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
 
   .nav__enlace[aria-current='page'] {
     font-weight: var(--p-tipografia-peso-negrita);
-    box-shadow: inset 0 -3px 0 0 var(--color-acento-linea);
+    box-shadow: inset 0 -3px 0 0 var(--color-acento-linea-sobre-marca);
   }
 
   /* --- Móvil -------------------------------------------------------- */

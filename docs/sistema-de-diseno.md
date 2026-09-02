@@ -72,6 +72,38 @@ En `tokens.json` se escribe en `camelCase` (`textoTenue`) y el generador lo conv
 
 Los neutros tienen un ligero sesgo azul para que convivan con el azul institucional sin verse sucios.
 
+#### Anclaje en los colores oficiales
+
+Las dos rampas de marca están ancladas en los colores institucionales exactos:
+
+| Token | Valor | HSL | Es el oficial |
+| --- | --- | --- | --- |
+| `azul.800` | `#08245A` | 219° 84 % 19 % | ✅ exacto |
+| `oro.500` | `#BD9500` | 47° 100 % 37 % | ✅ exacto |
+
+El resto de cada rampa mantiene el tono (219° y 47°) y varía luminosidad y saturación. Si algún día cambian los colores institucionales, se re-ancla ahí y `npm run tokens && npm run a11y:contraste` dice de inmediato qué se rompió.
+
+#### La regla del oro: acentúa sobre el azul, no sobre el blanco
+
+Esto no es preferencia estética, es medición:
+
+| Combinación | Contraste | Veredicto |
+| --- | --- | --- |
+| `#BD9500` sobre blanco | **2.81:1** | ❌ falla texto (4.5) **y** elementos de interfaz (3.0) |
+| `#BD9500` sobre el azul `#08245A` | **5.29:1** | ✅ pasa incluso para texto normal |
+| Texto oscuro sobre `#BD9500` | 7.46:1 | ✅ |
+| `#08245A` sobre blanco | 14.89:1 | ✅ excelente |
+
+Un amarillo saturado tiene demasiada luminancia para contrastar con blanco. No hay forma de rodearlo: o se oscurece, o no va sobre blanco.
+
+En la práctica:
+
+- **Sobre el azul** (encabezado, pie, cabeceras de marca): usa `acentoLineaSobreMarca`, que **es** el oro oficial.
+- **Sobre superficies claras**: el oro oficial sólo puede ser **fondo** (con texto oscuro encima) o **adorno sin significado**. Si un borde dorado sobre blanco es la única señal de que algo está seleccionado, para mucha gente esa señal no existe.
+- **Acentos con significado sobre blanco**: `acentoLinea` usa `oro.600` (`#947400`, 4.41:1) para bordes e iconos. Para texto hace falta `oro.700` (`#705800`, 6.81:1).
+
+Por eso existen `acentoLinea` y `acentoLineaSobreMarca` por separado — mismo motivo que `textoTenueSobreMarca`.
+
 ### Roles semánticos
 
 **Superficies** — `base`, `sutil`, `hundida`, `elevada`, `marca`, `marcaSutil`

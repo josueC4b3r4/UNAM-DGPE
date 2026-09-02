@@ -180,9 +180,14 @@ const OPCIONES = [
     font-weight: var(--p-tipografia-peso-negrita);
   }
 
-  /* El foco del radio invisible se dibuja sobre su etiqueta visible. */
+  /*
+   * El foco del radio invisible se dibuja sobre su etiqueta visible. Usa la
+   * variante "sobre marca" porque el `outline-offset` empuja el anillo fuera
+   * de la etiqueta: el fondo contra el que se mide es el azul del encabezado,
+   * no el relleno dorado de la etiqueta activa. Ahí el oro oficial da 5.29:1.
+   */
   .control-texto__radio:focus-visible + .control-texto__etiqueta {
-    outline: var(--foco-grosor) solid var(--color-acento-linea);
+    outline: var(--foco-grosor) solid var(--color-acento-linea-sobre-marca);
     outline-offset: var(--foco-desplazamiento);
   }
 

@@ -53,27 +53,50 @@ npm run a11y:contraste
 
 36 combinaciones × 2 temas, con los umbrales de 4.5:1 (texto), 3:1 (texto grande) y 3:1 (elementos de interfaz, criterio 1.4.11).
 
-Dos hallazgos reales que la verificación obligó a corregir:
+Tres hallazgos reales que la verificación obligó a corregir:
 
 1. `textoTenue` sobre la superficie de marca daba **1.95:1**. Se creó el token `textoTenueSobreMarca` (8.29:1).
 2. `bordeFuerte` sobre una tarjeta elevada en tema oscuro daba **2.90:1**. Se aclaró un paso (5.09:1).
+3. Al adoptar el oro institucional exacto (`#BD9500`), `acentoLinea` cayó a **2.81:1** sobre blanco. Ver la nota sobre el oro más abajo.
 
 Ambos habrían pasado desapercibidos en una revisión visual.
 
-### 1.4.4 Cambio de tamaño del texto (AA)
+#### Por qué 72 pares de tokens no bastan
+
+El verificador compara **pares de tokens**. Eso no cubre la **composición**: qué color hereda un elemento cuando se renderiza dentro de otro.
+
+Un barrido en el navegador —recorriendo cada elemento de texto, subiendo por el DOM hasta el primer fondo no transparente y midiendo contra el umbral que le toca por tamaño y peso— encontró un fallo que los 72 pares daban por bueno:
+
+> **Las sugerencias del buscador eran blanco sobre blanco en tema claro. Contraste 1.00:1. Invisibles.**
+
+Causa: Astro encapsula el CSS de cada componente añadiendo `[data-astro-cid-…]` a los selectores y a los elementos del archivo `.astro`. Las opciones del desplegable las crea el controlador con `document.createElement`, así que **nunca reciben ese atributo** y ninguna regla encapsulada les aplicaba. Sin `color` propio heredaban el blanco del hero.
+
+En tema oscuro no se notaba, porque ahí el texto heredado sí contrasta con el panel. Sólo fallaba en el tema por defecto.
+
+Corregido moviendo esas reglas a un bloque `<style is:global>` acotado bajo `.buscador__lista`. Tras el arreglo: título **14.88:1**, metadatos **6.11:1**, resaltado **14.37:1**.
+
+**Resultado del barrido completo:** 76 elementos de texto medidos por tema, **0 fallos en claro y 0 en oscuro**, con el desplegable abierto.
+
+> **Cuidado al medir.** Cambiar el esquema de color con la herramienta del navegador, o alternar `data-tema` por JavaScript, deja estilos calculados obsoletos: aparecen fallos fantasma (el botón "Buscar" dio 2.51:1 y luego 1.5:1). **Recarga la página antes de medir.** Tras recargar, ese botón da 12.44:1 en claro y 7.42:1 en oscuro.
+
+### 1.4.4 Cambio de tamaño del texto (AA) — ✅ VERIFICADO
 
 | | Criterio | Cómo se resolvió |
 | --- | --- | --- |
 | 🔧 | Escala hasta 200 % | Toda la tipografía en `rem`. El control del encabezado multiplica `--escala-texto` sobre el `<html>`. |
-| ⏳ | Prueba con zoom al 200 % | Falta verificar que ningún bloque se desborde ni se recorte. |
+| ✅ | Prueba con texto al 200 % | Medido en navegador sobre la landing de trámite a 1280 px con `html { font-size: 200% }`: `scrollWidth` = ancho del viewport, **sin scroll horizontal** y sin bloques desbordados. |
+| ✅ | Control propio del sitio al máximo | Con `--escala-texto: 1.3` tampoco aparece scroll horizontal, ni a 1280 px ni a 320 px. |
 
-### 1.4.10 Reflujo (AA)
+### 1.4.10 Reflujo (AA) — ✅ VERIFICADO
 
 | | Criterio | Cómo se resolvió |
 | --- | --- | --- |
 | 🔧 | Sin scroll horizontal a 320 px | Diseño mobile-first. Rejillas con `minmax(min(20rem, 100%), 1fr)`. |
 | 🔧 | Tablas anchas | Scroll propio dentro de un contenedor enfocable, no scroll de página. |
-| ⏳ | Prueba a 320 px de ancho | Falta verificar en el navegador. |
+| ✅ | Prueba a 320 px y 375 px | Medido en navegador en el home y en la landing de trámite: `document.body.scrollWidth` igual al ancho del viewport en ambos anchos, y cero elementos con el borde derecho fuera de la ventana. |
+| ✅ | La tabla no arrastra la página | A 320 px la tabla mide 480 px, pero el `scrollWidth` del `body` sigue en 320: el desbordamiento queda contenido en `.tabla-envoltura`, como estaba previsto. |
+
+> **Nota de método.** Una primera medición combinó 320 px de ancho *con* texto al 200 % y dio scroll horizontal. Esa prueba estaba mal planteada: equivale a meter contenido de 640 px en una ventana de 320, y es más estricta que lo que pide cualquiera de los dos criterios (1.4.10 pide reflujo a 320 px con texto normal; 1.4.4 pide texto al 200 % en un viewport normal). Medidos por separado, ambos pasan.
 
 ### 1.4.11 Contraste no textual (AA) — ✅ VERIFICADO
 
@@ -95,9 +118,10 @@ Incluido en los 72 pares: bordes de campos, anillo de foco, siluetas de botones 
 | | Criterio | Cómo se resolvió |
 | --- | --- | --- |
 | 🔧 | Sin elementos falsos | Todo lo interactivo es `<button>`, `<a>` o `<input>` nativo. Cero `<div onclick>`. |
-| 🔧 | Buscador | Patrón ARIA de combobox: ↓ ↑ Home End Enter Esc. |
+| ✅ | Buscador | Ejercitado en navegador: `ArrowDown` fija `aria-activedescendant="dgpe-opcion-0"` y marca `aria-selected="true"`, **y `document.activeElement` sigue siendo el campo** — el foco nunca salta a la lista. |
+| ✅ | Escape de dos niveles | Primer `Escape`: `aria-expanded="false"` conservando el texto escrito. Segundo `Escape`: el campo queda vacío. |
 | 🔧 | Tablas desplazables | `tabindex="0"` sobre la región, para poder desplazarlas con teclado. |
-| ⏳ | Recorrido completo con teclado | **Pendiente de ejecutar y documentar.** |
+| ⏳ | Recorrido completo de la página con Tab | Pendiente. Falta comprobar el orden de tabulación de principio a fin en cada plantilla. Lo verificado hasta ahora es el buscador, no la página entera. |
 
 ### 2.1.2 Sin trampas de teclado (A)
 
