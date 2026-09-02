@@ -8,7 +8,11 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "22"
+  # Igual que el Node de desarrollo, para que no haya diferencias entre lo que
+  # se prueba en local y lo que se publica. Además `npm test` necesita 23.6 o
+  # superior: ejecuta los .ts directamente aprovechando que Node ya sabe
+  # quitar los tipos por su cuenta.
+  NODE_VERSION = "24"
 
 # ---------------------------------------------------------------------------
 # Cabecera de no indexación, además de robots.txt y de la metaetiqueta.

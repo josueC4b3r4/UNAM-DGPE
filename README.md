@@ -153,11 +153,43 @@ Las importantes:
 
 ---
 
+## Publicar el sitio
+
+`netlify.toml` ya trae la configuración: comando de build, versión de Node, cabeceras de caché y de no indexación. Al conectar el repositorio, Netlify lo lee solo y no hay que rellenar nada en su panel.
+
+```bash
+npm run verificar   # que esté todo en verde antes de publicar
+git push
+```
+
+El CSS de `src/styles/tokens/` no se versiona, pero eso no rompe nada: `npm run build` lo regenera desde `design/tokens.json` antes de compilar. Comprobado borrando la carpeta y compilando desde cero.
+
+### Antes de publicar, léete esto
+
+El sitio lleva identidad de la UNAM y describe trámites de una dependencia que existe, **pero todo su contenido es inventado**. Eso obliga a dos cosas:
+
+**No se indexa, y es a propósito.** Hay tres capas: `public/robots.txt`, la metaetiqueta `robots` en `BaseLayout.astro`, y la cabecera `X-Robots-Tag` en `netlify.toml`. Si el sitio saliera en resultados de búsqueda, alguien que busca un trámite real podría llegar aquí y tomar por buenos unos requisitos y plazos que no lo son. **No quites ninguna de las tres** mientras el contenido sea ficticio.
+
+**Ningún dato de contacto apunta a la UNAM.** Los correos usan el dominio `.example`, reservado por la RFC 2606 y garantizado a no resolver nunca; los teléfonos son de relleno. Lo vigila un script:
+
+```bash
+npm run check:ficticios
+```
+
+Falla si aparece un buzón sobre `unam.mx` o un conmutador real de CU. Ya pasó una vez —el pie mostraba el conmutador real en las 23 páginas— y por eso es un script y no una nota. Corre dentro de `npm run verificar`.
+
+**Al compartir el enlace, di que es una maqueta con datos de ejemplo.** El sitio lo advierte en el encabezado, el pie y cada ficha, pero un enlace reenviado llega sin ese contexto.
+
+---
+
 ## Estado actual
 
-- ✅ Sistema de diseño con temas claro y oscuro, contraste AA verificado por script (72/72 pares).
+- ✅ Sistema de diseño con temas claro y oscuro, contraste AA verificado por script (76/76 pares).
 - ✅ Home con navegación por rol y buscador con autocompletado.
 - ✅ Página de perfil, listado filtrable y landing de trámite.
 - ✅ 14 trámites de ejemplo con sinónimos de búsqueda.
+- ✅ Lighthouse 100 en Rendimiento, Accesibilidad, Buenas prácticas y SEO, en las cuatro plantillas.
+- ✅ Recorrido con teclado: 104 paradas entre tres plantillas, sin ninguna sin indicador de foco ni por debajo de 3:1.
 - ⏳ Video del hero: pendiente del asset.
 - ⏳ Contenido real: los trámites son inventados.
+- ⏳ Prueba con lector de pantalla.
