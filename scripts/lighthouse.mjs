@@ -24,16 +24,32 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const BASE = process.env.URL_BASE ?? 'http://localhost:4322';
 
-/** Umbrales del proyecto. Rendimiento y accesibilidad son requisito. */
+/**
+ * Umbrales del proyecto. `null` = se mide y se informa, pero no se juzga.
+ *
+ * El SEO no lleva umbral a propósito. Este sitio es `noindex` deliberadamente
+ * —contenido ficticio sobre una dependencia real—, y Lighthouse penaliza eso
+ * sin saber que es intencional: la nota se queda en 66 haga lo que haga el
+ * resto. Ponerle un mínimo de 90 significaría ver un ✗ permanente en cada
+ * ejecución, y un verificador que siempre falla acaba ignorándose entero.
+ */
 const UMBRALES = {
   performance: 90,
   accessibility: 90,
   'best-practices': 90,
-  seo: 90,
+  seo: null,
 };
 
 /** Categorías que hacen fallar el script si no llegan. */
 const OBLIGATORIAS = ['performance', 'accessibility'];
+
+/**
+ * Auditorías que sabemos que no pasan, y por qué. No se listan como "margen de
+ * mejora" porque no lo son: son consecuencia de una decisión tomada.
+ */
+const ESPERADAS = {
+  'is-crawlable': 'El sitio es noindex a propósito mientras el contenido sea ficticio.',
+};
 
 const PAGINAS = [
   { ruta: '/', nombre: 'Inicio' },
@@ -76,6 +92,7 @@ try {
        las informativas y las que no aplican. */
     const fallos = Object.values(lhr.audits)
       .filter((a) => a.score !== null && a.score < 1 && a.scoreDisplayMode !== 'informative')
+      .filter((a) => !(a.id in ESPERADAS))
       .map((a) => ({
         id: a.id,
         titulo: a.title,
@@ -112,6 +129,15 @@ for (const r of resultados) {
   console.log(`  ${r.nombre}  ${r.ruta}`);
   for (const [clave, umbral] of Object.entries(UMBRALES)) {
     const n = r.notas[clave];
+
+    /* Sin umbral: se informa el número y se dice por qué no se juzga. */
+    if (umbral === null) {
+      console.log(
+        `    · ${ETIQUETA[clave].padEnd(17)} ${String(n ?? 'n/d').padStart(3)}  (sin umbral: noindex deliberado)`
+      );
+      continue;
+    }
+
     const pasa = n !== null && n >= umbral;
     if (!pasa && OBLIGATORIAS.includes(clave)) incumple = true;
     const marca = n === null ? '–' : pasa ? '✓' : '✗';
@@ -137,7 +163,11 @@ const lineas = [
   '',
   '> Generado por `npm run lighthouse`. **No editar a mano.**',
   '',
-  `Medido sobre el build estático servido en \`${BASE}\`, con la configuración móvil por defecto de Lighthouse (CPU y red simuladas más lentas). Escritorio da notas iguales o mejores.`,
+  `Medido en \`${BASE}\` con la configuración móvil por defecto de Lighthouse (CPU y red simuladas más lentas). Escritorio da notas iguales o mejores.`,
+  '',
+  '**El SEO no lleva umbral.** El sitio es `noindex` a propósito mientras su contenido sea ficticio, y Lighthouse penaliza eso sin saber que es intencional: la nota se queda en torno a 66 haga lo que haga el resto. Se informa el número, no se juzga.',
+  '',
+  '**Si mides contra un despliegue recién publicado**, la primera pasada puede salir baja: la caché del CDN está fría y la cabecera de respuesta lo delata con `Cache-Status: fwd=miss`. Vuelve a medir antes de dar por buena una caída.',
   '',
   '| Página | Rendimiento | Accesibilidad | Buenas prácticas | SEO |',
   '| --- | --- | --- | --- | --- |',
@@ -147,6 +177,7 @@ for (const r of resultados) {
   const c = (k) => {
     const n = r.notas[k];
     if (n === null) return 'n/d';
+    if (UMBRALES[k] === null) return `${n} —`;
     return n >= UMBRALES[k] ? `**${n}** ✓` : `**${n}** ✗`;
   };
   lineas.push(
