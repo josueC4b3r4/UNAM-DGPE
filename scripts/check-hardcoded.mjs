@@ -120,6 +120,36 @@ function marcarComentarios(lineas) {
   return esComentario;
 }
 
+/**
+ * Marca qué líneas caen dentro de un bloque `@font-face`.
+ *
+ * Ahí `font-family` **declara** el nombre de la familia; no lo consume. Es
+ * imposible escribirlo con un token, así que la regla no aplica. Sin esto,
+ * cada fuente nueva del proyecto produciría un error que sólo se puede callar
+ * con un `tokens-ok:`, y un verificador que obliga a silenciarlo en el caso
+ * normal acaba ignorándose entero.
+ */
+function marcarFontFace(lineas) {
+  const dentro = new Array(lineas.length).fill(false);
+  let profundidad = 0;
+  let activo = false;
+
+  lineas.forEach((linea, i) => {
+    if (!activo && /@font-face\b/.test(linea)) {
+      activo = true;
+      profundidad = 0;
+    }
+    if (!activo) return;
+
+    dentro[i] = true;
+    profundidad += (linea.match(/\{/g) ?? []).length;
+    profundidad -= (linea.match(/\}/g) ?? []).length;
+    if (profundidad <= 0 && linea.includes('}')) activo = false;
+  });
+
+  return dentro;
+}
+
 /** ¿Hay un `tokens-ok:` en la línea o en el comentario que la precede? */
 function justificada(lineas, esComentario, i) {
   if (lineas[i].includes('tokens-ok:')) return true;
@@ -149,11 +179,14 @@ for (const archivo of archivos(DIR_FUENTE)) {
   const rutaRelativa = relative(RAIZ, archivo).split(sep).join('/');
   const lineas = readFileSync(archivo, 'utf8').split('\n');
   const esComentario = marcarComentarios(lineas);
+  const enFontFace = marcarFontFace(lineas);
 
   lineas.forEach((linea, i) => {
     if (justificada(lineas, esComentario, i)) return;
 
     for (const regla of REGLAS) {
+      /* Dentro de @font-face, font-family declara el nombre de la fuente. */
+      if (enFontFace[i] && regla.nombre === 'font-family literal') continue;
       regla.patron.lastIndex = 0;
       for (const coincidencia of linea.matchAll(regla.patron)) {
         /* Reglas con grupo de captura: el veredicto lo da `aceptable` sobre el

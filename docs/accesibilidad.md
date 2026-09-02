@@ -10,6 +10,28 @@ Cada punto lleva su estado real. Se distingue entre lo **verificado** (con evide
 | 🔧 | Implementado según la norma, sin prueba formal ejecutada |
 | ⏳ | Pendiente |
 
+## Lighthouse
+
+**Accesibilidad 100/100 en las cuatro plantillas**, y también 100 en Rendimiento, Buenas prácticas y SEO. Reporte completo en [`resultado-lighthouse.md`](resultado-lighthouse.md).
+
+```bash
+npm run build
+npm run preview -- --port 4322   # en otra terminal
+npm run lighthouse
+```
+
+Conviene decir qué significa y qué no ese 100. Lighthouse ejecuta axe-core, que detecta **errores automatizables**: nombres accesibles ausentes, contrastes insuficientes, atributos ARIA mal puestos, jerarquías rotas. Eso cubre alrededor de un tercio de los criterios de WCAG. **No** comprueba si el orden de tabulación tiene sentido, si el texto alternativo describe bien la imagen, ni si el sitio se puede usar de verdad con un lector de pantalla. Un 100 significa que no hay errores mecánicos; no que el sitio sea accesible. Por eso los puntos ⏳ de más abajo siguen abiertos.
+
+### Lo que costó llegar al 100 de rendimiento
+
+La primera medición dio **86**, con un Cumulative Layout Shift de **0.285** — por encima de 0.25, que Google clasifica como «pobre».
+
+La causa era la tipografía. La hoja de `@fontsource` declara `font-display: swap`: el navegador pinta el texto con la fuente del sistema y la sustituye cuando llega Source Sans 3, con lo que todo se recompone y salta. El titular del hero, a 48 px, era el que más se movía.
+
+Se sustituyó por un `@font-face` propio con `font-display: optional` (nunca sustituye, así que no puede haber salto) más un `<link rel="preload">` que hace que la fuente llegue a tiempo casi siempre. De paso se bajó de 7 declaraciones de fuente a 1, quedándose sólo con el subconjunto `latin`, que es el que cubre el español.
+
+Rendimiento subió de 86 a **100** y el CLS quedó en 0. Comprobado además en el navegador que la fuente real sí se aplica (`document.fonts.check` devuelve `true`) y que sólo se descarga una vez.
+
 ---
 
 ## 1. Perceptible

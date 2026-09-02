@@ -9,7 +9,7 @@
  *
  * Todo lo demás lo aportan las páginas por el <slot />.
  */
-import '@fontsource-variable/source-sans-3/wght.css';
+import '../styles/fuentes.css';
 import '../styles/tokens/index.css';
 import '../styles/reset.css';
 import '../styles/base.css';
@@ -48,6 +48,25 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
     <meta property="og:locale" content="es_MX" />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!--
+      Precarga de la tipografía. Va junto con `font-display: optional` en
+      fuentes.css: `optional` da a la fuente un plazo de unos 100 ms y, si no
+      llega, usa la de respaldo sin sustituirla después. Eso garantiza cero
+      desplazamiento de layout; la precarga es lo que hace que ese plazo se
+      cumpla casi siempre.
+
+      `crossorigin` es obligatorio aunque el archivo sea del mismo origen: las
+      fuentes se piden en modo CORS, y sin el atributo el navegador descarga el
+      archivo DOS veces — una por la precarga y otra por el @font-face.
+    -->
+    <link
+      rel="preload"
+      href="/fonts/source-sans-3-variable-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <!--
       Este script tiene que ser BLOQUEANTE y estar en el <head>.
