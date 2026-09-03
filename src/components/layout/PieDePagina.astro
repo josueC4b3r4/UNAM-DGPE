@@ -8,6 +8,12 @@
  */
 import Icono from '../base/Icono.astro';
 
+/* Misma normalización que en Encabezado.astro: compara rutas con y sin barra
+   final para que "/tramites" y "/tramites/" cuenten como la misma página. */
+const normalizar = (ruta: string) => (ruta.endsWith('/') ? ruta : `${ruta}/`);
+const rutaActual = normalizar(Astro.url.pathname);
+const esActual = (href: string) => rutaActual === normalizar(href);
+
 const COLUMNAS = [
   {
     titulo: 'Por quién eres',
@@ -67,7 +73,17 @@ const anio = new Date().getFullYear();
             <ul class="lista-limpia" role="list">
               {enlaces.map(({ texto, href }) => (
                 <li>
-                  <a href={href}>{texto}</a>
+                  {/*
+                    `aria-current` cuando el enlace apunta a la página en la
+                    que ya estás. El encabezado ya lo hacía; el pie no, y eso
+                    dejaba enlaces que se pulsan y no llevan a ninguna parte
+                    sin ninguna señal de por qué. Con lector de pantalla se
+                    anuncian igual que los demás, así que la única forma de
+                    descubrirlo es pulsando y comprobando que nada cambió.
+                  */}
+                  <a href={href} aria-current={esActual(href) ? 'page' : undefined}>
+                    {texto}
+                  </a>
                 </li>
               ))}
             </ul>
