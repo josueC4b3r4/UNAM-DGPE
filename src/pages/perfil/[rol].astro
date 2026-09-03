@@ -147,8 +147,20 @@ const resto = todosDelRol.filter((t) => !slugsDestacados.has(t.slug));
     }
   }
 
+  /*
+   * `minmax(0, 1fr)` y no el `1fr` implícito.
+   *
+   * Una columna de rejilla se dimensiona por defecto con un mínimo automático,
+   * que es el ancho mínimo de su contenido. Medido a 320 px con el texto en
+   * "Muy grande": la única columna computaba 333.6 px dentro de un contenedor
+   * de 305, y arrastraba la página entera fuera de la pantalla.
+   *
+   * El 0 del minmax dice "puedes encoger todo lo que haga falta", que es lo
+   * que permite reorganizar en vez de desbordar (WCAG 2.1, criterio 1.4.10).
+   */
   .perfil__cuerpo {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--espacio-seccion);
     padding-block: var(--espacio-seccion);
   }

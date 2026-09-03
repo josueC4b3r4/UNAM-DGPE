@@ -227,11 +227,16 @@ const categorias = await obtenerCategoriasConConteo();
     border-radius: var(--radio-tarjeta);
   }
 
+  /* `min-width: 0` por lo mismo que en Cotizador.astro: el valor inicial en un
+     elemento flex es `auto`, que impide encoger por debajo del contenido, y a
+     320 px el campo desbordaba la página, incumpliendo el criterio 1.4.10 de
+     WCAG 2.1. La nota larga está en ese archivo. */
   .filtros__campo {
     display: flex;
     flex-direction: column;
     gap: var(--p-espacio-1);
     flex: 1 1 12rem;
+    min-width: 0;
   }
 
   .filtros__campo--texto {
@@ -244,8 +249,10 @@ const categorias = await obtenerCategoriasConConteo();
     color: var(--color-texto-secundario);
   }
 
+  /* Siguen al ancho del campo en vez de imponer el suyo. */
   .filtros input,
   .filtros select {
+    width: 100%;
     min-height: var(--objetivo-tactil-min);
     padding: var(--p-espacio-2) var(--p-espacio-3);
 
