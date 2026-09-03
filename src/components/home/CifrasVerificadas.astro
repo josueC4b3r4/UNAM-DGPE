@@ -1,4 +1,5 @@
 ---
+import EncabezadoSeccion from '../base/EncabezadoSeccion.astro';
 /**
  * Cifras del prototipo, con contadores que suben al entrar en pantalla.
  *
@@ -39,13 +40,12 @@ const { cifras } = Astro.props;
 
 <section class="seccion cifras" aria-labelledby="cifras">
   <div class="contenedor">
-    <div class="cifras__encabezado revelar--amplio">
-      <h2 id="cifras">Lo que se puede comprobar</h2>
-      <p class="cifras__nota">
-        Cada número de aquí abajo sale de una verificación que se vuelve a correr con un comando. No
-        son estimaciones.
-      </p>
-    </div>
+    <EncabezadoSeccion
+      id="cifras"
+      titulo="Lo que se puede comprobar"
+      subtitulo="Cada número de aquí abajo sale de una verificación que se vuelve a correr con un comando. No son estimaciones."
+      class:list={['revelar--amplio']}
+    />
 
     <ul class="cifras__lista lista-limpia revelar-escalonado" role="list">
       {
@@ -145,21 +145,8 @@ const { cifras } = Astro.props;
     color: var(--color-texto-sobre-marca);
   }
 
-  .cifras__encabezado {
-    max-width: var(--contenedor-ancho-texto);
-    margin-block-end: var(--espacio-bloque);
-  }
 
-  .cifras__encabezado h2 {
-    margin: 0;
-    font-size: var(--tipo-titulo-1-tamano);
-    color: var(--color-texto-sobre-marca);
-  }
 
-  .cifras__nota {
-    margin: var(--p-espacio-3) 0 0;
-    color: var(--color-texto-tenue-sobre-marca);
-  }
 
   .cifras__lista {
     display: grid;

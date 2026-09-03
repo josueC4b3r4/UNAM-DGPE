@@ -1,0 +1,100 @@
+---
+/**
+ * Encabezado de sección: título, subtítulo y filete.
+ *
+ * Es el patrón que repite el sitio de la Facultad de Ingeniería en todas sus
+ * secciones —"Nuestras ingenierías" / "Distribuidas en 5 áreas de conocimiento"
+ * / filete corto— y lo que hace que su inicio se lea como una sucesión de
+ * bloques y no como una lista de cosas. Antes cada sección de aquí resolvía su
+ * encabezado por su cuenta, con clases distintas y espaciados parecidos pero no
+ * iguales.
+ *
+ * UNA DIFERENCIA CON LA FI, Y ES DELIBERADA. Allí el subtítulo va en dorado.
+ * Aquí el oro de la marca da 4.41:1 sobre blanco: alcanza para un filete
+ * —mínimo 3:1 por ser un elemento gráfico— pero no para texto, que exige 4.5:1.
+ * Así que el oro va al filete y el subtítulo usa el gris de texto secundario,
+ * ya verificado. Se conserva el ritmo sin bajar el contraste.
+ *
+ * El filete es decorativo: no aporta información que el título no dé, así que
+ * va con aria-hidden para no anunciarse.
+ */
+interface Props {
+  /** Se enlaza con el aria-labelledby de la sección. */
+  id: string;
+  titulo: string;
+  /** Una frase. Si no hay, no se dibuja el hueco. */
+  subtitulo?: string;
+  /**
+   * `centro` sigue a la FI. `inicio` se reserva para las secciones cuyo texto
+   * convive con una columna al lado, donde centrar rompería la lectura.
+   */
+  alineacion?: 'centro' | 'inicio';
+  /** Por si la sección vive dentro de otra. Por defecto 2. */
+  nivel?: 2 | 3;
+  /**
+   * Clases del exterior, sobre todo las de revelado al hacer scroll.
+   *
+   * Hay que recibirla y aplicarla a mano: a diferencia de un elemento HTML,
+   * Astro NO reenvía `class` a un componente, la entrega como prop y la
+   * descarta si nadie la usa. Se descubrió con este mismo componente —cinco
+   * encabezados se quedaron sin su animación de entrada y el marcado salía
+   * como `class="enc"` a secas— y no da ningún error al compilar.
+   */
+  class?: string;
+}
+
+const { id, titulo, subtitulo, alineacion = 'centro', nivel = 2, class: clase } = Astro.props;
+const Titulo = `h${nivel}` as 'h2' | 'h3';
+---
+
+<div class:list={['enc', clase]} data-alineacion={alineacion}>
+  <Titulo id={id} class="enc__titulo">{titulo}</Titulo>
+  {subtitulo && <p class="enc__subtitulo">{subtitulo}</p>}
+  <span class="enc__filete" aria-hidden="true"></span>
+  <slot />
+</div>
+
+<style>
+  .enc {
+    margin-block-end: var(--espacio-bloque);
+  }
+
+  .enc[data-alineacion='centro'] {
+    text-align: center;
+    /* La medida corta es lo que hace legible un bloque centrado: centrar un
+       párrafo ancho obliga a buscar el inicio de cada línea. */
+    max-width: var(--contenedor-ancho-texto);
+    margin-inline: auto;
+  }
+
+  .enc__titulo {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+    text-wrap: balance;
+  }
+
+  .enc__subtitulo {
+    margin: var(--p-espacio-3) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+    text-wrap: pretty;
+  }
+
+  /*
+   * El filete. Es la marca visual del patrón, y va en oro: es el único sitio
+   * donde el color institucional aparece sin competir con el texto.
+   */
+  .enc__filete {
+    display: block;
+    width: 3rem;
+    height: var(--p-borde-grueso);
+    margin-block-start: var(--p-espacio-5);
+
+    background-color: var(--color-acento-linea);
+    border-radius: var(--p-borde-grueso);
+  }
+
+  .enc[data-alineacion='centro'] .enc__filete {
+    margin-inline: auto;
+  }
+</style>
