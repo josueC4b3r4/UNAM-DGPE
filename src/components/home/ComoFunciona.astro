@@ -1,0 +1,156 @@
+---
+/**
+ * "Cómo funciona cualquier trámite": panel pegajoso a la izquierda, pasos que
+ * desfilan a la derecha.
+ *
+ * Es el bloque donde más se nota el recorrido, y el único con panel pegajoso.
+ * Uno por página: si dos secciones seguidas fijan su encabezado, la segunda
+ * parece un fallo de scroll.
+ *
+ * SEMÁNTICA. Los pasos son un <ol> de verdad, no un <div> con números
+ * dibujados. Para un lector de pantalla el orden es la información principal
+ * —"paso 2 de 4"— y eso lo da la lista, no el "02" en pantalla. El número
+ * visible lleva aria-hidden justamente para no decirlo dos veces.
+ */
+import Boton from '../base/Boton.astro';
+import Icono from '../base/Icono.astro';
+
+const pasos = [
+  {
+    titulo: 'Identifica tu perfil',
+    texto:
+      'Personal académico, administrativo o jefatura de dependencia. De eso depende qué trámites te corresponden y qué documentos te van a pedir.',
+  },
+  {
+    titulo: 'Revisa requisitos y plazos',
+    texto:
+      'Cada ficha dice qué necesitas, cuánto tarda y si se resuelve en línea o presencial. Léelo antes de moverte: es lo que evita la segunda vuelta.',
+  },
+  {
+    titulo: 'Reúne tus documentos',
+    texto:
+      'La lista viene completa y en orden. Si algo depende de otra dependencia, la ficha lo señala para que lo pidas con tiempo.',
+  },
+  {
+    titulo: 'Preséntalo por el canal indicado',
+    texto:
+      'En línea, en ventanilla o las dos cosas. La ficha te dice a dónde va y qué acuse deberías recibir de vuelta.',
+  },
+];
+---
+
+<section class="seccion como" aria-labelledby="como-funciona">
+  <div class="contenedor como__rejilla">
+    <div class="como__panel panel-pegajoso">
+      <p class="como__antetitulo">Antes de empezar</p>
+      <h2 id="como-funciona" class="como__titulo">Cualquier trámite sigue los mismos cuatro pasos</h2>
+      <p class="como__entradilla">
+        Cambian los documentos y los plazos, no el camino. Saber esto de antemano es la diferencia
+        entre una vuelta y tres.
+      </p>
+
+      <Boton href="/tramites/" variante="secundario">
+        Ver los trámites
+        <Icono nombre="flecha" tamano={1} />
+      </Boton>
+    </div>
+
+    <ol class="como__pasos lista-limpia" role="list">
+      {
+        pasos.map((paso, i) => (
+          <li class="paso revelar--amplio">
+            <p class="paso__numero" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </p>
+            <div class="paso__cuerpo">
+              <h3 class="paso__titulo">{paso.titulo}</h3>
+              <p class="paso__texto">{paso.texto}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .como__rejilla {
+    display: grid;
+    gap: var(--espacio-bloque);
+  }
+
+  /*
+   * Dos columnas solo cuando hay ancho. El punto de corte coincide con el de
+   * `.panel-pegajoso` en revelado.css a propósito: si el panel se fija pero la
+   * columna todavía no existe, queda flotando sobre los pasos.
+   */
+  @media (min-width: 60rem) {
+    .como__rejilla {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--espacio-seccion);
+    }
+  }
+
+  .como__antetitulo {
+    margin: 0 0 var(--p-espacio-2);
+    color: var(--color-acento-texto);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .como__titulo {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+    text-wrap: balance;
+  }
+
+  .como__entradilla {
+    margin: var(--p-espacio-4) 0 var(--p-espacio-6);
+    color: var(--color-texto-secundario);
+    font-size: var(--tipo-cuerpo-grande-tamano);
+  }
+
+  .como__pasos {
+    display: grid;
+    gap: var(--espacio-componente);
+    margin: 0;
+  }
+
+  .paso {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--p-espacio-4);
+    align-items: start;
+
+    padding: var(--espacio-componente);
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+  }
+
+  /*
+   * El número es tipografía tabular y no un contador de CSS: `counter()` no se
+   * puede leer con `aria-hidden` selectivo ni se copia al portapapeles, y aquí
+   * el número es puramente ornamental — el orden real lo da el <ol>.
+   */
+  .paso__numero {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    line-height: 1;
+    color: var(--color-acento-linea);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .paso__titulo {
+    margin: 0 0 var(--p-espacio-2);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .paso__texto {
+    margin: 0;
+    color: var(--color-texto-secundario);
+  }
+</style>
