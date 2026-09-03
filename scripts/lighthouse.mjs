@@ -108,7 +108,21 @@ try {
     resultados.push({ ...pagina, url, notas, fallos });
   }
 } finally {
-  await chrome.kill();
+  /*
+   * En Windows, borrar el perfil temporal de Chrome falla con EPERM mientras el
+   * proceso todavía suelta sus archivos. Sin este try, esa limpieza abortaba la
+   * ejecución DESPUÉS de haber medido las cuatro páginas: se perdían las notas
+   * y el reporte no llegaba a escribirse. Un fallo al recoger la mesa no puede
+   * anular la cena.
+   *
+   * Tampoco lleva `await`: kill() no devuelve una promesa, y esperarla era lo
+   * que hacía que el error escapara del finally.
+   */
+  try {
+    chrome.kill();
+  } catch {
+    /* El perfil se queda en la carpeta temporal; Windows la vacía por su cuenta. */
+  }
 }
 
 /* ---------------------------------------------------------------- */
