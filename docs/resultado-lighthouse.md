@@ -14,6 +14,7 @@ Medido en `http://localhost:4322` con la configuración móvil por defecto de Li
 | Listado de trámites | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Landing de trámite | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Página de rol | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
+| Cursos y cotizador | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 
 ## Inicio — auditorías con margen de mejora
 

@@ -1,0 +1,127 @@
+---
+/**
+ * Resultado del cotizador: total, desglose y aviso, juntos e inseparables.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POR QUÉ ES UN COMPONENTE Y NO TRES TROZOS DE MARCADO
+ *
+ * Los precios de este prototipo son inventados, y una cifra inventada sobre un
+ * sitio que aparenta ser la DGPE es más peligrosa que un teléfono inventado:
+ * alguien puede presupuestar con ella, o reclamar un precio que nunca existió.
+ *
+ * Un aviso al pie de la página no resuelve eso, porque el resultado se
+ * fotografía. Lo que se captura y se reenvía es el recuadro del total, así que
+ * el aviso tiene que estar DENTRO del recuadro.
+ *
+ * Y no basta con ponerlo: hay que hacer que no se pueda quitar sin querer. Por
+ * eso el total vive aquí y no suelto en la página. Quien reutilice este
+ * componente —en una página por curso, en una vista de impresión— se lleva el
+ * aviso incluido. Y el script del cotizador solo escribe dentro de #cot-total y
+ * #cot-desglose: no hay ningún camino en el código que pinte una cifra y borre
+ * la advertencia.
+ *
+ * Si algún día llegan los precios reales, se borra el bloque .resultado__aviso
+ * de este archivo y desaparece de todas partes a la vez.
+ */
+import { formatearPesos } from '../../lib/cotizacion';
+
+interface Props {
+  /** Centavos. */
+  total: number;
+  /** "20 h × $350.00 por hora". */
+  desglose: string;
+}
+
+const { total, desglose } = Astro.props;
+---
+
+<div class="resultado">
+  <!--
+    <output> es el elemento correcto para el resultado de un cálculo, y trae
+    aria-live="polite" implícito en la mayoría de los navegadores. Se declara
+    también de forma explícita porque "la mayoría" no es "todos", y de esto
+    depende que alguien con lector de pantalla se entere de que el total cambió.
+
+    Los tres selectores disparan `change`, que es discreto: no hace falta
+    esperar a que la persona deje de escribir. Con un campo numérico libre esto
+    anunciaría el total en cada tecla — "mil", "mil quinientos", "quince mil"—
+    y habría que retrasarlo.
+  -->
+  <output
+    class="resultado__salida"
+    id="dgpe-cotizacion"
+    for="cot-curso cot-modalidad cot-duracion"
+    role="status"
+    aria-live="polite"
+  >
+    <span class="resultado__etiqueta">Costo estimado</span>
+    <span class="resultado__total" id="cot-total">{formatearPesos(total)}</span>
+    <span class="resultado__desglose" id="cot-desglose">{desglose}</span>
+  </output>
+
+  <!--
+    No lleva `id`: nada de JavaScript lo busca, así que nada puede vaciarlo.
+    Es deliberado.
+  -->
+  <p class="resultado__aviso">
+    <strong>Estas cifras son inventadas.</strong> Este sitio es un prototipo de rediseño, no el
+    portal de la DGPE, y sus precios no corresponden a ningún tabulador real. No sirven para
+    presupuestar ni para reclamar un cobro.
+  </p>
+</div>
+
+<style>
+  .resultado {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-4);
+
+    padding: var(--p-espacio-5);
+    background-color: var(--color-superficie-sutil);
+    border: var(--p-borde-medio) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+  }
+
+  .resultado__salida {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+  }
+
+  .resultado__etiqueta {
+    color: var(--color-texto-secundario);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .resultado__total {
+    color: var(--color-texto-principal);
+    font-size: var(--tipo-titulo-1-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    /* Los dígitos cambian de ancho al recalcular y el total "baila". Con
+       cifras tabulares la caja se queda quieta. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .resultado__desglose {
+    color: var(--color-texto-secundario);
+  }
+
+  /*
+   * El aviso se ve como una advertencia, no como letra pequeña. Si pareciera
+   * un pie de página, cumpliría la forma de advertir sin cumplir la función.
+   */
+  .resultado__aviso {
+    margin: 0;
+    padding: var(--p-espacio-4);
+
+    background-color: var(--color-alerta-fondo);
+    color: var(--color-alerta-texto);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-alerta-borde);
+    border-radius: var(--radio-control);
+
+    font-size: var(--tipo-menudo-tamano);
+  }
+</style>

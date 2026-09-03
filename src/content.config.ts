@@ -127,4 +127,71 @@ const banners = defineCollection({
   }),
 });
 
-export const collections = { tramites, roles, banners };
+/*
+ * Cursos con precio. Es la única colección que maneja dinero, y por eso es la
+ * que más valida: un trámite mal escrito confunde, un precio mal escrito cuesta.
+ */
+const cursos = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/cursos' }),
+  schema: z.object({
+    titulo: z.string().min(5),
+
+    resumen: z.string().min(20).max(220),
+
+    /** A quién va dirigido. Reutiliza los roles del resto del sitio. */
+    dirigidoA: z.array(z.enum(ROLES)).min(1),
+
+    /**
+     * Tarifas por modalidad, en CENTAVOS enteros.
+     *
+     * Centavos y no pesos porque la aritmética del cotizador trabaja en enteros
+     * para no perder precisión (ver src/lib/cotizacion.ts). `z.number().int()`
+     * es lo que impide que alguien escriba 350.50 aquí y lo descubra la persona
+     * que reciba un total con un centavo de menos.
+     *
+     * Para escribirlo: $525.00 por hora se anota 52500.
+     */
+    tarifas: z
+      .array(
+        z.object({
+          modalidad: z.enum(MODALIDADES),
+          tarifaHora: z
+            .number()
+            .int('La tarifa va en centavos enteros: $525.00 se escribe 52500.')
+            .nonnegative(),
+        })
+      )
+      .min(1)
+      /*
+       * Sin esto, dos tarifas para la misma modalidad compilarían y el
+       * cotizador usaría la primera en silencio: el precio mostrado dependería
+       * del orden de las líneas del archivo.
+       */
+      .refine(
+        (t) => new Set(t.map((x) => x.modalidad)).size === t.length,
+        'Hay dos tarifas para la misma modalidad; el cotizador usaría una de las dos sin avisar.'
+      ),
+
+    /** Duraciones que ofrece el curso. La persona elige una. */
+    duraciones: z
+      .array(
+        z.object({
+          horas: z.number().int().positive(),
+          /** Cómo se le llama: "Intensivo". El "(12 h)" lo pone la interfaz. */
+          etiqueta: z.string().min(3).max(40),
+        })
+      )
+      .min(1)
+      .refine(
+        (d) => new Set(d.map((x) => x.horas)).size === d.length,
+        'Hay dos duraciones con las mismas horas: el selector mostraría opciones idénticas.'
+      ),
+
+    orden: z.number().int(),
+
+    /** Apaga el curso sin borrar el archivo. */
+    activo: z.boolean().default(true),
+  }),
+});
+
+export const collections = { tramites, roles, banners, cursos };

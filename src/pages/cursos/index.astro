@@ -1,0 +1,247 @@
+---
+import { getCollection } from 'astro:content';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Migas from '../../components/layout/Migas.astro';
+import Cotizador from '../../components/cursos/Cotizador.astro';
+import { ETIQUETAS_MODALIDAD, ETIQUETAS_ROL, MODALIDADES } from '../../lib/constantes';
+import { cotizar, formatearPesos } from '../../lib/cotizacion';
+
+const cursos = (await getCollection('cursos', ({ data }) => data.activo)).sort(
+  (a, b) => a.data.orden - b.data.orden
+);
+
+/*
+ * Las tablas se calculan aquí, en el build, con la MISMA función que usa el
+ * cotizador en el navegador. Si se calcularan por separado —una en el servidor
+ * y otra en el cliente— podrían desviarse y nadie lo notaría hasta que alguien
+ * comparara la tabla con el resultado. Una sola fuente para la aritmética.
+ */
+const tablas = cursos.map((curso) => ({
+  slug: curso.id,
+  titulo: curso.data.titulo,
+  resumen: curso.data.resumen,
+  dirigidoA: curso.data.dirigidoA,
+  modalidades: MODALIDADES.filter((m) => curso.data.tarifas.some((t) => t.modalidad === m)),
+  filas: curso.data.duraciones.map((duracion) => ({
+    etiqueta: duracion.etiqueta,
+    horas: duracion.horas,
+    celdas: MODALIDADES.map((m) => {
+      const tarifa = curso.data.tarifas.find((t) => t.modalidad === m);
+      return tarifa ? formatearPesos(cotizar(tarifa, duracion.horas).total) : null;
+    }),
+  })),
+}));
+---
+
+<BaseLayout
+  titulo="Cursos y costos"
+  descripcion="Catálogo de cursos de capacitación con sus costos por modalidad y duración, y una calculadora para estimar el total."
+>
+  <div class="contenedor">
+    <Migas migas={[{ texto: 'Cursos' }]} />
+  </div>
+
+  <div class="contenedor cursos">
+    <header class="cursos__encabezado">
+      <h1>Cursos y costos</h1>
+      <p class="cursos__entradilla">
+        {cursos.length} cursos de capacitación. El costo depende de la modalidad y de la duración que
+        elijas; abajo está la tabla completa de cada uno.
+      </p>
+    </header>
+
+    <!--
+      El aviso va ARRIBA, antes de que se vea una sola cifra. Repetirlo dentro
+      del recuadro del resultado no es redundancia: este lo lee quien recorre la
+      página, y aquel viaja con la captura de pantalla.
+    -->
+    <div class="cursos__advertencia" role="note">
+      <h2 class="cursos__advertencia-titulo">Los precios de esta página son inventados</h2>
+      <p>
+        Este sitio es un <strong>prototipo de rediseño</strong>, no el portal de la Dirección General
+        de Personal. Los cursos, sus costos y sus duraciones se inventaron para probar el diseño y
+        <strong>no corresponden a ningún tabulador real</strong>. No sirven para presupuestar, ni
+        para comparar, ni para reclamar un cobro.
+      </p>
+    </div>
+
+    <section class="cursos__calculadora" aria-labelledby="titulo-cotizador">
+      <h2 id="titulo-cotizador">Calcula el costo</h2>
+      <p class="cursos__ayuda">
+        Elige curso, modalidad y duración. El total se actualiza solo, y debajo verás la operación
+        para que puedas comprobarla.
+      </p>
+
+      <Cotizador />
+    </section>
+
+    <section class="cursos__tablas" aria-labelledby="titulo-tablas">
+      <h2 id="titulo-tablas">Todos los precios</h2>
+      <p class="cursos__ayuda">
+        La misma información sin calculadora. Funciona sin JavaScript y se puede imprimir.
+      </p>
+
+      {
+        tablas.map((curso) => (
+          <article class="curso">
+            <h3 class="curso__titulo">{curso.titulo}</h3>
+            <p class="curso__resumen">{curso.resumen}</p>
+            <p class="curso__dirigido">
+              Dirigido a: {curso.dirigidoA.map((r) => ETIQUETAS_ROL[r]).join(', ')}
+            </p>
+
+            {/* El desbordamiento horizontal vive en este contenedor y no en la
+                página: en móvil la tabla se desplaza sola sin arrastrar el
+                resto del contenido con ella. */}
+            <div class="curso__marco">
+              <table class="curso__tabla">
+                <caption class="visualmente-oculto">
+                  Costos de {curso.titulo} por modalidad y duración
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Duración</th>
+                    {MODALIDADES.map((m) =>
+                      curso.modalidades.includes(m) ? (
+                        <th scope="col">{ETIQUETAS_MODALIDAD[m]}</th>
+                      ) : null
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {curso.filas.map((fila) => (
+                    <tr>
+                      <th scope="row">
+                        {fila.etiqueta} <span class="curso__horas">({fila.horas} h)</span>
+                      </th>
+                      {fila.celdas.map((celda, i) =>
+                        curso.modalidades.includes(MODALIDADES[i]) ? (
+                          <td>{celda}</td>
+                        ) : null
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        ))
+      }
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .cursos {
+    padding-block-end: var(--espacio-seccion);
+  }
+
+  .cursos__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .cursos__encabezado h1 {
+    margin: 0;
+  }
+
+  .cursos__entradilla {
+    margin: var(--p-espacio-3) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+  }
+
+  /* --- Advertencia --------------------------------------------------- */
+
+  .cursos__advertencia {
+    padding: var(--p-espacio-5);
+    margin-block-end: var(--p-espacio-7);
+
+    background-color: var(--color-alerta-fondo);
+    color: var(--color-alerta-texto);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-alerta-borde);
+    border-radius: var(--radio-tarjeta);
+  }
+
+  .cursos__advertencia-titulo {
+    margin: 0 0 var(--p-espacio-2);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .cursos__advertencia p {
+    margin: 0;
+    max-width: var(--contenedor-ancho-texto);
+  }
+
+  /* --- Secciones ----------------------------------------------------- */
+
+  .cursos__calculadora,
+  .cursos__tablas {
+    margin-block-end: var(--espacio-bloque);
+  }
+
+  .cursos__calculadora h2,
+  .cursos__tablas h2 {
+    margin: 0;
+  }
+
+  .cursos__ayuda {
+    margin: var(--p-espacio-2) 0 var(--p-espacio-5);
+    color: var(--color-texto-secundario);
+    max-width: var(--contenedor-ancho-texto);
+  }
+
+  /* --- Tablas -------------------------------------------------------- */
+
+  .curso {
+    padding-block: var(--p-espacio-6);
+    border-block-start: var(--p-borde-fino) solid var(--color-borde-sutil);
+  }
+
+  .curso__titulo {
+    margin: 0;
+  }
+
+  .curso__resumen {
+    margin: var(--p-espacio-2) 0 0;
+    max-width: var(--contenedor-ancho-texto);
+    color: var(--color-texto-secundario);
+  }
+
+  .curso__dirigido {
+    margin: var(--p-espacio-2) 0 var(--p-espacio-4);
+    font-size: var(--tipo-menudo-tamano);
+    color: var(--color-texto-tenue);
+  }
+
+  .curso__marco {
+    overflow-x: auto;
+  }
+
+  .curso__tabla {
+    border-collapse: collapse;
+    min-width: 28rem;
+  }
+
+  .curso__tabla th,
+  .curso__tabla td {
+    padding: var(--p-espacio-3) var(--p-espacio-4);
+    text-align: start;
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+  }
+
+  .curso__tabla thead th {
+    background-color: var(--color-superficie-sutil);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .curso__tabla td {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .curso__horas {
+    color: var(--color-texto-tenue);
+    font-weight: var(--p-tipografia-peso-normal);
+  }
+</style>
