@@ -32,7 +32,7 @@ const categorias = await obtenerCategoriasConConteo();
       control que no responde es peor que no ofrecerlo: abajo se ve la lista
       completa, que sigue siendo perfectamente utilizable.
     -->
-    <form class="filtros" id="dgpe-filtros" hidden>
+    <form class="filtros" id="dgpe-filtros">
       <div class="filtros__campo filtros__campo--texto">
         <label for="filtro-texto">Buscar</label>
         <input type="search" id="filtro-texto" name="q" placeholder="Nombre o palabra clave" />
@@ -86,91 +86,103 @@ const categorias = await obtenerCategoriasConConteo();
   </div>
 </BaseLayout>
 
-<script id="dgpe-listado-indice" type="application/json" set:html={JSON.stringify(indice)} is:inline
-></script>
+<script
+  id="dgpe-listado-indice"
+  type="application/json"
+  set:html={JSON.stringify(indice)}
+  is:inline
+/>
 
 <script>
   import { filtrar, textoConteo } from '../../lib/busqueda';
   import type { TramiteIndexado } from '../../lib/tramites';
 
-  const formulario = document.getElementById('dgpe-filtros') as HTMLFormElement | null;
-  const listado = document.getElementById('dgpe-listado');
-  const conteo = document.getElementById('dgpe-conteo');
-  const vacio = document.getElementById('dgpe-vacio');
-  const limpiarVacio = document.getElementById('dgpe-limpiar-vacio');
-  const datos = document.getElementById('dgpe-listado-indice');
+  /* Se reengancha en cada navegación (ver ToggleTema.astro para el porqué).
+     Todos los listeners cuelgan del formulario, que se va con el DOM, así que
+     aquí no hace falta AbortController. */
+  function iniciarFiltros() {
+    const formulario = document.getElementById('dgpe-filtros') as HTMLFormElement | null;
+    const listado = document.getElementById('dgpe-listado');
+    const conteo = document.getElementById('dgpe-conteo');
+    const vacio = document.getElementById('dgpe-vacio');
+    const limpiarVacio = document.getElementById('dgpe-limpiar-vacio');
+    const datos = document.getElementById('dgpe-listado-indice');
 
-  if (formulario && listado && conteo && vacio && datos?.textContent) {
-    const indice: TramiteIndexado[] = JSON.parse(datos.textContent);
+    if (formulario && listado && conteo && vacio && datos?.textContent) {
+      const indice: TramiteIndexado[] = JSON.parse(datos.textContent);
 
-    formulario.hidden = false;
+      /* Los filtros los muestra el CSS cuando <html> lleva `data-js`, marcado
+         antes del primer pintado. Revelarlos desde aquí movería el listado. */
 
-    const campoTexto = formulario.elements.namedItem('q') as HTMLInputElement;
-    const campoCategoria = formulario.elements.namedItem('categoria') as HTMLSelectElement;
-    const campoRol = formulario.elements.namedItem('rol') as HTMLSelectElement;
+      const campoTexto = formulario.elements.namedItem('q') as HTMLInputElement;
+      const campoCategoria = formulario.elements.namedItem('categoria') as HTMLSelectElement;
+      const campoRol = formulario.elements.namedItem('rol') as HTMLSelectElement;
 
-    const elementos = new Map<string, HTMLElement>();
-    for (const li of listado.querySelectorAll<HTMLElement>('[data-slug]')) {
-      elementos.set(li.dataset.slug!, li);
-    }
-
-    function aplicar() {
-      const visibles = filtrar(indice, {
-        texto: campoTexto.value,
-        categoria: campoCategoria.value,
-        rol: campoRol.value,
-      });
-
-      const slugsVisibles = new Set(visibles.map((t) => t.slug));
-
-      for (const [slug, elemento] of elementos) {
-        elemento.hidden = !slugsVisibles.has(slug);
+      const elementos = new Map<string, HTMLElement>();
+      for (const li of listado.querySelectorAll<HTMLElement>('[data-slug]')) {
+        elementos.set(li.dataset.slug!, li);
       }
 
-      conteo!.textContent =
-        visibles.length === indice.length
-          ? `Mostrando los ${indice.length} trámites`
-          : textoConteo(visibles.length);
+      function aplicar() {
+        const visibles = filtrar(indice, {
+          texto: campoTexto.value,
+          categoria: campoCategoria.value,
+          rol: campoRol.value,
+        });
 
-      vacio!.hidden = visibles.length > 0;
-      listado!.hidden = visibles.length === 0;
+        const slugsVisibles = new Set(visibles.map((t) => t.slug));
 
-      /* Refleja el estado en la URL para que se pueda compartir o recargar,
+        for (const [slug, elemento] of elementos) {
+          elemento.hidden = !slugsVisibles.has(slug);
+        }
+
+        conteo!.textContent =
+          visibles.length === indice.length
+            ? `Mostrando los ${indice.length} trámites`
+            : textoConteo(visibles.length);
+
+        vacio!.hidden = visibles.length > 0;
+        listado!.hidden = visibles.length === 0;
+
+        /* Refleja el estado en la URL para que se pueda compartir o recargar,
          sin agregar una entrada al historial en cada tecla. */
-      const parametros = new URLSearchParams();
-      if (campoTexto.value) parametros.set('q', campoTexto.value);
-      if (campoCategoria.value) parametros.set('categoria', campoCategoria.value);
-      if (campoRol.value) parametros.set('rol', campoRol.value);
+        const parametros = new URLSearchParams();
+        if (campoTexto.value) parametros.set('q', campoTexto.value);
+        if (campoCategoria.value) parametros.set('categoria', campoCategoria.value);
+        if (campoRol.value) parametros.set('rol', campoRol.value);
 
-      const cadena = parametros.toString();
-      history.replaceState(null, '', cadena ? `?${cadena}` : location.pathname);
-    }
+        const cadena = parametros.toString();
+        history.replaceState(null, '', cadena ? `?${cadena}` : location.pathname);
+      }
 
-    /* Estado inicial desde la URL: es como llega quien buscó en el home. */
-    const parametros = new URLSearchParams(location.search);
-    campoTexto.value = parametros.get('q') ?? '';
-    campoCategoria.value = parametros.get('categoria') ?? '';
-    campoRol.value = parametros.get('rol') ?? '';
+      /* Estado inicial desde la URL: es como llega quien buscó en el home. */
+      const parametros = new URLSearchParams(location.search);
+      campoTexto.value = parametros.get('q') ?? '';
+      campoCategoria.value = parametros.get('categoria') ?? '';
+      campoRol.value = parametros.get('rol') ?? '';
 
-    if (campoTexto.value || campoCategoria.value || campoRol.value) aplicar();
+      if (campoTexto.value || campoCategoria.value || campoRol.value) aplicar();
 
-    formulario.addEventListener('input', aplicar);
-    formulario.addEventListener('change', aplicar);
+      formulario.addEventListener('input', aplicar);
+      formulario.addEventListener('change', aplicar);
 
-    /* `reset` dispara ANTES de que los campos se limpien: hay que esperar
+      /* `reset` dispara ANTES de que los campos se limpien: hay que esperar
        al siguiente tick para leer los valores ya vacíos. */
-    formulario.addEventListener('reset', () => {
-      setTimeout(aplicar, 0);
-    });
+      formulario.addEventListener('reset', () => {
+        setTimeout(aplicar, 0);
+      });
 
-    limpiarVacio?.addEventListener('click', () => {
-      formulario.reset();
-      setTimeout(() => {
-        aplicar();
-        campoTexto.focus();
-      }, 0);
-    });
+      limpiarVacio?.addEventListener('click', () => {
+        formulario.reset();
+        setTimeout(() => {
+          aplicar();
+          campoTexto.focus();
+        }, 0);
+      });
+    }
   }
+
+  document.addEventListener('astro:page-load', iniciarFiltros);
 </script>
 
 <style>
@@ -194,6 +206,12 @@ const categorias = await obtenerCategoriasConConteo();
   }
 
   /* --- Filtros ------------------------------------------------------ */
+
+  /* Ver la nota en CarruselBanners.astro: sin JavaScript no se muestran, y la
+     decisión es del CSS para que no haya salto tras el primer pintado. */
+  :root:not([data-js]) .filtros {
+    display: none;
+  }
 
   .filtros {
     display: flex;

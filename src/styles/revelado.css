@@ -1,0 +1,94 @@
+/*
+ * Revelado de secciones al entrar en pantalla.
+ *
+ * DOS DECISIONES QUE IMPORTAN
+ *
+ * 1. Sin JavaScript. Se usa `animation-timeline: view()`, que ata el progreso
+ *    de la animación a la posición del elemento en el viewport. No hay
+ *    IntersectionObserver, ni listener de scroll, ni librería: lo calcula el
+ *    compositor del navegador, así que no bloquea el hilo principal y no
+ *    aparece en el Total Blocking Time.
+ *
+ * 2. El contenido nace VISIBLE. Esta es la diferencia con el patrón habitual
+ *    de las landing modernas, que arrancan en `opacity: 0` y suben a 1 con JS:
+ *    ahí, si el script falla o tarda, la página se queda en blanco. Aquí la
+ *    animación solo se activa dentro de `@supports (animation-timeline: view())`
+ *    y de `prefers-reduced-motion: no-preference`. Si cualquiera de las dos
+ *    condiciones no se cumple, no pasa nada y se ve todo.
+ *
+ *    Dicho de otro modo: el fallo posible es "no se anima", nunca "no se ve".
+ *
+ * 3. NO se anima la opacidad. Solo el desplazamiento.
+ *
+ *    El primer intento entraba desde `opacity: 0.4`. Lighthouse lo cazó: 36
+ *    fallos de contraste en el home, con lecturas de hasta 1.19:1. Y no era un
+ *    artefacto de medición — axe calcula el color resultante de mezclar el
+ *    texto con el fondo a esa opacidad, que es exactamente lo que ve alguien
+ *    leyendo mientras hace scroll. Un texto que cumple AA en reposo puede no
+ *    cumplirlo a mitad de un desvanecimiento.
+ *
+ *    Quitar la opacidad resuelve el problema de raíz y no le quita nada al
+ *    efecto: la sensación de continuidad la da el movimiento, no el fundido.
+ *
+ * El desplazamiento es corto —16 px— a propósito. Esto es un sitio de
+ * trámites: quien llega buscando su constancia no quiere una coreografía.
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .revelar {
+      animation: revelar-entrada linear both;
+      animation-timeline: view();
+
+      /*
+       * La animación ocurre mientras el elemento entra por abajo, y termina
+       * cuando ha subido un 40 % del viewport. `cover` mide todo el recorrido
+       * del elemento a través de la pantalla; sin acotar el rango, el efecto
+       * se repetiría al salir por arriba y el contenido se desvanecería justo
+       * cuando se está leyendo.
+       */
+      animation-range: entry 0% cover 40%;
+    }
+
+    @keyframes revelar-entrada {
+      from {
+        transform: translateY(16px);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    /*
+     * Las tarjetas de una misma rejilla se revelan por separado, no en bloque:
+     * cada una tiene su propia posición y por tanto su propio progreso. No hace
+     * falta escalonar retrasos a mano.
+     */
+    .revelar-hijos > * {
+      animation: revelar-entrada linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+    }
+  }
+}
+
+/*
+ * Micro-interacción de las tarjetas. Va fuera del bloque de `@supports`
+ * porque no depende de la línea de tiempo de scroll, pero sí de la preferencia
+ * de movimiento.
+ *
+ * `translateY` y no `top`: solo el compositor participa, no hay recálculo de
+ * layout y por tanto no puede provocar desplazamiento de contenido.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .tarjeta {
+    transition:
+      transform var(--movimiento-duracion-rapida) var(--movimiento-curva),
+      box-shadow var(--movimiento-duracion-rapida) var(--movimiento-curva);
+  }
+
+  .tarjeta:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-elevada);
+  }
+}

@@ -17,7 +17,7 @@ const OPCIONES = [
 ] as const;
 ---
 
-<fieldset id="dgpe-control-texto" class="control-texto" hidden>
+<fieldset id="dgpe-control-texto" class="control-texto">
   <legend class="control-texto__leyenda">Tamaño de texto</legend>
 
   <div class="control-texto__opciones">
@@ -43,12 +43,13 @@ const OPCIONES = [
 </fieldset>
 
 <script>
-  const CLAVE = 'dgpe-escala-texto';
-  const grupo = document.getElementById('dgpe-control-texto') as HTMLFieldSetElement | null;
-
-  if (grupo) {
-    /* Sin JS este control no puede hacer nada, así que solo existe con JS. */
-    grupo.hidden = false;
+  /* Se reengancha en cada navegación (ver ToggleTema.astro para el porqué). */
+  function iniciar() {
+    const CLAVE = 'dgpe-escala-texto';
+    const grupo = document.getElementById('dgpe-control-texto') as HTMLFieldSetElement | null;
+    if (!grupo) return;
+    /* Sin JS este control no puede hacer nada, así que solo existe con JS. Lo
+       decide el CSS con `data-js`, marcado antes del primer pintado. */
 
     const radios = Array.from(
       grupo.querySelectorAll<HTMLInputElement>('input[name="escala-texto"]')
@@ -81,15 +82,24 @@ const OPCIONES = [
     const inicial = radios.find((r) => r.value === guardado) ?? radios[0];
     if (inicial) inicial.checked = true;
 
+    /* Los radios se reemplazan con el DOM en cada navegación, así que sus
+       listeners mueren con ellos: aquí no hace falta AbortController. */
     for (const radio of radios) {
       radio.addEventListener('change', () => {
         if (radio.checked) aplicar(radio.value, true);
       });
     }
   }
+
+  document.addEventListener('astro:page-load', iniciar);
 </script>
 
 <style>
+  /* Ver la nota en CarruselBanners.astro. */
+  :root:not([data-js]) .control-texto {
+    display: none;
+  }
+
   .control-texto {
     display: flex;
     align-items: center;
@@ -166,7 +176,10 @@ const OPCIONES = [
   }
 
   .control-texto__etiqueta:hover {
-    background-color: rgb(255 255 255 / 0.12); /* tokens-ok: velo translúcido sobre la marca, no un color de paleta. */
+    /* tokens-ok: velo translúcido sobre la marca, no un color de paleta.
+       Va encima y no al final de la línea: el formateador parte las
+       declaraciones largas y separaría el comentario de su valor. */
+    background-color: rgb(255 255 255 / 0.12);
   }
 
   /*

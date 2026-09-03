@@ -52,11 +52,7 @@ interface Props {
   intervalo?: number;
 }
 
-const {
-  etiqueta = 'Avisos destacados',
-  id = 'carrusel-banners',
-  intervalo = 7000,
-} = Astro.props;
+const { etiqueta = 'Avisos destacados', id = 'carrusel-banners', intervalo = 7000 } = Astro.props;
 
 const RUTA_PUBLICA = 'public/media/banners';
 
@@ -131,7 +127,7 @@ const ID_PISTA = `${id}-pista`;
           ))}
         </div>
 
-        <div class="carrusel__controles" hidden data-controles>
+        <div class="carrusel__controles" data-controles>
           <button
             type="button"
             class="carrusel__flecha carrusel__flecha--anterior"
@@ -160,12 +156,7 @@ const ID_PISTA = `${id}-pista`;
             ))}
           </ul>
 
-          <button
-            type="button"
-            class="carrusel__flecha"
-            aria-controls={ID_PISTA}
-            data-siguiente
-          >
+          <button type="button" class="carrusel__flecha" aria-controls={ID_PISTA} data-siguiente>
             <span class="carrusel__flecha-icono">
               <Icono nombre="flecha" tamano={1.1} />
             </span>
@@ -192,7 +183,19 @@ const ID_PISTA = `${id}-pista`;
 <script>
   const menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  function iniciarCarrusel(seccion: HTMLElement) {
+  /**
+   * Devuelve una función que apaga este carrusel: sus temporizadores.
+   *
+   * Hace falta por las transiciones entre páginas. Al salir del home, la
+   * sección desaparece del DOM pero los `setTimeout` en vuelo no se enteran y
+   * seguirían intentando mover una pista que ya no existe. Los listeners
+   * colgados de `document` y de `matchMedia` tampoco mueren solos: esos se
+   * sueltan con el `signal`.
+   *
+   * Los listeners sobre `seccion`, `pista`, los puntos y los botones sí se van
+   * con el DOM, así que no necesitan nada.
+   */
+  function iniciarCarrusel(seccion: HTMLElement, signal: AbortSignal): (() => void) | undefined {
     const pista = seccion.querySelector<HTMLElement>('[data-pista]');
     const controles = seccion.querySelector<HTMLElement>('[data-controles]');
     const botonPausa = seccion.querySelector<HTMLButtonElement>('[data-pausa]');
@@ -217,7 +220,9 @@ const ID_PISTA = `${id}-pista`;
        botón refleja la decisión del usuario, no el estado momentáneo. */
     let pausadoPorInteraccion = false;
 
-    controles.hidden = false;
+    /* Los controles ya los muestra el CSS en cuanto <html> lleva data-js, que
+       se pone antes del primer pintado. Aquí solo se marca la sección como
+       mejorada, que es lo que activa los estilos que dependen del script. */
     seccion.dataset.mejorado = '';
 
     const detener = () => {
@@ -324,8 +329,12 @@ const ID_PISTA = `${id}-pista`;
       programar();
     });
 
-    seccion.querySelector('[data-anterior]')?.addEventListener('click', () => irA(actual - 1, true));
-    seccion.querySelector('[data-siguiente]')?.addEventListener('click', () => irA(actual + 1, true));
+    seccion
+      .querySelector('[data-anterior]')
+      ?.addEventListener('click', () => irA(actual - 1, true));
+    seccion
+      .querySelector('[data-siguiente]')
+      ?.addEventListener('click', () => irA(actual + 1, true));
 
     puntos.forEach((punto, i) => {
       punto.addEventListener('click', () => irA(i, true));
@@ -350,21 +359,51 @@ const ID_PISTA = `${id}-pista`;
     });
 
     /* En una pestaña de fondo no hay a quién mostrarle el banner. */
-    document.addEventListener('visibilitychange', programar);
+    document.addEventListener('visibilitychange', programar, { signal });
 
     /* Si cambian la preferencia con la página abierta. */
-    menosMovimiento.addEventListener('change', () => {
-      pausadoPorUsuario = menosMovimiento.matches;
-      sincronizarPausa();
-      programar();
-    });
+    menosMovimiento.addEventListener(
+      'change',
+      () => {
+        pausadoPorUsuario = menosMovimiento.matches;
+        sincronizarPausa();
+        programar();
+      },
+      { signal }
+    );
 
     marcarActual(indiceVisible());
     sincronizarPausa();
     programar();
+
+    return () => {
+      detener();
+      if (reposo !== undefined) clearTimeout(reposo);
+    };
   }
 
-  document.querySelectorAll<HTMLElement>('[data-carrusel]').forEach(iniciarCarrusel);
+  /*
+   * Se reengancha en cada navegación (ver ToggleTema.astro para el porqué).
+   * Antes de montar el carrusel de la página nueva hay que apagar el de la
+   * anterior, o sus temporizadores seguirían vivos.
+   */
+  let controlador: AbortController | null = null;
+  const apagados: Array<() => void> = [];
+
+  function iniciar() {
+    controlador?.abort();
+    for (const apagar of apagados.splice(0)) apagar();
+
+    controlador = new AbortController();
+    const { signal } = controlador;
+
+    document.querySelectorAll<HTMLElement>('[data-carrusel]').forEach((seccion) => {
+      const apagar = iniciarCarrusel(seccion, signal);
+      if (apagar) apagados.push(apagar);
+    });
+  }
+
+  document.addEventListener('astro:page-load', iniciar);
 </script>
 
 <style>
@@ -551,6 +590,18 @@ const ID_PISTA = `${id}-pista`;
   }
 
   /* --- Controles ------------------------------------------------------ */
+
+  /*
+   * Sin JavaScript estos controles no pueden hacer nada, así que no se
+   * muestran. Se decide con CSS y no revelándolos desde el script, porque
+   * revelarlos después del primer pintado desplazaba el contenido: 0.25 de
+   * Cumulative Layout Shift y 13 puntos de rendimiento en el home.
+   *
+   * `data-js` lo pone un script en línea del <head>, antes de pintar.
+   */
+  :root:not([data-js]) .carrusel__controles {
+    display: none;
+  }
 
   .carrusel__controles {
     display: flex;
