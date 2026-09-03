@@ -55,7 +55,9 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
         Ocultarlo y poner un aria-label en su lugar rompería el criterio 2.5.3
         (Label in Name), porque el nombre dejaría de contener el texto visible.
       -->
-      <a class="marca" href="/">
+      <!-- En el inicio, este enlace lleva al inicio: se marca como actual para
+           que no parezca que va a alguna parte. -->
+      <a class="marca" href="/" aria-current={esActual('/') ? 'page' : undefined}>
         <span class="marca__escudo">UNAM</span>
         <span class="marca__texto">
           <span class="marca__sigla">DGPE</span>
