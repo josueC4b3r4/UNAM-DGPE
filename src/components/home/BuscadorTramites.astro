@@ -45,8 +45,21 @@ const ID_INDICE = 'dgpe-buscador-indice';
     <div class="buscador__campo">
       <span class="buscador__lupa"><Icono nombre="lupa" /></span>
 
+      <!--
+        `type="search"` y no `type="text"`, por lo que cambia en un teléfono:
+        el teclado en pantalla muestra la tecla "Buscar" en vez del retorno de
+        carro, y el navegador añade su propio botón de borrar. Sin eso hay que
+        vaciar el campo letra a letra, con el teclado tapando media pantalla.
+
+        El filtro del listado de trámites ya usaba `search`, así que además
+        eran dos campos de búsqueda que se comportaban distinto.
+
+        `enterkeyhint` va explícito porque no todos los navegadores deducen la
+        tecla a partir del tipo.
+      -->
       <input
-        type="text"
+        type="search"
+        enterkeyhint="search"
         id={ID_CAMPO}
         name="q"
         class="buscador__input"
