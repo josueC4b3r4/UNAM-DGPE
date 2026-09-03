@@ -20,11 +20,12 @@
     "a11y:tokens": "node scripts/check-hardcoded.mjs",
     "lighthouse": "node scripts/lighthouse.mjs",
     "check:ficticios": "node scripts/check-datos-ficticios.mjs",
-    "verificar": "npm run tokens && npm run test && npm run a11y:contraste && npm run a11y:tokens && npm run check:ficticios && npm run check",
+    "verificar": "npm run tokens && npm run test && npm run a11y:contraste && npm run a11y:tokens && npm run check:ficticios && npm run check && npm run build && npm run auditoria",
     "format": "prettier --write \"**/*.{astro,ts,js,mjs,json,css,md}\"",
     "lint": "eslint .",
     "test:busqueda": "node scripts/test-busqueda.mjs",
-    "test:cotizacion": "node scripts/test-cotizacion.mjs"
+    "test:cotizacion": "node scripts/test-cotizacion.mjs",
+    "auditoria": "node scripts/auditoria-html.mjs"
   },
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.2.5",

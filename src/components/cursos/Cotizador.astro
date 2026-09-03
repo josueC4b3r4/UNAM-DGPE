@@ -222,16 +222,31 @@ const cotizacionInicial = cotizar(inicial.tarifas[0], inicial.duraciones[0].hora
     }
   }
 
+  /*
+   * `min-width: 0` no es adorno: sin él la página desborda a 320 px.
+   *
+   * El valor inicial de `min-width` en un elemento de rejilla o flex es `auto`,
+   * que significa "no encojas por debajo de tu contenido". Y el contenido de un
+   * <select> es su opción más larga —aquí "Igualdad de género y prevención del
+   * acoso"—, así que el selector imponía 330 px dentro de un viewport de 320 y
+   * empujaba la página entera.
+   *
+   * Importa más de lo que parece: el criterio 1.4.10 de WCAG 2.1 exige que el
+   * contenido se reorganice a 320 px sin obligar a desplazarse en dos
+   * direcciones. Con el desbordamiento, la página incumplía AA.
+   */
   .cotizador__campos {
     display: flex;
     flex-direction: column;
     gap: var(--p-espacio-4);
+    min-width: 0;
   }
 
   .cotizador__campo {
     display: flex;
     flex-direction: column;
     gap: var(--p-espacio-1);
+    min-width: 0;
   }
 
   .cotizador__campo label {
@@ -240,7 +255,9 @@ const cotizacionInicial = cotizar(inicial.tarifas[0], inicial.duraciones[0].hora
     color: var(--color-texto-secundario);
   }
 
+  /* El <select> sigue al ancho del campo en vez de imponer el suyo. */
   .cotizador__campo select {
+    width: 100%;
     min-height: var(--objetivo-tactil-min);
     padding: var(--p-espacio-2) var(--p-espacio-3);
 

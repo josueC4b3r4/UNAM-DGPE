@@ -37,7 +37,20 @@ const { icono, contexto, tono = 'neutro', class: clase } = Astro.props;
 
     font-size: var(--tipo-menudo-tamano);
     line-height: var(--p-tipografia-interlinea-apretada);
-    white-space: nowrap;
+
+    /*
+     * Antes era `white-space: nowrap`, y medido desbordaba: "Categoría:
+     * Prestaciones y seguridad social" mide 269 px dentro de un contenedor de
+     * 199 cuando se juntan 320 px de ancho y el tamaño de texto "Muy grande".
+     * Al no poder partir, empujaba la página entera y obligaba a desplazarse
+     * en horizontal — incumpliendo el criterio 1.4.10 de WCAG 2.1.
+     *
+     * `balance` reparte las líneas de forma pareja en vez de dejar una palabra
+     * suelta abajo, así que la pastilla sigue leyéndose como una etiqueta y no
+     * como un párrafo. Con etiquetas cortas —la mayoría— nunca parte, y el
+     * aspecto es exactamente el de antes.
+     */
+    text-wrap: balance;
   }
 
   .pastilla--neutro {
