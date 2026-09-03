@@ -15,12 +15,27 @@ import ControlTamanoTexto from '../a11y/ControlTamanoTexto.astro';
 import ToggleTema from '../a11y/ToggleTema.astro';
 import Icono from '../base/Icono.astro';
 
-const ENLACES = [
-  { href: '/tramites/', texto: 'Trámites' },
-  { href: '/cursos/', texto: 'Cursos' },
+/*
+ * Dos niveles de navegación, como en el sitio de la Facultad de Ingeniería:
+ * las AUDIENCIAS arriba, en la barra fina, y los TEMAS en la navegación
+ * principal. Allí son Alumnado / Profesorado / Exalumnos; aquí, los tres
+ * perfiles de personal.
+ *
+ * El reparto no contradice la tesis del prototipo —empezar por quién eres—,
+ * la refuerza: los perfiles quedan en el primer renglón de la página, la
+ * navegación principal deja de mezclar temas con audiencias, y la rejilla
+ * grande del inicio sigue llevando el peso del argumento.
+ */
+const PERFILES = [
   { href: '/perfil/academico/', texto: 'Personal académico' },
   { href: '/perfil/administrativo/', texto: 'Personal administrativo' },
   { href: '/perfil/jefe/', texto: 'Jefaturas' },
+];
+
+const ENLACES = [
+  { href: '/', texto: 'Inicio' },
+  { href: '/tramites/', texto: 'Trámites' },
+  { href: '/cursos/', texto: 'Cursos' },
 ];
 
 /** Normaliza para comparar rutas con y sin barra final. */
@@ -35,14 +50,42 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
 <header class="encabezado" id="dgpe-encabezado">
   <div class="utilidades">
     <div class="contenedor utilidades__fila">
-      <p class="utilidades__aviso">
-        <Icono nombre="aviso" tamano={1} />
-        <span>Prototipo de rediseño &middot; datos de ejemplo</span>
-      </p>
+      <!--
+        Los perfiles ocupan aquí el lugar que en la Facultad de Ingeniería
+        tienen Alumnado / Profesorado / Exalumnos: la primera línea de la
+        página, antes que cualquier tema.
 
-      <div class="utilidades__controles">
-        <ControlTamanoTexto />
-        <ToggleTema />
+        Es un <nav> con su propio nombre para que no se confunda con la
+        navegación principal al recorrer las regiones con lector de pantalla.
+      -->
+      <nav class="perfiles" aria-label="Entra por tu perfil">
+        <ul class="perfiles__lista lista-limpia" role="list">
+          {
+            PERFILES.map(({ href, texto }) => (
+              <li>
+                <a
+                  href={href}
+                  class="perfiles__enlace"
+                  aria-current={esActual(href) ? 'page' : undefined}
+                >
+                  {texto}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="utilidades__derecha">
+        <p class="utilidades__aviso">
+          <Icono nombre="aviso" tamano={1} />
+          <span>Prototipo de rediseño &middot; datos de ejemplo</span>
+        </p>
+
+        <div class="utilidades__controles">
+          <ControlTamanoTexto />
+          <ToggleTema />
+        </div>
       </div>
     </div>
   </div>
@@ -223,6 +266,94 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
     padding-block: var(--p-espacio-1);
   }
 
+  /* --- Perfiles (la barra de audiencias) ---------------------------- */
+
+  .perfiles__lista {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--p-espacio-1) var(--p-espacio-4);
+  }
+
+  /*
+   * En pantalla estrecha los tres perfiles se desplazan en una línea en vez de
+   * apilarse en tres.
+   *
+   * Medido: envolviendo, la barra de utilidades pasaba a 152 px de alto a
+   * 320 px de ancho —tres renglones—, un 27 % de la pantalla de un móvil
+   * pequeño ocupado antes de ver nada de contenido.
+   *
+   * Se descartó la alternativa habitual, que es duplicar los enlaces dentro del
+   * menú móvil: son tres anclas más en el documento con el mismo destino, y
+   * este proyecto acaba de dedicar un PR a que ningún enlace lleve a donde ya
+   * estás sin decirlo. Un desplazamiento horizontal no añade nada al DOM.
+   *
+   * No hace falta `tabindex` en el contenedor: lo que se desplaza son enlaces,
+   * y al tabular el navegador los trae a la vista solo.
+   */
+  @media (max-width: 47.99rem) {
+    /*
+     * `min-width: 0` en los dos, y sin esto NADA de lo de abajo funciona: un
+     * contenedor con `overflow-x` no se desplaza si puede crecer, y el valor
+     * inicial de `min-width` en un elemento flex o de rejilla es `auto`, que
+     * significa "no encojas por debajo de tu contenido". Medido sin ellos: la
+     * lista media 384 px dentro de un viewport de 320, no se desplazaba, y
+     * empujaba la página entera.
+     *
+     * Es la tercera vez que este mismo valor inicial causa un desbordamiento
+     * en el proyecto —antes en los selectores del cotizador y en la rejilla de
+     * las páginas de perfil—. Merece recordarse: al meter `overflow` o una
+     * rejilla, `min-width: 0` casi nunca sobra.
+     */
+    .perfiles {
+      min-width: 0;
+    }
+
+    .perfiles__lista {
+      min-width: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      /* Que el último no quede pegado al borde al llegar al final. */
+      padding-inline-end: var(--p-espacio-2);
+    }
+
+    .perfiles__enlace {
+      white-space: nowrap;
+    }
+  }
+
+  .perfiles__enlace {
+    display: inline-flex;
+    align-items: center;
+    /* Alto táctil sin engordar la barra: el relleno vertical es mínimo y el
+       objetivo se agranda con `min-height`, que no empuja a los vecinos. */
+    min-height: var(--objetivo-tactil-min);
+    padding-inline: var(--p-espacio-1);
+
+    color: var(--color-texto-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    text-decoration: none;
+  }
+
+  .perfiles__enlace:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* La página actual se marca con el filete de acento, no solo con
+     aria-current: quien ve la pantalla también merece saber dónde está. */
+  .perfiles__enlace[aria-current='page'] {
+    box-shadow: inset 0 -2px 0 0 var(--color-acento-linea-sobre-marca);
+  }
+
+  .utilidades__derecha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--p-espacio-2) var(--p-espacio-4);
+  }
+
   .utilidades__aviso {
     display: inline-flex;
     align-items: center;
@@ -260,12 +391,29 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
   /* Franja principal                                                  */
   /* ---------------------------------------------------------------- */
 
+  /*
+   * En móvil sigue siendo una fila flexible que envuelve. A partir de 60rem
+   * pasa a tres columnas para poder CENTRAR la navegación como hace la
+   * Facultad de Ingeniería.
+   *
+   * Las columnas laterales son `1fr` y la del medio `auto`: así el centro es
+   * el centro del contenedor y no el hueco que sobra entre el logotipo y el
+   * borde. La tercera columna va vacía a propósito —es el precio de centrar
+   * de verdad— y en móvil la ocupa el botón de menú.
+   */
   .encabezado__fila {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--p-espacio-4);
     padding-block: var(--p-espacio-4);
+  }
+
+  @media (min-width: 60rem) {
+    .encabezado__fila {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+    }
   }
 
   .marca {

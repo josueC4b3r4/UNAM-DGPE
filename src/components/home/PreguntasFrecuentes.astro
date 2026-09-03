@@ -18,6 +18,7 @@
  * que el resto del home junto.
  */
 import Icono from '../base/Icono.astro';
+import EncabezadoSeccion from '../base/EncabezadoSeccion.astro';
 
 const preguntas = [
   {
@@ -55,10 +56,12 @@ const preguntas = [
 
 <section class="seccion seccion--sutil" aria-labelledby="preguntas">
   <div class="contenedor contenedor--texto">
-    <div class="faq__encabezado revelar--amplio">
-      <h2 id="preguntas">Preguntas frecuentes</h2>
-      <p class="faq__nota">Lo que más se pregunta antes de empezar un trámite.</p>
-    </div>
+    <EncabezadoSeccion
+      id="preguntas"
+      titulo="Preguntas frecuentes"
+      subtitulo="Lo que más se pregunta antes de empezar un trámite."
+      class:list={['revelar--amplio']}
+    />
 
     <div class="faq revelar-escalonado">
       {
@@ -81,19 +84,8 @@ const preguntas = [
 </section>
 
 <style>
-  .faq__encabezado {
-    margin-block-end: var(--p-espacio-6);
-  }
 
-  .faq__encabezado h2 {
-    margin: 0;
-    font-size: var(--tipo-titulo-1-tamano);
-  }
 
-  .faq__nota {
-    margin: var(--p-espacio-3) 0 0;
-    color: var(--color-texto-secundario);
-  }
 
   .faq {
     display: grid;

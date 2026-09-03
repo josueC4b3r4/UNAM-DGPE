@@ -13,6 +13,7 @@
 import Icono from '../base/Icono.astro';
 import type { NombreIcono } from '../base/iconos';
 import type { Categoria } from '../../lib/constantes';
+import EncabezadoSeccion from '../base/EncabezadoSeccion.astro';
 
 interface Props {
   categorias: Array<{ clave: Categoria; etiqueta: string; total: number }>;
@@ -34,13 +35,12 @@ const ICONOS: Record<Categoria, NombreIcono> = {
 
 <section class="seccion seccion--sutil categorias" aria-labelledby="por-categoria">
   <div class="contenedor">
-    <div class="categorias__encabezado revelar--amplio">
-      <h2 id="por-categoria">O empieza por el tema</h2>
-      <p class="categorias__nota">
-        Si no te reconoces en ninguno de los tres perfiles, entra por aquí. Cada tema abre el listado
-        ya filtrado.
-      </p>
-    </div>
+    <EncabezadoSeccion
+      id="por-categoria"
+      titulo="O empieza por el tema"
+      subtitulo="Si no te reconoces en ninguno de los tres perfiles, entra por aquí. Cada tema abre el listado ya filtrado."
+      class:list={['revelar--amplio']}
+    />
 
     <ul class="rejilla lista-limpia revelar-escalonado" role="list" style="--rejilla-min: 17rem;">
       {
@@ -67,20 +67,8 @@ const ICONOS: Record<Categoria, NombreIcono> = {
 </section>
 
 <style>
-  .categorias__encabezado {
-    max-width: var(--contenedor-ancho-texto);
-    margin-block-end: var(--p-espacio-6);
-  }
 
-  .categorias__encabezado h2 {
-    margin: 0;
-    font-size: var(--tipo-titulo-1-tamano);
-  }
 
-  .categorias__nota {
-    margin: var(--p-espacio-3) 0 0;
-    color: var(--color-texto-secundario);
-  }
 
   /*
    * Toda la tarjeta es el enlace, no solo el título. Un objetivo grande cumple

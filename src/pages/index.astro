@@ -1,4 +1,5 @@
 ---
+import EncabezadoSeccion from '../components/base/EncabezadoSeccion.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CarruselBanners from '../components/home/CarruselBanners.astro';
 import BuscadorTramites from '../components/home/BuscadorTramites.astro';
@@ -114,18 +115,11 @@ const accesos = [
 
   <section class="seccion seccion--sutil revelar" aria-labelledby="destacados">
     <div class="contenedor">
-      <div class="encabezado-seccion">
-        <div>
-          <h2 id="destacados">Los que más se consultan</h2>
-          <p class="encabezado-seccion__nota">
-            Cinco trámites concentran la mayoría de las visitas a esta dirección.
-          </p>
-        </div>
-        <Boton href="/tramites/" variante="secundario">
-          Ver los {indice.length} trámites
-          <Icono nombre="flecha" tamano={1} />
-        </Boton>
-      </div>
+      <EncabezadoSeccion
+        id="destacados"
+        titulo="Los que más se consultan"
+        subtitulo="Cinco trámites concentran la mayoría de las visitas a esta dirección."
+      />
 
       <ul class="rejilla lista-limpia revelar-hijos" role="list" style="--rejilla-min: 19rem;">
         {
@@ -136,6 +130,16 @@ const accesos = [
           ))
         }
       </ul>
+
+      {/* La llamada baja de la cabecera al pie de la rejilla: así el encabezado
+          queda igual que el de las demás secciones, y el botón aparece cuando
+          ya se vieron los cinco y tiene sentido pedir el resto. */}
+      <p class="seccion__cierre">
+        <Boton href="/tramites/" variante="secundario">
+          Ver los {indice.length} trámites
+          <Icono nombre="flecha" tamano={1} />
+        </Boton>
+      </p>
     </div>
   </section>
 
@@ -248,23 +252,10 @@ const accesos = [
     max-width: var(--contenedor-ancho-texto);
   }
 
-  .encabezado-seccion {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    justify-content: space-between;
-    gap: var(--p-espacio-4);
-    margin-block-end: var(--p-espacio-6);
-  }
-
-  .encabezado-seccion h2 {
-    margin: 0;
-    font-size: var(--tipo-titulo-1-tamano);
-  }
-
-  .encabezado-seccion__nota {
-    margin: var(--p-espacio-2) 0 0;
-    color: var(--color-texto-secundario);
+  /* Cierre de sección: la llamada centrada bajo la rejilla. */
+  .seccion__cierre {
+    margin: var(--espacio-bloque) 0 0;
+    text-align: center;
   }
 
   .propuestas {

@@ -14,6 +14,7 @@
  * decorativo y va con aria-hidden: el orden ya lo da el <ol>, y un lector de
  * pantalla no tiene por qué enterarse de que hay una raya.
  */
+import EncabezadoSeccion from '../base/EncabezadoSeccion.astro';
 import Icono from '../base/Icono.astro';
 
 const hitos = [
@@ -55,13 +56,14 @@ const hitos = [
 
 <section class="seccion" aria-labelledby="fechas-clave">
   <div class="contenedor">
-    <div class="fechas__encabezado revelar--amplio">
-      <h2 id="fechas-clave">El año, de un vistazo</h2>
-      <p class="fechas__nota">
-        Los periodos en que se concentra la demanda. Sirve para adelantarse: casi todo lo que se
-        atasca en diciembre se puede resolver en agosto.
-      </p>
-
+    <EncabezadoSeccion
+      id="fechas-clave"
+      titulo="El año, de un vistazo"
+      subtitulo="Los periodos en que se concentra la demanda. Sirve para adelantarse: casi todo lo que se atasca en diciembre se puede resolver en agosto."
+      class:list={['revelar--amplio']}
+    >
+      {/* El aviso va por el slot, debajo del filete: es parte del encabezado,
+          no del contenido, y tiene que verse antes que las fechas. */}
       <p class="fechas__aviso">
         <Icono nombre="aviso" tamano={1.1} />
         <span>
@@ -69,7 +71,7 @@ const hitos = [
           el formato. No lo uses para planear un trámite real.
         </span>
       </p>
-    </div>
+    </EncabezadoSeccion>
 
     <div class="cronologia">
       <span class="cronologia__carril" aria-hidden="true">
@@ -95,20 +97,8 @@ const hitos = [
 </section>
 
 <style>
-  .fechas__encabezado {
-    max-width: var(--contenedor-ancho-texto);
-    margin-block-end: var(--espacio-bloque);
-  }
 
-  .fechas__encabezado h2 {
-    margin: 0;
-    font-size: var(--tipo-titulo-1-tamano);
-  }
 
-  .fechas__nota {
-    margin: var(--p-espacio-3) 0 0;
-    color: var(--color-texto-secundario);
-  }
 
   .fechas__aviso {
     display: flex;
