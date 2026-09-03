@@ -63,10 +63,24 @@ const categorias = await obtenerCategoriasConConteo();
       <button type="reset" class="filtros__limpiar">Limpiar</button>
     </form>
 
-    <!-- Conteo visible para todos y anunciado a lectores de pantalla. -->
-    <p class="listado__conteo" id="dgpe-conteo" role="status" aria-live="polite">
+    <!--
+      El conteo visible y el anuncio a lectores de pantalla están SEPARADOS, y
+      no por gusto.
+
+      Antes eran el mismo elemento con role="status". Medido: escribir cinco
+      letras en el filtro producía cinco anuncios —"13 encontrados", "9
+      encontrados", "4 encontrados"…— porque el texto cambia en cada tecla.
+      Quien escucha la página recibe los conteos intermedios de una búsqueda
+      que todavía está a medias.
+
+      Ahora el número visible se actualiza al instante, que es lo que espera
+      quien lo ve, y el anuncio espera a que se deje de teclear.
+    -->
+    <p class="listado__conteo" id="dgpe-conteo">
       Mostrando los {indice.length} trámites
     </p>
+
+    <p class="visualmente-oculto" id="dgpe-conteo-anuncio" role="status" aria-live="polite"></p>
 
     <ul class="rejilla lista-limpia" id="dgpe-listado" role="list" style="--rejilla-min: 20rem;">
       {
@@ -104,6 +118,7 @@ const categorias = await obtenerCategoriasConConteo();
     const formulario = document.getElementById('dgpe-filtros') as HTMLFormElement | null;
     const listado = document.getElementById('dgpe-listado');
     const conteo = document.getElementById('dgpe-conteo');
+    const anuncio = document.getElementById('dgpe-conteo-anuncio');
     const vacio = document.getElementById('dgpe-vacio');
     const limpiarVacio = document.getElementById('dgpe-limpiar-vacio');
     const datos = document.getElementById('dgpe-listado-indice');
@@ -117,6 +132,9 @@ const categorias = await obtenerCategoriasConConteo();
       const campoTexto = formulario.elements.namedItem('q') as HTMLInputElement;
       const campoCategoria = formulario.elements.namedItem('categoria') as HTMLSelectElement;
       const campoRol = formulario.elements.namedItem('rol') as HTMLSelectElement;
+
+      /* Vive fuera de `aplicar` para poder cancelarse entre teclas. */
+      let temporizadorDeAnuncio = 0;
 
       const elementos = new Map<string, HTMLElement>();
       for (const li of listado.querySelectorAll<HTMLElement>('[data-slug]')) {
@@ -136,10 +154,29 @@ const categorias = await obtenerCategoriasConConteo();
           elemento.hidden = !slugsVisibles.has(slug);
         }
 
-        conteo!.textContent =
+        const texto =
           visibles.length === indice.length
             ? `Mostrando los ${indice.length} trámites`
             : textoConteo(visibles.length);
+
+        /* Lo que se ve cambia ya. */
+        conteo!.textContent = texto;
+
+        /*
+         * Lo que se anuncia espera 600 ms sin teclear. No es un retardo
+         * arbitrario: es el tiempo que tarda alguien en escribir la siguiente
+         * letra de una palabra. Si sigue escribiendo, el anuncio anterior se
+         * cancela y solo se anuncia el resultado en el que se detuvo.
+         *
+         * Se escribe en un elemento distinto del visible para no retrasar el
+         * número que ve quien mira la pantalla.
+         */
+        if (anuncio) {
+          clearTimeout(temporizadorDeAnuncio);
+          temporizadorDeAnuncio = window.setTimeout(() => {
+            anuncio.textContent = texto;
+          }, 600);
+        }
 
         vacio!.hidden = visibles.length > 0;
         listado!.hidden = visibles.length === 0;

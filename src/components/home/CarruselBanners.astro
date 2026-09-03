@@ -107,9 +107,26 @@ const ID_PISTA = `${id}-pista`;
               {banner.src && <div class="banner__velo" aria-hidden="true" />}
 
               <div class="banner__cuerpo">
-                <h2 class="banner__titulo" data-titulo>
+                {/*
+                  Un <p> y no un <h2>, aunque se vea como un título.
+
+                  Medido en el árbol de accesibilidad: con <h2>, el PRIMER
+                  encabezado del inicio era el del banner activo, y el <h1> de
+                  la página quedaba en segunda posición. Quien recorre una
+                  página con lector de pantalla navega por encabezados —es el
+                  índice—, así que se encontraba con texto promocional rotatorio
+                  antes que con el título del sitio.
+
+                  No se pierde nada al quitarlo del índice: la sección ya es una
+                  region con aria-label "Avisos destacados", cada diapositiva es
+                  un role="group" con aria-roledescription="diapositiva" y su
+                  "1 de 4", y el título se sigue leyendo como contenido del
+                  grupo. Se comprobó además que ningún aria-labelledby ni ningún
+                  enlace apuntaba a estos encabezados.
+                */}
+                <p class="banner__titulo" data-titulo>
                   {banner.titulo}
-                </h2>
+                </p>
                 <p class="banner__texto">{banner.texto}</p>
                 <a
                   class="banner__accion"

@@ -20,16 +20,11 @@ Medido en `http://localhost:4322` con la configuración móvil por defecto de Li
 
 | Auditoría | Nota | Detalle | Afecta a |
 | --- | --- | --- | --- |
-| First Contentful Paint | 98 | 1.3 s | Rendimiento |
+| First Contentful Paint | 99 | 1.2 s | Rendimiento |
+| Speed Index | 99 | 2.3 s | Rendimiento |
 
 ## Listado de trámites — auditorías con margen de mejora
 
 | Auditoría | Nota | Detalle | Afecta a |
 | --- | --- | --- | --- |
 | First Contentful Paint | 99 | 1.1 s | Rendimiento |
-
-## Landing de trámite — auditorías con margen de mejora
-
-| Auditoría | Nota | Detalle | Afecta a |
-| --- | --- | --- | --- |
-| Speed Index | 99 | 2.1 s | Rendimiento |
