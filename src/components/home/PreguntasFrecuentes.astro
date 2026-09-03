@@ -1,0 +1,177 @@
+---
+/**
+ * Preguntas frecuentes.
+ *
+ * ⚠ CONTENIDO ILUSTRATIVO, como el resto del prototipo: las respuestas están
+ * escritas para ser plausibles, no para ser exactas. Ninguna incluye datos de
+ * contacto, plazos concretos ni nombres de ventanilla, justamente para que no
+ * puedan tomarse por buenas.
+ *
+ * ACORDEÓN CON <details>, NO CON JAVASCRIPT. La etiqueta nativa ya trae todo
+ * lo que un acordeón accesible necesita: es enfocable, se abre con Enter y con
+ * Espacio, expone su estado expandido/plegado al lector de pantalla y funciona
+ * con el buscador de texto del navegador. Un acordeón hecho a mano con divs y
+ * un listener tarda unas cuarenta líneas en llegar al mismo sitio, y suele
+ * quedarse a medias en el estado anunciado.
+ *
+ * Van todas plegadas de inicio a propósito: abiertas, esta sección mediría más
+ * que el resto del home junto.
+ */
+import Icono from '../base/Icono.astro';
+
+const preguntas = [
+  {
+    pregunta: '¿Necesito ir en persona para pedir una constancia?',
+    respuesta:
+      'Depende del tipo. Las constancias de servicios y de percepciones se resuelven en línea; las que llevan firma autógrafa requieren una visita. La ficha de cada trámite lo dice en la primera línea, junto a la duración estimada.',
+  },
+  {
+    pregunta: 'No sé a qué categoría pertenece mi trámite. ¿Por dónde empiezo?',
+    respuesta:
+      'Por el buscador. Está pensado para que escribas lo que te dijeron, no el nombre oficial: «carta laboral», «me incapacitaron» o «quiero jubilarme» llevan al trámite correcto aunque no se llame así.',
+  },
+  {
+    pregunta: 'Soy jefe o jefa de dependencia. ¿Veo lo mismo que el resto?',
+    respuesta:
+      'No. Las jefaturas tienen trámites propios —los que se hacen en nombre de otra persona— y por eso son un perfil aparte. Entrando por tu perfil ves los tuyos sin tener que descartar los demás.',
+  },
+  {
+    pregunta: '¿Qué pasa si me falta un documento?',
+    respuesta:
+      'La ficha marca cuáles dependen de otra dependencia, que son los que conviene pedir con más antelación. Presentarse con el expediente incompleto es la causa más común de una segunda vuelta.',
+  },
+  {
+    pregunta: '¿Puedo hacer un trámite por alguien más?',
+    respuesta:
+      'Solo en los casos en que la ficha lo contempla, y siempre con la representación acreditada. Los trámites que admiten gestor lo indican de forma explícita; si no lo dice, es personal.',
+  },
+  {
+    pregunta: '¿Este sitio es el portal oficial de la DGPE?',
+    respuesta:
+      'No. Es un prototipo de rediseño hecho como parte de un servicio social, con contenido inventado para poder mostrarlo. No lo uses para resolver un trámite real.',
+  },
+];
+---
+
+<section class="seccion seccion--sutil" aria-labelledby="preguntas">
+  <div class="contenedor contenedor--texto">
+    <div class="faq__encabezado revelar--amplio">
+      <h2 id="preguntas">Preguntas frecuentes</h2>
+      <p class="faq__nota">Lo que más se pregunta antes de empezar un trámite.</p>
+    </div>
+
+    <div class="faq revelar-escalonado">
+      {
+        preguntas.map(({ pregunta, respuesta }) => (
+          <details class="faq__item">
+            <summary class="faq__pregunta">
+              <span>{pregunta}</span>
+              <span class="faq__marca" aria-hidden="true">
+                <Icono nombre="flecha" tamano={1} />
+              </span>
+            </summary>
+            <div class="faq__respuesta">
+              <p>{respuesta}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__encabezado {
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .faq__encabezado h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+  }
+
+  .faq__nota {
+    margin: var(--p-espacio-3) 0 0;
+    color: var(--color-texto-secundario);
+  }
+
+  .faq {
+    display: grid;
+    gap: var(--p-espacio-3);
+  }
+
+  .faq__item {
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+  }
+
+  .faq__item[open] {
+    border-color: var(--color-borde-medio);
+  }
+
+  .faq__pregunta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--p-espacio-4);
+
+    /* Altura mínima de toque: el resumen es el control (WCAG 2.5.5). */
+    min-height: var(--objetivo-tactil-min);
+    padding: var(--p-espacio-4) var(--espacio-componente);
+
+    font-weight: var(--p-tipografia-peso-semi);
+    cursor: pointer;
+    /* Quita el triángulo por defecto; lo sustituye .faq__marca. */
+    list-style: none;
+  }
+
+  /* WebKit necesita su propio selector para el mismo triángulo. */
+  .faq__pregunta::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__marca {
+    display: inline-flex;
+    flex: none;
+    color: var(--color-acento-texto);
+  }
+
+  .faq__respuesta {
+    padding: 0 var(--espacio-componente) var(--espacio-componente);
+    color: var(--color-texto-secundario);
+  }
+
+  .faq__respuesta p {
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .faq__marca {
+      transition: transform var(--movimiento-duracion-rapida) var(--movimiento-curva);
+    }
+
+    .faq__item[open] .faq__marca {
+      transform: rotate(90deg);
+    }
+
+    /*
+     * La respuesta entra desplazándose, no desplegándose: animar la altura
+     * exigiría medirla con JavaScript (o `::details-content`, que aún no está
+     * en todos los navegadores) y arrastraría el layout de todo lo que hay
+     * debajo en cada cuadro.
+     */
+    .faq__item[open] .faq__respuesta {
+      animation: faq-abrir var(--movimiento-duracion-media) var(--movimiento-curva) both;
+    }
+
+    @keyframes faq-abrir {
+      from {
+        transform: translateY(-6px);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+  }
+</style>

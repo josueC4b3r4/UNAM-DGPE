@@ -1,0 +1,207 @@
+---
+/**
+ * Calendario de periodos con carga alta.
+ *
+ * ⚠ CONTENIDO ILUSTRATIVO. Los periodos de abajo están inventados. Son
+ * plausibles para una dirección de personal, pero NO corresponden al calendario
+ * real de la DGPE y no deben tomarse por bueno. Por eso la sección lleva un
+ * aviso visible, además del `noindex` que cubre a todo el prototipo.
+ *
+ * Cuando llegue el calendario de verdad, esto se sustituye entero y se quita el
+ * aviso — la estructura sirve tal cual.
+ *
+ * El trazo vertical se dibuja conforme se baja (`.progreso-vertical`). Es
+ * decorativo y va con aria-hidden: el orden ya lo da el <ol>, y un lector de
+ * pantalla no tiene por qué enterarse de que hay una raya.
+ */
+import Icono from '../base/Icono.astro';
+
+const hitos = [
+  {
+    periodo: 'Enero – febrero',
+    titulo: 'Constancias para la declaración anual',
+    texto:
+      'El periodo de más demanda de constancias de percepciones. Pedirla en enero evita la fila de abril.',
+  },
+  {
+    periodo: 'Marzo',
+    titulo: 'Actualización de datos y beneficiarios',
+    texto:
+      'Ventana para revisar domicilio, estado civil y designación de beneficiarios sin trámite adicional.',
+  },
+  {
+    periodo: 'Mayo – junio',
+    titulo: 'Primer periodo vacacional',
+    texto: 'Solicitudes de vacaciones y pago de prima vacacional del primer semestre.',
+  },
+  {
+    periodo: 'Agosto',
+    titulo: 'Reinscripción de servicios médicos',
+    texto:
+      'Alta y renovación de familiares derechohabientes. Los expedientes incompletos se resuelven aquí, no en diciembre.',
+  },
+  {
+    periodo: 'Noviembre',
+    titulo: 'Cierre de nombramientos',
+    texto: 'Renovación y prórroga de nombramientos que vencen con el año lectivo.',
+  },
+  {
+    periodo: 'Diciembre',
+    titulo: 'Aguinaldo y segundo periodo vacacional',
+    texto: 'Pago de aguinaldo y prima vacacional del segundo semestre.',
+  },
+];
+---
+
+<section class="seccion" aria-labelledby="fechas-clave">
+  <div class="contenedor">
+    <div class="fechas__encabezado revelar--amplio">
+      <h2 id="fechas-clave">El año, de un vistazo</h2>
+      <p class="fechas__nota">
+        Los periodos en que se concentra la demanda. Sirve para adelantarse: casi todo lo que se
+        atasca en diciembre se puede resolver en agosto.
+      </p>
+
+      <p class="fechas__aviso">
+        <Icono nombre="aviso" tamano={1.1} />
+        <span>
+          <strong>Fechas de ejemplo.</strong> Este prototipo usa un calendario inventado para mostrar
+          el formato. No lo uses para planear un trámite real.
+        </span>
+      </p>
+    </div>
+
+    <div class="cronologia">
+      <span class="cronologia__carril" aria-hidden="true">
+        <span class="cronologia__trazo progreso-vertical"></span>
+      </span>
+
+      <ol class="cronologia__hitos lista-limpia" role="list">
+        {
+          hitos.map((hito) => (
+            <li class="hito revelar--amplio">
+              <span class="hito__punto" aria-hidden="true" />
+              <div class="hito__cuerpo">
+                <p class="hito__periodo">{hito.periodo}</p>
+                <h3 class="hito__titulo">{hito.titulo}</h3>
+                <p class="hito__texto">{hito.texto}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .fechas__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--espacio-bloque);
+  }
+
+  .fechas__encabezado h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+  }
+
+  .fechas__nota {
+    margin: var(--p-espacio-3) 0 0;
+    color: var(--color-texto-secundario);
+  }
+
+  .fechas__aviso {
+    display: flex;
+    align-items: start;
+    gap: var(--p-espacio-3);
+
+    margin: var(--p-espacio-5) 0 0;
+    padding: var(--p-espacio-4);
+
+    background-color: var(--color-alerta-fondo);
+    color: var(--color-alerta-texto);
+    border: var(--p-borde-fino) solid var(--color-alerta-borde);
+    border-radius: var(--radio-control);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  /* --- Cronología ---------------------------------------------------- */
+
+  .cronologia {
+    position: relative;
+  }
+
+  /*
+   * El carril y su trazo son dos elementos: el carril reserva el sitio (y no se
+   * mueve nunca), el trazo es lo que se anima con scaleY. Si se animara el
+   * carril, el punto de cada hito se quedaría sin guía cuando la escala es 0.
+   */
+  .cronologia__carril {
+    position: absolute;
+    inset-block: 0;
+    /* Centrado bajo los puntos de cada hito. */
+    inset-inline-start: calc(var(--punto-tamano) / 2);
+    width: var(--p-borde-grueso);
+    background-color: var(--color-borde-sutil);
+  }
+
+  .cronologia__trazo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-acento-linea);
+  }
+
+  .cronologia {
+    --punto-tamano: 0.875rem;
+  }
+
+  .cronologia__hitos {
+    display: grid;
+    gap: var(--espacio-componente);
+    margin: 0;
+  }
+
+  .hito {
+    display: grid;
+    grid-template-columns: var(--punto-tamano) minmax(0, 1fr);
+    gap: var(--p-espacio-5);
+    align-items: start;
+  }
+
+  .hito__punto {
+    width: var(--punto-tamano);
+    height: var(--punto-tamano);
+    margin-block-start: var(--p-espacio-2);
+
+    background-color: var(--color-acento-linea);
+    /* Anillo del color del fondo: hace que el punto parezca flotar sobre el
+       trazo en vez de estar pegado encima. Si la sección cambia de fondo, este
+       token tiene que cambiar con ella. */
+    border: var(--p-borde-medio) solid var(--color-superficie-base);
+    border-radius: var(--radio-pastilla);
+  }
+
+  .hito__cuerpo {
+    padding-block-end: var(--p-espacio-2);
+  }
+
+  .hito__periodo {
+    margin: 0 0 var(--p-espacio-1);
+    color: var(--color-acento-texto);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .hito__titulo {
+    margin: 0 0 var(--p-espacio-2);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .hito__texto {
+    margin: 0;
+    color: var(--color-texto-secundario);
+  }
+</style>

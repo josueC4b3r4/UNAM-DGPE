@@ -72,6 +72,160 @@
   }
 }
 
+/* --------------------------------------------------------------------- */
+/* Movimiento de recorrido largo                                          */
+/* --------------------------------------------------------------------- */
+
+/*
+ * Todo lo que sigue existe porque el home pasó de cinco bloques a once. Con
+ * una página corta, un desplazamiento de 16 px basta; con recorrido de verdad
+ * hace falta que el movimiento tenga jerarquía, o se vuelve un tic repetido
+ * once veces.
+ *
+ * REGLA QUE NO SE ROMPE: nada de esto anima la opacidad, y nada de esto
+ * esconde contenido. Sigue valiendo la lección de la primera versión — un
+ * texto que cumple AA en reposo puede no cumplirlo a mitad de un fundido, y
+ * axe lo mide como lo ve quien lee. Aquí solo se mueve `transform`.
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /*
+     * Variante amplia del revelado, para las secciones nuevas. 32 px en vez de
+     * 16: con más recorrido por delante, el gesto corto se pierde.
+     */
+    .revelar--amplio {
+      animation: revelar-amplio linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+
+    @keyframes revelar-amplio {
+      from {
+        transform: translateY(32px);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    /*
+     * Escalonado real dentro de una fila.
+     *
+     * `.revelar-hijos` no escalona nada cuando las tarjetas están LADO A LADO:
+     * comparten la misma posición vertical, así que su progreso de vista es
+     * idéntico y entran las tres a la vez. El comentario de arriba solo es
+     * cierto para hijos apilados.
+     *
+     * No se arregla con `animation-delay` — en una línea de tiempo de scroll el
+     * retraso no es tiempo, es recorrido. Se corre el `animation-range` de cada
+     * hijo: el segundo empieza su animación un 8 % de viewport más tarde que el
+     * primero, y así entran en cascada al bajar.
+     */
+    .revelar-escalonado > * {
+      animation: revelar-amplio linear both;
+      animation-timeline: view();
+    }
+
+    .revelar-escalonado > :nth-child(1) {
+      animation-range: entry 0% cover 32%;
+    }
+    .revelar-escalonado > :nth-child(2) {
+      animation-range: entry 8% cover 40%;
+    }
+    .revelar-escalonado > :nth-child(3) {
+      animation-range: entry 16% cover 48%;
+    }
+    .revelar-escalonado > :nth-child(4) {
+      animation-range: entry 24% cover 56%;
+    }
+    .revelar-escalonado > :nth-child(n + 5) {
+      animation-range: entry 32% cover 64%;
+    }
+
+    /*
+     * Parallax: capas que recorren la pantalla a distinta velocidad.
+     *
+     * Solo se aplica a elementos DECORATIVOS. Mover texto a velocidad distinta
+     * de su contenedor lo hace más difícil de leer mientras se desplaza, y en
+     * pantallas cortas puede sacarlo de la caja que le da contraste.
+     *
+     * El rango es `cover 0% cover 100%`: la capa se mueve durante todo el
+     * tránsito del elemento por el viewport, no solo al entrar. Esa es la
+     * diferencia entre un parallax y un revelado.
+     */
+    .parallax {
+      animation: parallax-recorrido linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+      will-change: transform;
+    }
+
+    @keyframes parallax-recorrido {
+      from {
+        transform: translate3d(0, var(--parallax-desde, -5%), 0);
+      }
+      to {
+        transform: translate3d(0, var(--parallax-hasta, 5%), 0);
+      }
+    }
+
+    /*
+     * Línea de progreso que crece con el scroll. La usa la línea de tiempo de
+     * fechas clave: el trazo vertical se dibuja conforme se baja.
+     *
+     * `scaleY` desde `transform-origin: top` y no `height`: animar la altura
+     * recalcularía el layout en cada cuadro y arrastraría a todo lo que está
+     * debajo. Con transform solo participa el compositor.
+     */
+    .progreso-vertical {
+      transform-origin: top center;
+      animation: progreso-crecer linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 75%;
+    }
+
+    @keyframes progreso-crecer {
+      from {
+        transform: scaleY(0);
+      }
+      to {
+        transform: scaleY(1);
+      }
+    }
+  }
+}
+
+/* --------------------------------------------------------------------- */
+/* Paneles pegajosos                                                      */
+/* --------------------------------------------------------------------- */
+
+/*
+ * `position: sticky` va FUERA de `prefers-reduced-motion`, a diferencia de
+ * todo lo anterior. No es una animación: es posicionamiento, el mismo
+ * mecanismo que fija el encabezado de una tabla larga. Quien pide menos
+ * movimiento no está pidiendo que los encabezados dejen de acompañar a su
+ * contenido.
+ *
+ * Lo que sí importa: se activa solo cuando hay altura de sobra. En una
+ * pantalla corta un panel pegajoso se come el viewport y deja al contenido
+ * leyéndose por una rendija; ahí es mejor que se apile y ya.
+ */
+.panel-pegajoso {
+  position: static;
+}
+
+@media (min-width: 60rem) and (min-height: 34rem) {
+  .panel-pegajoso {
+    position: sticky;
+    /* El encabezado del sitio no es pegajoso, así que no hay que descontarlo:
+       este margen es solo aire para que el panel no toque el borde. */
+    top: var(--espacio-componente);
+    z-index: var(--p-capa-pegajosa);
+    align-self: start;
+  }
+}
+
 /*
  * Micro-interacción de las tarjetas. Va fuera del bloque de `@supports`
  * porque no depende de la línea de tiempo de scroll, pero sí de la preferencia

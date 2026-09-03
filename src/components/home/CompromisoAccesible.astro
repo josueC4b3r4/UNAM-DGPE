@@ -1,0 +1,180 @@
+---
+/**
+ * Trae a la principal las páginas que hasta ahora solo vivían en el pie.
+ *
+ * En el sitio actual, accesibilidad y transparencia son enlaces de pie que casi
+ * nadie abre. Subirlas a la home con un resumen real —y no solo un enlace— es
+ * parte de la propuesta: si la accesibilidad es el argumento del rediseño, no
+ * puede estar escondida en el último renglón.
+ *
+ * Cada tarjeta lleva a la página completa. El resumen es fiel a lo que esa
+ * página dice; si una cambia, la otra tiene que cambiar. Ese es el precio de
+ * duplicar contenido, y aquí se paga a conciencia porque el bloque es corto.
+ */
+import Icono from '../base/Icono.astro';
+import type { NombreIcono } from '../base/iconos';
+
+interface Enlace {
+  href: string;
+  icono: NombreIcono;
+  titulo: string;
+  texto: string;
+  llamada: string;
+}
+
+const enlaces: Enlace[] = [
+  {
+    href: '/accesibilidad/',
+    icono: 'personas',
+    titulo: 'Declaración de accesibilidad',
+    texto:
+      'Qué se verificó, con qué herramienta y qué sigue pendiente. Incluye las limitaciones conocidas, porque una declaración sin limitaciones no es creíble.',
+    llamada: 'Leer la declaración',
+  },
+  {
+    href: '/transparencia/',
+    icono: 'documento',
+    titulo: 'Transparencia',
+    texto:
+      'Marcador de posición con lo que contendría la sección. Existe como página, y no como enlace roto en el pie, porque un enlace que promete algo debe llevar a algún lado.',
+    llamada: 'Ver la sección',
+  },
+  {
+    href: '/aviso-de-privacidad/',
+    icono: 'aviso',
+    titulo: 'Aviso de privacidad',
+    texto:
+      'Qué datos trata este prototipo. Respuesta corta: ninguno que salga de tu navegador — el tema y el tamaño de texto se guardan solo en tu equipo.',
+    llamada: 'Leer el aviso',
+  },
+];
+---
+
+<section class="seccion compromiso" aria-labelledby="compromiso">
+  <div class="contenedor">
+    <div class="compromiso__encabezado revelar--amplio">
+      <h2 id="compromiso">Lo que normalmente se esconde en el pie</h2>
+      <p class="compromiso__nota">
+        Accesibilidad, transparencia y privacidad, arriba y con resumen. Si son parte del argumento,
+        no pueden estar en el último renglón.
+      </p>
+    </div>
+
+    <ul class="rejilla lista-limpia revelar-escalonado" role="list" style="--rejilla-min: 18rem;">
+      {
+        enlaces.map(({ href, icono, titulo, texto, llamada }) => (
+          <li>
+            <a class="compromiso__tarjeta" href={href}>
+              <span class="compromiso__icono" aria-hidden="true">
+                <Icono nombre={icono} tamano={1.5} />
+              </span>
+
+              <span class="compromiso__titulo">{titulo}</span>
+              <span class="compromiso__texto">{texto}</span>
+
+              <span class="compromiso__llamada">
+                {llamada}
+                <Icono nombre="flecha" tamano={1} />
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .compromiso__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .compromiso__encabezado h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+    text-wrap: balance;
+  }
+
+  .compromiso__nota {
+    margin: var(--p-espacio-3) 0 0;
+    color: var(--color-texto-secundario);
+  }
+
+  /* Enlace de tarjeta completa: ver la nota en CategoriasTramites.astro. */
+  .compromiso__tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-3);
+    height: 100%;
+
+    padding: var(--espacio-componente);
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+
+    color: var(--color-texto-principal);
+    text-decoration: none;
+  }
+
+  .compromiso__tarjeta:hover {
+    border-color: var(--color-borde-medio);
+  }
+
+  .compromiso__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: var(--objetivo-tactil-min);
+    height: var(--objetivo-tactil-min);
+
+    color: var(--color-acento-texto);
+    background-color: var(--color-superficie-marca-sutil);
+    border-radius: var(--radio-control);
+  }
+
+  .compromiso__titulo {
+    font-size: var(--tipo-titulo-3-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .compromiso__texto {
+    color: var(--color-texto-secundario);
+    /* Empuja la llamada al fondo para que las tres tarjetas la alineen. */
+    flex: 1 1 auto;
+  }
+
+  .compromiso__llamada {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+
+    color: var(--color-texto-enlace);
+    font-weight: var(--p-tipografia-peso-semi);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .compromiso__tarjeta:hover .compromiso__llamada {
+    color: var(--color-texto-enlace-hover);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .compromiso__tarjeta,
+    .compromiso__llamada svg {
+      transition:
+        transform var(--movimiento-duracion-rapida) var(--movimiento-curva),
+        border-color var(--movimiento-duracion-rapida) var(--movimiento-curva);
+    }
+
+    .compromiso__tarjeta:hover {
+      transform: translateY(-2px);
+    }
+
+    /* La flecha avanza un poco: refuerza que la tarjeta entera es el enlace. */
+    .compromiso__tarjeta:hover .compromiso__llamada svg {
+      transform: translateX(3px);
+    }
+  }
+</style>

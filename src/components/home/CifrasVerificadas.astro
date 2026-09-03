@@ -1,0 +1,208 @@
+---
+/**
+ * Cifras del prototipo, con contadores que suben al entrar en pantalla.
+ *
+ * POR QUÉ ESTAS CIFRAS Y NO ESTADÍSTICAS DE LA DEPENDENCIA. Un bloque de
+ * números es el sitio donde más fácil se cuela un dato inventado que luego
+ * alguien cita. Todo lo de aquí sale de una comprobación que se puede volver a
+ * correr —`npm run verificar`, `npm run lighthouse`— o se calcula en build
+ * desde el contenido. Ninguna cifra es decorativa y ninguna es un invento.
+ *
+ * Es también el argumento del prototipo puesto en números, que es lo que hace
+ * que la sección valga la pena y no sea relleno para tener scroll.
+ *
+ * ACCESIBILIDAD DEL CONTADOR. El valor final se renderiza en el HTML; el
+ * script solo lo sustituye mientras dura la animación y lo restituye exacto al
+ * terminar. Consecuencias buscadas:
+ *   - Sin JavaScript se ve el número correcto, no un cero.
+ *   - No hay `aria-live`: un contador que anuncia sesenta valores intermedios
+ *     es inutilizable con lector de pantalla.
+ *   - Con `prefers-reduced-motion` no se anima nada; el número ya está puesto.
+ */
+
+interface Cifra {
+  /** Valor final. Es el que se renderiza en el HTML. */
+  valor: number;
+  /** Sufijo pegado al número: "%", "/100"… */
+  sufijo?: string;
+  etiqueta: string;
+  /** De dónde sale el dato. Se muestra: una cifra sin fuente no vale nada. */
+  fuente: string;
+}
+
+interface Props {
+  cifras: Cifra[];
+}
+
+const { cifras } = Astro.props;
+---
+
+<section class="seccion cifras" aria-labelledby="cifras">
+  <div class="contenedor">
+    <div class="cifras__encabezado revelar--amplio">
+      <h2 id="cifras">Lo que se puede comprobar</h2>
+      <p class="cifras__nota">
+        Cada número de aquí abajo sale de una verificación que se vuelve a correr con un comando. No
+        son estimaciones.
+      </p>
+    </div>
+
+    <ul class="cifras__lista lista-limpia revelar-escalonado" role="list">
+      {
+        cifras.map(({ valor, sufijo, etiqueta, fuente }) => (
+          <li class="cifra">
+            <p class="cifra__valor">
+              <span class="cifra__numero" data-cifra={valor}>
+                {valor}
+              </span>
+              {sufijo && <span class="cifra__sufijo">{sufijo}</span>}
+            </p>
+            <p class="cifra__etiqueta">{etiqueta}</p>
+            <p class="cifra__fuente">{fuente}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  /* Se reengancha en cada navegación; ver ToggleTema.astro para el porqué. */
+  let controlador: AbortController | null = null;
+  let observador: IntersectionObserver | null = null;
+
+  function animarCifra(elemento: HTMLElement, destino: number, signal: AbortSignal) {
+    const DURACION = 900;
+    let inicio: number | null = null;
+
+    function paso(ahora: number) {
+      if (signal.aborted) return;
+
+      inicio ??= ahora;
+      const avance = Math.min((ahora - inicio) / DURACION, 1);
+
+      /* Desaceleración cúbica: el número corre al principio y se asienta al
+         final, que es donde la vista se detiene a leerlo. */
+      const suavizado = 1 - Math.pow(1 - avance, 3);
+      elemento.textContent = String(Math.round(destino * suavizado));
+
+      if (avance < 1) {
+        requestAnimationFrame(paso);
+      } else {
+        /* Se restituye el valor exacto: el redondeo del último cuadro podría
+           no coincidir con el destino. */
+        elemento.textContent = String(destino);
+      }
+    }
+
+    requestAnimationFrame(paso);
+  }
+
+  function iniciarCifras() {
+    controlador?.abort();
+    observador?.disconnect();
+
+    /* Quien pide menos movimiento ya tiene el número correcto en el HTML: no
+       hay nada que hacer, y ni siquiera se crea el observador. */
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const numeros = document.querySelectorAll<HTMLElement>('[data-cifra]');
+    if (numeros.length === 0) return;
+
+    controlador = new AbortController();
+    const { signal } = controlador;
+
+    observador = new IntersectionObserver(
+      (entradas, obs) => {
+        for (const entrada of entradas) {
+          if (!entrada.isIntersecting) continue;
+
+          const elemento = entrada.target as HTMLElement;
+          const destino = Number(elemento.dataset.cifra);
+
+          /* Una sola vez por elemento: un contador que se reinicia cada vez que
+             la sección vuelve a entrar en pantalla es mareante. */
+          obs.unobserve(elemento);
+          if (Number.isFinite(destino)) animarCifra(elemento, destino, signal);
+        }
+      },
+      { threshold: 0.6 }
+    );
+
+    for (const numero of numeros) observador.observe(numero);
+
+    /* El observador no cuelga del DOM, así que hay que soltarlo a mano cuando
+       la página se intercambia. */
+    signal.addEventListener('abort', () => observador?.disconnect());
+  }
+
+  document.addEventListener('astro:page-load', iniciarCifras);
+</script>
+
+<style>
+  .cifras {
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .cifras__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--espacio-bloque);
+  }
+
+  .cifras__encabezado h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .cifras__nota {
+    margin: var(--p-espacio-3) 0 0;
+    color: var(--color-texto-tenue-sobre-marca);
+  }
+
+  .cifras__lista {
+    display: grid;
+    gap: var(--espacio-componente);
+    margin: 0;
+    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  }
+
+  .cifra {
+    padding-inline-start: var(--p-espacio-4);
+    /* Sobre el azul de marca el oro oficial sí cumple: 5.29:1. El token
+       `--color-acento-linea` a secas es la variante para fondo claro. */
+    border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea-sobre-marca);
+  }
+
+  .cifra__valor {
+    display: flex;
+    align-items: baseline;
+    gap: var(--p-espacio-1);
+    margin: 0;
+
+    font-size: var(--tipo-hero-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    line-height: 1;
+    color: var(--color-texto-sobre-marca);
+    /* Cifras de ancho fijo: sin esto el número salta de anchura en cada cuadro
+       de la cuenta y arrastra al sufijo. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cifra__sufijo {
+    font-size: var(--tipo-titulo-2-tamano);
+    color: var(--color-acento-linea-sobre-marca);
+  }
+
+  .cifra__etiqueta {
+    margin: var(--p-espacio-3) 0 0;
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .cifra__fuente {
+    margin: var(--p-espacio-1) 0 0;
+    color: var(--color-texto-tenue-sobre-marca);
+    font-size: var(--tipo-menudo-tamano);
+  }
+</style>

@@ -3,14 +3,62 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import CarruselBanners from '../components/home/CarruselBanners.astro';
 import BuscadorTramites from '../components/home/BuscadorTramites.astro';
 import RejillaRoles from '../components/home/RejillaRoles.astro';
+import ComoFunciona from '../components/home/ComoFunciona.astro';
+import CategoriasTramites from '../components/home/CategoriasTramites.astro';
+import FechasClave from '../components/home/FechasClave.astro';
+import PreguntasFrecuentes from '../components/home/PreguntasFrecuentes.astro';
+import CifrasVerificadas from '../components/home/CifrasVerificadas.astro';
+import CompromisoAccesible from '../components/home/CompromisoAccesible.astro';
 import TarjetaTramite from '../components/base/TarjetaTramite.astro';
 import Boton from '../components/base/Boton.astro';
 import Icono from '../components/base/Icono.astro';
 import { getCollection } from 'astro:content';
-import { aIndexado, construirIndiceBusqueda, obtenerTramitesDestacados } from '../lib/tramites';
+import {
+  aIndexado,
+  construirIndiceBusqueda,
+  obtenerCategoriasConConteo,
+  obtenerTramitesDestacados,
+} from '../lib/tramites';
 
 const indice = await construirIndiceBusqueda();
 const destacados = (await obtenerTramitesDestacados()).map(aIndexado);
+const categorias = await obtenerCategoriasConConteo();
+
+/*
+ * Cifras del bloque "Lo que se puede comprobar".
+ *
+ * REGLA: aquí no entra ningún número que no salga de una comprobación
+ * reproducible. La tentación en un bloque así es poner estadísticas de la
+ * dependencia —personas atendidas, trámites al año— y todas serían inventadas,
+ * en un sitio que imita a una dependencia real. Estas cuatro se pueden auditar:
+ * la primera se calcula aquí mismo desde la colección, y las otras tres las
+ * imprime un comando.
+ *
+ * Si alguna deja de ser cierta, el comando lo dice. Actualizar entonces.
+ */
+const cifras = [
+  {
+    valor: indice.length,
+    etiqueta: 'Trámites documentados',
+    fuente: 'Calculado en build desde la colección de contenido.',
+  },
+  {
+    valor: 76,
+    etiqueta: 'Pares de color conformes con AA',
+    fuente: '38 combinaciones × 2 temas · npm run a11y:contraste',
+  },
+  {
+    valor: 100,
+    sufijo: '/100',
+    etiqueta: 'Accesibilidad en Lighthouse',
+    fuente: 'En las cuatro plantillas del sitio · npm run lighthouse',
+  },
+  {
+    valor: 0,
+    etiqueta: 'Librerías de terceros en el navegador',
+    fuente: 'Sin framework de UI ni librería de animación. Solo CSS y JS propio.',
+  },
+];
 
 /* Los tres roles vienen del contenido; el cuarto acceso no es un rol sino una
    salida directa al listado, para quien ya sabe qué busca. */
@@ -90,7 +138,19 @@ const accesos = [
     </div>
   </section>
 
-  <section class="seccion revelar" aria-labelledby="que-cambia">
+  <ComoFunciona />
+
+  <CategoriasTramites categorias={categorias} />
+
+  <FechasClave />
+
+  <PreguntasFrecuentes />
+
+  <CifrasVerificadas cifras={cifras} />
+
+  <CompromisoAccesible />
+
+  <section class="seccion seccion--sutil revelar" aria-labelledby="que-cambia">
     <div class="contenedor contenedor--texto flujo flujo--amplio">
       <h2 id="que-cambia">Qué propone este prototipo</h2>
 

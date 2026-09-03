@@ -1,0 +1,151 @@
+---
+/**
+ * Las seis categorías del vocabulario controlado, cada una con su conteo.
+ *
+ * No es decoración: cada tarjeta enlaza al listado con el filtro ya aplicado
+ * (`/tramites/?categoria=…`), que es un parámetro que esa página ya lee al
+ * cargar. Es la segunda vía de entrada para quien no se reconoce en ninguno de
+ * los tres perfiles pero sí sabe de qué va su asunto.
+ *
+ * El conteo se calcula en build desde la colección, así que no puede quedar
+ * desfasado del contenido real.
+ */
+import Icono from '../base/Icono.astro';
+import type { NombreIcono } from '../base/iconos';
+import type { Categoria } from '../../lib/constantes';
+
+interface Props {
+  categorias: Array<{ clave: Categoria; etiqueta: string; total: number }>;
+}
+
+const { categorias } = Astro.props;
+
+/* El icono es ornamental —la etiqueta ya dice qué es— así que se elige por
+   cercanía y no hay que forzar una metáfora exacta para cada categoría. */
+const ICONOS: Record<Categoria, NombreIcono> = {
+  constancias: 'documento',
+  nombramientos: 'birrete',
+  prestaciones: 'personas',
+  pagos: 'monitor',
+  licencias: 'reloj',
+  jubilacion: 'sol',
+};
+---
+
+<section class="seccion seccion--sutil categorias" aria-labelledby="por-categoria">
+  <div class="contenedor">
+    <div class="categorias__encabezado revelar--amplio">
+      <h2 id="por-categoria">O empieza por el tema</h2>
+      <p class="categorias__nota">
+        Si no te reconoces en ninguno de los tres perfiles, entra por aquí. Cada tema abre el listado
+        ya filtrado.
+      </p>
+    </div>
+
+    <ul class="rejilla lista-limpia revelar-escalonado" role="list" style="--rejilla-min: 17rem;">
+      {
+        categorias.map(({ clave, etiqueta, total }) => (
+          <li>
+            <a class="categoria" href={`/tramites/?categoria=${clave}`}>
+              <span class="categoria__icono" aria-hidden="true">
+                <Icono nombre={ICONOS[clave]} tamano={1.5} />
+              </span>
+
+              <span class="categoria__cuerpo">
+                <span class="categoria__etiqueta">{etiqueta}</span>
+                {/* El conteo se lee como parte del enlace: "Pagos y nómina, 3 trámites". */}
+                <span class="categoria__conteo">
+                  {total} {total === 1 ? 'trámite' : 'trámites'}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .categorias__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .categorias__encabezado h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+  }
+
+  .categorias__nota {
+    margin: var(--p-espacio-3) 0 0;
+    color: var(--color-texto-secundario);
+  }
+
+  /*
+   * Toda la tarjeta es el enlace, no solo el título. Un objetivo grande cumple
+   * 2.5.5 con holgura y evita el patrón de "tarjeta clicable" que se implementa
+   * con un listener en el <div> — eso no es enfocable ni se puede abrir en otra
+   * pestaña.
+   */
+  .categoria {
+    display: flex;
+    align-items: center;
+    gap: var(--p-espacio-4);
+    height: 100%;
+
+    padding: var(--espacio-componente);
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+
+    color: var(--color-texto-principal);
+    text-decoration: none;
+  }
+
+  .categoria:hover {
+    border-color: var(--color-borde-medio);
+    background-color: var(--color-superficie-sutil);
+  }
+
+  .categoria__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+
+    width: var(--objetivo-tactil-min);
+    height: var(--objetivo-tactil-min);
+
+    color: var(--color-acento-texto);
+    background-color: var(--color-superficie-marca-sutil);
+    border-radius: var(--radio-control);
+  }
+
+  .categoria__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+  }
+
+  .categoria__etiqueta {
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .categoria__conteo {
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .categoria {
+      transition:
+        transform var(--movimiento-duracion-rapida) var(--movimiento-curva),
+        border-color var(--movimiento-duracion-rapida) var(--movimiento-curva);
+    }
+
+    .categoria:hover {
+      transform: translateY(-2px);
+    }
+  }
+</style>
