@@ -104,7 +104,73 @@ Cada sinónimo que agregues es una persona que encuentra lo que busca. Es la par
 
 ---
 
-## 3. Cambiar colores, tipografía o espaciados
+## 3. Los banners del inicio
+
+Son las tarjetas grandes que rotan en lo alto de la portada. Están en `src/content/banners/`, un archivo por banner.
+
+A diferencia de los trámites, aquí **todo va en la ficha técnica**. Un banner no tiene texto largo, así que lo que escribas debajo del segundo `---` no se muestra en ningún lado.
+
+```yaml
+---
+titulo: Programa mensual de cursos
+texto: Los cursos que abren este mes, con horario, sede y cupo disponible.
+etiquetaAccion: Ver el programa del mes
+href: /perfil/administrativo/
+imagen: programa-mensual.jpg
+alt: ''
+orden: 2
+activo: true
+---
+```
+
+| Campo | Qué es | Cuidado |
+| --- | --- | --- |
+| `titulo` | El titular grande | Entre 5 y 70 caracteres |
+| `texto` | Una o dos frases | Entre 20 y 160 caracteres |
+| `etiquetaAccion` | El texto del botón | Un verbo y su objeto: «Ver el video», no «Más información» |
+| `href` | A dónde lleva | Una ruta del sitio que empiece con `/`, o una dirección completa con `https://` |
+| `imagen` | Nombre del archivo de imagen | Opcional. Ver más abajo |
+| `alt` | Qué se ve en la imagen, para quien no puede verla | Déjalo vacío si el título ya dice lo mismo |
+| `orden` | En qué posición sale | Número entero. El más bajo sale primero |
+| `activo` | Si se muestra o no | Solo `true` o `false` |
+
+Si escribes algo fuera de esos límites, el sitio no arranca y la terminal te dice qué archivo y qué campo están mal.
+
+### Apagar un banner sin borrarlo
+
+Cambia `activo: true` por `activo: false`. El archivo se queda donde está, con su texto intacto, y el banner desaparece de la portada. Para encenderlo otra vez, `true`.
+
+Es mejor que borrar el archivo: cuando la convocatoria vuelva el año que viene, solo hay que cambiarle la fecha.
+
+### Reordenar
+
+Manda el campo `orden`. Si quieres que «Cursos en línea» pase a ser el primero, ponle `orden: 1` y súbeles el número a los demás.
+
+No tienen que ser 1, 2, 3, 4 seguidos. Numerarlos **10, 20, 30, 40** funciona igual y te deja meter uno en medio después sin tocar los otros.
+
+### Agregar uno nuevo
+
+1. Copia un archivo existente de `src/content/banners/`.
+2. Renómbralo. Este nombre no aparece en ninguna dirección web, así que basta con que lo reconozcas tú.
+3. Cambia los campos.
+4. Guarda. Aparece solo, en la posición que le diga `orden`.
+
+### Las imágenes
+
+Van en `public/media/banners/`, y en `imagen:` se escribe **solo el nombre del archivo**, no la ruta completa.
+
+**Mientras no haya imagen, el banner se dibuja con un degradado azul y se lee perfectamente.** No hace falta poner una para que la portada funcione, y si el archivo falta nadie ve un hueco roto.
+
+Sobre la imagen va siempre un velo oscuro: es lo que hace que el texto blanco se lea encima de cualquier foto. Si aun así una imagen te parece demasiado clara, no aclares el texto — pídele a quien lleve el código que suba el velo.
+
+### Dos cosas que conviene no hacer
+
+- **No metas el texto dentro de la imagen.** El título y la frase van en el archivo `.md`. Escritos ahí se pueden buscar, ampliar, traducir y leer en voz alta; dentro de un `.jpg` no.
+- **No dejes solo un banner activo si esperas que rote.** Con uno solo no hay nada que rotar, así que los controles y la rotación no aparecen. Es a propósito.
+
+---
+
+## 4. Cambiar colores, tipografía o espaciados
 
 Todo vive en **un solo archivo**: `design/tokens.json`.
 
@@ -151,7 +217,7 @@ Los **tamaños** sí los puedes cambiar libremente, en `tipografia` → `tamano`
 
 ---
 
-## 4. Trabajar con Figma (Tokens Studio)
+## 5. Trabajar con Figma (Tokens Studio)
 
 `design/tokens.json` está en formato **W3C Design Tokens**, que es lo que exporta el plugin [Tokens Studio](https://tokens.studio/).
 
@@ -167,7 +233,7 @@ Mantén la estructura de dos niveles: `primitivo` (la paleta) y `semantico` (dó
 
 ---
 
-## 5. Cambiar el menú o el pie de página
+## 6. Cambiar el menú o el pie de página
 
 Son las dos únicas cosas de esta guía que están dentro de un archivo de código, pero el cambio es sencillo: **están hasta arriba del archivo, en una lista clara.**
 

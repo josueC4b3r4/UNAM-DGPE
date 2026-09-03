@@ -89,4 +89,42 @@ const roles = defineCollection({
   }),
 });
 
-export const collections = { tramites, roles };
+const banners = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/banners' }),
+  schema: z.object({
+    /** Va en HTML, no dentro de la imagen: se puede buscar, traducir y ampliar. */
+    titulo: z.string().min(5).max(70),
+
+    /** Una o dos frases. Cabe sobre la imagen sin empujar el resto del banner. */
+    texto: z.string().min(20).max(160),
+
+    /** Texto del botón. Un verbo y su objeto: "Ver el video", no "Más información". */
+    etiquetaAccion: z.string().min(3).max(30),
+
+    /**
+     * Destino: ruta interna que empieza con "/" o URL completa con esquema.
+     * Un "tramites/" suelto apuntaría a una ruta relativa distinta en cada
+     * página, así que se rechaza en el build en vez de descubrirse navegando.
+     */
+    href: z
+      .string()
+      .refine(
+        (valor) => valor.startsWith('/') || /^https?:\/\//.test(valor),
+        'Debe ser una ruta interna que empiece con "/" o una URL con http(s)://'
+      ),
+
+    /** Nombre del archivo dentro de public/media/banners/. Sin imagen se dibuja
+        un degradado de marca y el banner sigue siendo legible. */
+    imagen: z.string().optional(),
+
+    /** Vacío si la imagen es decorativa y el título ya dice lo mismo. */
+    alt: z.string().default(''),
+
+    orden: z.number().int(),
+
+    /** Apaga el banner sin borrar el archivo. */
+    activo: z.boolean().default(true),
+  }),
+});
+
+export const collections = { tramites, roles, banners };

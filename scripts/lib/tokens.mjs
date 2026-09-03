@@ -21,10 +21,22 @@ export function leerTokens() {
   return JSON.parse(readFileSync(RUTA_TOKENS, 'utf8'));
 }
 
-/** `superficieBase` -> `superficie-base`; `600` -> `600`. */
+/** `superficieBase` -> `superficie-base`; `titulo1Tamano` -> `titulo-1-tamano`. */
 export function aKebab(segmento) {
   return String(segmento)
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    /*
+     * Un número también abre segmento. Sin esta línea el generador emitía
+     * `--tipo-titulo1-tamano` mientras la guía del sistema de diseño y los 18
+     * consumidores del proyecto escribían `--tipo-titulo-1-tamano`. Ese token no
+     * existía, así que `font-size` quedaba inválido en tiempo de cómputo y —al
+     * ser una propiedad heredada— TODOS los encabezados del sitio se quedaban
+     * al tamaño del cuerpo, incluidos los h1-h6 de base.css.
+     *
+     * Los pasos de paleta no se ven afectados: en `color.azul.600` el número es
+     * un segmento propio y llega aquí solo, sin letra delante.
+     */
+    .replace(/([a-z])([0-9])/g, '$1-$2')
     .toLowerCase();
 }
 
