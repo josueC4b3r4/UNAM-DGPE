@@ -60,10 +60,7 @@
 .rejilla {
   display: grid;
   gap: var(--rejilla-espacio, var(--espacio-componente));
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(var(--rejilla-min, 16rem), 100%), 1fr)
-  );
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--rejilla-min, 16rem), 100%), 1fr));
 }
 
 /* --------------------------------------------------------------------- */

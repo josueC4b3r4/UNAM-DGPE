@@ -9,11 +9,14 @@
  *
  * Todo lo demás lo aportan las páginas por el <slot />.
  */
+import { ClientRouter } from 'astro:transitions';
+
 import '../styles/fuentes.css';
 import '../styles/tokens/index.css';
 import '../styles/reset.css';
 import '../styles/base.css';
 import '../styles/utilities.css';
+import '../styles/revelado.css';
 
 import SaltarAlContenido from '../components/layout/SaltarAlContenido.astro';
 import Encabezado from '../components/layout/Encabezado.astro';
@@ -63,6 +66,26 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <!--
+      Transiciones entre páginas (View Transitions del navegador).
+
+      Sin esto, cada navegación repinta la pantalla en blanco antes de dibujar
+      la página nueva. Con esto, el contenido se funde.
+
+      Dos motivos para usar la API del navegador en vez de una librería:
+
+      1. Respeta `prefers-reduced-motion` por su cuenta. Quien pide menos
+         movimiento no ve la transición, y no hay que escribir una línea para
+         conseguirlo.
+      2. Donde el navegador no la soporta, la navegación es la de siempre. No
+         se rompe nada; simplemente no se funde.
+
+      Lo que sí obliga: los scripts de módulo se ejecutan UNA sola vez. Cada
+      componente con JavaScript reinicia lo suyo en `astro:page-load`, o
+      quedaría muerto a partir de la segunda página.
+    -->
+    <ClientRouter />
+
+    <!--
       Precarga de la tipografía. Va junto con `font-display: optional` en
       fuentes.css: `optional` da a la fuente un plazo de unos 100 ms y, si no
       llega, usa la de respaldo sin sustituirla después. Eso garantiza cero
@@ -92,19 +115,62 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
     -->
     <script is:inline>
       (function () {
-        try {
-          var tema = localStorage.getItem('dgpe-tema');
-          if (tema === 'claro' || tema === 'oscuro') {
-            document.documentElement.dataset.tema = tema;
-          }
+        /*
+         * Marca el documento como "con JavaScript" ANTES del primer pintado.
+         *
+         * Los controles que sólo sirven con JS (tema, tamaño de texto, filtros
+         * del listado, controles del carrusel) se ocultan con CSS mientras esta
+         * marca no esté, en vez de revelarse desde el script al terminar de
+         * cargar. La diferencia se mide: revelarlos después del pintado movía
+         * el contenido y costaba 13 puntos de rendimiento en el home, con un
+         * Cumulative Layout Shift de 0.25. Así el navegador ya conoce el
+         * estado final cuando calcula el primer layout, y no hay salto.
+         *
+         * Sin JavaScript esta línea no corre, el CSS los deja ocultos, y no
+         * queda ningún control muerto en pantalla.
+         */
+        function aplicarPreferencias() {
+          /*
+           * La marca se repone en CADA navegación, no solo en la primera.
+           *
+           * Al intercambiar el documento, Astro copia los atributos del <html>
+           * nuevo —que viene del servidor y no la trae— sobre el actual, y
+           * `data-js` se pierde. Con el CSS que depende de ella, eso hacía
+           * desaparecer el botón de tema, el control de tamaño de texto y los
+           * filtros del listado en cuanto navegabas una vez.
+           */
+          document.documentElement.dataset.js = 'true';
 
-          var escala = localStorage.getItem('dgpe-escala-texto');
-          if (escala) {
-            document.documentElement.style.setProperty('--escala-texto', escala);
+          try {
+            var tema = localStorage.getItem('dgpe-tema');
+            if (tema === 'claro' || tema === 'oscuro') {
+              document.documentElement.dataset.tema = tema;
+            }
+
+            var escala = localStorage.getItem('dgpe-escala-texto');
+            if (escala) {
+              document.documentElement.style.setProperty('--escala-texto', escala);
+            }
+          } catch (e) {
+            /* Almacenamiento bloqueado: se usan los valores por defecto. */
           }
-        } catch (e) {
-          /* Almacenamiento bloqueado: se usan los valores por defecto. */
         }
+
+        aplicarPreferencias();
+
+        /*
+         * Y otra vez en cada navegación con transiciones.
+         *
+         * `astro:after-swap` corre con el documento nuevo ya montado pero
+         * ANTES de que se pinte, que es el único momento en el que reaplicar
+         * el tema no produce un parpadeo visible. Sin esto, cada navegación
+         * mostraría un destello claro antes de volver a oscuro: justo lo que
+         * este script existe para evitar.
+         *
+         * Se registra una sola vez porque este `is:inline` no se vuelve a
+         * ejecutar; el listener sobrevive a los intercambios de documento.
+         */
+        document.addEventListener('astro:after-swap', aplicarPreferencias);
       })();
     </script>
   </head>

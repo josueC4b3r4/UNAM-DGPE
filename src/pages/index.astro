@@ -39,18 +39,18 @@ const accesos = [
 >
   <CarruselBanners />
 
-  {/*
+  {
+    /*
     El <h1> vive aquí y no en el carrusel a propósito: es la afirmación estable
     sobre el sitio. Dentro del carrusel sería un título que cambia cada 7
     segundos, o cuatro <h1> de los que tres están ocultos.
-  */}
+  */
+  }
   <section class="portada">
     <div class="contenedor portada__contenido">
       <div class="portada__texto">
         <p class="portada__antetitulo">Dirección General de Personal</p>
-        <h1 class="portada__titulo">
-          Tus trámites de personal, sin adivinar a qué área le tocan
-        </h1>
+        <h1 class="portada__titulo">Tus trámites de personal, sin adivinar a qué área le tocan</h1>
         <p class="portada__entradilla">
           Encuentra lo que necesitas por tu perfil o busca directamente el trámite. Sin recorrer el
           organigrama.
@@ -63,7 +63,7 @@ const accesos = [
 
   <RejillaRoles accesos={accesos} titulo="Empieza por quién eres" />
 
-  <section class="seccion seccion--sutil" aria-labelledby="destacados">
+  <section class="seccion seccion--sutil revelar" aria-labelledby="destacados">
     <div class="contenedor">
       <div class="encabezado-seccion">
         <div>
@@ -78,7 +78,7 @@ const accesos = [
         </Boton>
       </div>
 
-      <ul class="rejilla lista-limpia" role="list" style="--rejilla-min: 19rem;">
+      <ul class="rejilla lista-limpia revelar-hijos" role="list" style="--rejilla-min: 19rem;">
         {
           destacados.map((tramite) => (
             <li>
@@ -90,7 +90,7 @@ const accesos = [
     </div>
   </section>
 
-  <section class="seccion" aria-labelledby="que-cambia">
+  <section class="seccion revelar" aria-labelledby="que-cambia">
     <div class="contenedor contenedor--texto flujo flujo--amplio">
       <h2 id="que-cambia">Qué propone este prototipo</h2>
 
@@ -120,8 +120,8 @@ const accesos = [
           <h3 class="propuesta__titulo">Accesibilidad verificable</h3>
           <p>
             Contraste AA comprobado por script en los dos temas, navegación completa por teclado y
-            control de tamaño de texto en el encabezado. Es una prueba que se puede volver a
-            correr, no una declaración.
+            control de tamaño de texto en el encabezado. Es una prueba que se puede volver a correr,
+            no una declaración.
           </p>
         </li>
         <li class="propuesta">

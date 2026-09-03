@@ -96,61 +96,93 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
 </header>
 
 <script>
-  const encabezado = document.getElementById('dgpe-encabezado');
-  const boton = document.getElementById('dgpe-boton-menu');
-  const nav = document.getElementById('dgpe-nav-principal');
+  /*
+   * Se reengancha en cada navegación (ver ToggleTema.astro para el porqué).
+   *
+   * Aquí el AbortController es imprescindible, no una comodidad: dos de los
+   * listeners cuelgan de `document` y uno de `matchMedia`, y ninguno de los
+   * tres se destruye al reemplazarse el DOM. Sin abortarlos, cada navegación
+   * añadiría un manejador más de Escape y otro de clic-fuera, todos apuntando
+   * a botones de páginas ya desaparecidas.
+   */
+  let controlador: AbortController | null = null;
 
-  if (encabezado && boton && nav) {
-    /*
-     * Marca el encabezado como "con JavaScript". Hasta que esta línea corre,
-     * el CSS mantiene la navegación SIEMPRE visible y el botón de menú oculto.
-     *
-     * Es lo contrario de lo habitual, y es deliberado: si el JavaScript no
-     * carga, el menú plegado quedaría cerrado para siempre y el botón sería un
-     * control muerto. Así, sin JS se ven todos los enlaces apilados —
-     * menos elegante, pero utilizable.
-     */
-    encabezado.dataset.js = 'true';
+  function iniciar() {
+    controlador?.abort();
+    controlador = new AbortController();
+    const { signal } = controlador;
 
-    const abierto = () => boton.getAttribute('aria-expanded') === 'true';
+    const encabezado = document.getElementById('dgpe-encabezado');
+    const boton = document.getElementById('dgpe-boton-menu');
+    const nav = document.getElementById('dgpe-nav-principal');
 
-    const fijar = (valor: boolean) => {
-      boton.setAttribute('aria-expanded', String(valor));
-      nav.dataset.abierto = String(valor);
-    };
+    if (encabezado && boton && nav) {
+      /*
+       * Marca el encabezado como "con JavaScript". Hasta que esta línea corre,
+       * el CSS mantiene la navegación SIEMPRE visible y el botón de menú oculto.
+       *
+       * Es lo contrario de lo habitual, y es deliberado: si el JavaScript no
+       * carga, el menú plegado quedaría cerrado para siempre y el botón sería un
+       * control muerto. Así, sin JS se ven todos los enlaces apilados —
+       * menos elegante, pero utilizable.
+       */
+      /* La marca `data-js` ya la puso el <head> antes de pintar; ver la nota
+         en el CSS de este componente. Aquí solo se enganchan los eventos. */
 
-    boton.addEventListener('click', () => fijar(!abierto()));
+      const abierto = () => boton.getAttribute('aria-expanded') === 'true';
 
-    /*
-     * Escape cierra el menú y DEVUELVE EL FOCO al botón. Sin esa segunda parte
-     * el foco se quedaría dentro de un menú ya invisible y la siguiente
-     * pulsación de Tab llevaría a un lugar impredecible.
-     */
-    document.addEventListener('keydown', (evento) => {
-      if (evento.key === 'Escape' && abierto()) {
-        fijar(false);
-        boton.focus();
-      }
-    });
+      const fijar = (valor: boolean) => {
+        boton.setAttribute('aria-expanded', String(valor));
+        nav.dataset.abierto = String(valor);
+      };
 
-    /* Un clic fuera cierra, pero sin robar el foco: quien usa ratón no lo espera. */
-    document.addEventListener('click', (evento) => {
-      const destino = evento.target as Node;
-      if (abierto() && !nav.contains(destino) && !boton.contains(destino)) {
-        fijar(false);
-      }
-    });
+      boton.addEventListener('click', () => fijar(!abierto()), { signal });
 
-    /*
-     * Al pasar a escritorio el menú siempre se ve, así que se reinicia el
-     * estado. Si no, aria-expanded="true" quedaría mintiendo sobre un menú
-     * que ya no es plegable.
-     */
-    const escritorio = window.matchMedia('(min-width: 48rem)');
-    escritorio.addEventListener('change', (e) => {
-      if (e.matches) fijar(false);
-    });
+      /*
+       * Escape cierra el menú y DEVUELVE EL FOCO al botón. Sin esa segunda parte
+       * el foco se quedaría dentro de un menú ya invisible y la siguiente
+       * pulsación de Tab llevaría a un lugar impredecible.
+       */
+      document.addEventListener(
+        'keydown',
+        (evento) => {
+          if (evento.key === 'Escape' && abierto()) {
+            fijar(false);
+            boton.focus();
+          }
+        },
+        { signal }
+      );
+
+      /* Un clic fuera cierra, pero sin robar el foco: quien usa ratón no lo espera. */
+      document.addEventListener(
+        'click',
+        (evento) => {
+          const destino = evento.target as Node;
+          if (abierto() && !nav.contains(destino) && !boton.contains(destino)) {
+            fijar(false);
+          }
+        },
+        { signal }
+      );
+
+      /*
+       * Al pasar a escritorio el menú siempre se ve, así que se reinicia el
+       * estado. Si no, aria-expanded="true" quedaría mintiendo sobre un menú
+       * que ya no es plegable.
+       */
+      const escritorio = window.matchMedia('(min-width: 48rem)');
+      escritorio.addEventListener(
+        'change',
+        (e) => {
+          if (e.matches) fijar(false);
+        },
+        { signal }
+      );
+    }
   }
+
+  document.addEventListener('astro:page-load', iniciar);
 </script>
 
 <style>
@@ -365,17 +397,33 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
       padding-block-end: var(--p-espacio-3);
     }
 
+    /*
+     * La marca es `data-js` en el <html>, no en el encabezado.
+     *
+     * Antes la ponía el script de este componente. Eso funcionaba, pero al
+     * llegar las transiciones entre páginas el script pasó a correr en
+     * `astro:page-load` — más tarde que antes, y ya después del primer
+     * pintado. Con lo cual el encabezado se dibujaba con TODOS los enlaces
+     * apilados y luego se encogía de golpe al aparecer el botón de menú,
+     * empujando la página entera: 0.246 de Cumulative Layout Shift y 13
+     * puntos de rendimiento.
+     *
+     * Ahora la marca la pone un script en línea del <head>, antes de pintar,
+     * así que el navegador ya calcula el primer layout con el menú plegado y
+     * no hay nada que corregir después.
+     */
+
     /* Sin JavaScript el botón no sirve, así que no se muestra. */
-    .encabezado:not([data-js='true']) .menu-boton {
+    :root:not([data-js]) .menu-boton {
       display: none;
     }
 
     /* El menú solo se pliega cuando hay JavaScript para desplegarlo. */
-    .encabezado[data-js='true'] .nav {
+    :root[data-js] .nav {
       display: none;
     }
 
-    .encabezado[data-js='true'] .nav[data-abierto='true'] {
+    :root[data-js] .nav[data-abierto='true'] {
       display: block;
     }
   }
