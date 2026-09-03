@@ -176,6 +176,27 @@ const cotizacionInicial = cotizar(inicial.tarifas[0], inicial.duraciones[0].hora
 
     campoModalidad.addEventListener('change', recalcular);
     campoDuracion.addEventListener('change', recalcular);
+
+    /*
+     * Recalcular UNA vez al arrancar, sin esperar a que nadie toque nada.
+     *
+     * No es defensivo por si acaso: los navegadores restauran los valores de
+     * los formularios al recargar con F5 y al volver con el botón atrás, y lo
+     * hacen SIN disparar `change`. Sin esta línea, el recuadro seguía
+     * mostrando el total que el servidor calculó para el primer curso mientras
+     * los selectores mostraban otro — medido en producción: los controles
+     * decían "Ofimática / En línea" y el total decía $0.00, que era el precio
+     * del curso gratuito visitado antes.
+     *
+     * Un precio equivocado al lado de las opciones correctas es el peor fallo
+     * posible en un cotizador, porque no parece un fallo: parece un precio.
+     *
+     * `repoblar` va primero para que los selectores de modalidad y duración
+     * correspondan al curso restaurado antes de multiplicar.
+     */
+    const cursoRestaurado = cursos.find((c) => c.slug === campoCurso.value);
+    if (cursoRestaurado) repoblar(cursoRestaurado);
+    recalcular();
   }
 
   document.addEventListener('astro:page-load', iniciarCotizador);
