@@ -10,6 +10,29 @@
   box-sizing: border-box;
 }
 
+/*
+ * `hidden` tiene que ganar SIEMPRE. Es el único `!important` del proyecto y
+ * está justificado.
+ *
+ * El navegador aplica `[hidden] { display: none }`, una regla de especificidad
+ * (0,1,0). Cualquier regla propia como `.filtros { display: flex }` la supera,
+ * y entonces el atributo deja de hacer nada — en silencio, porque el HTML
+ * sigue diciendo `hidden` y nada avisa de lo contrario.
+ *
+ * Medido en este proyecto: pasaba en cuatro controles a la vez (el botón de
+ * tema, el control de tamaño de texto, los controles del carrusel y el
+ * formulario de filtros). Todos nacen con `hidden` porque sin JavaScript no
+ * pueden funcionar, y todos se estaban viendo igual. Es decir, justo el
+ * "control muerto en pantalla" que los comentarios de esos componentes dicen
+ * evitar.
+ *
+ * Ojo al depurar: si un elemento con `hidden` se ve, la causa es esta y no el
+ * JavaScript.
+ */
+[hidden] {
+  display: none !important;
+}
+
 * {
   margin: 0;
 }

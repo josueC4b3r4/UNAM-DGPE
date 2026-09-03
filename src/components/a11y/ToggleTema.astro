@@ -13,7 +13,7 @@
 import Icono from '../base/Icono.astro';
 ---
 
-<button id="dgpe-toggle-tema" class="toggle-tema objetivo-tactil" type="button" hidden>
+<button id="dgpe-toggle-tema" class="toggle-tema objetivo-tactil" type="button">
   <span class="toggle-tema__icono toggle-tema__icono--claro">
     <Icono nombre="sol" tamano={1.15} />
   </span>
@@ -24,18 +24,33 @@ import Icono from '../base/Icono.astro';
 </button>
 
 <script>
-  const CLAVE = 'dgpe-tema';
-  const boton = document.getElementById('dgpe-toggle-tema');
+  /*
+   * Con transiciones entre páginas, este módulo se ejecuta UNA sola vez: el
+   * `<button>` del que cuelga se reemplaza en cada navegación, así que hay que
+   * volver a engancharlo en `astro:page-load` (que dispara también en la carga
+   * inicial, de modo que sustituye por completo al código suelto de antes).
+   *
+   * El AbortController suelta de golpe los listeners de la página anterior.
+   * Sin él, el registrado sobre `matchMedia` —que NO se destruye con el DOM—
+   * se acumularía una vez por navegación.
+   */
+  let controlador: AbortController | null = null;
 
-  if (boton) {
+  function iniciar() {
+    controlador?.abort();
+    controlador = new AbortController();
+    const { signal } = controlador;
+
+    const CLAVE = 'dgpe-tema';
+    const boton = document.getElementById('dgpe-toggle-tema');
+    if (!boton) return;
+
     const etiqueta = boton.querySelector('[data-etiqueta]');
     const raiz = document.documentElement;
 
-    /*
-     * El botón nace con `hidden` y JS lo revela. Sin JavaScript no puede
-     * funcionar, y un control muerto en pantalla es peor que no tenerlo.
-     */
-    boton.hidden = false;
+    /* Sin JavaScript el botón no aparece: lo decide el CSS con `data-js`, que
+       se marca antes del primer pintado. Un control muerto en pantalla es peor
+       que no tenerlo, y revelarlo desde aquí desplazaría el contenido. */
 
     const consultaOscuro = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -57,30 +72,46 @@ import Icono from '../base/Icono.astro';
       boton.setAttribute('data-tema-activo', temaActual());
     };
 
-    boton.addEventListener('click', () => {
-      const siguiente = temaActual() === 'oscuro' ? 'claro' : 'oscuro';
-      raiz.dataset.tema = siguiente;
+    boton.addEventListener(
+      'click',
+      () => {
+        const siguiente = temaActual() === 'oscuro' ? 'claro' : 'oscuro';
+        raiz.dataset.tema = siguiente;
 
-      try {
-        localStorage.setItem(CLAVE, siguiente);
-      } catch {
-        /* Modo privado o almacenamiento bloqueado: el tema aplica igual,
-           solo no se recuerda en la siguiente visita. */
-      }
+        try {
+          localStorage.setItem(CLAVE, siguiente);
+        } catch {
+          /* Modo privado o almacenamiento bloqueado: el tema aplica igual,
+             solo no se recuerda en la siguiente visita. */
+        }
 
-      sincronizarEtiqueta();
-    });
+        sincronizarEtiqueta();
+      },
+      { signal }
+    );
 
     /* Si el usuario nunca eligió, el sitio sigue al sistema en tiempo real. */
-    consultaOscuro.addEventListener('change', () => {
-      if (!raiz.dataset.tema) sincronizarEtiqueta();
-    });
+    consultaOscuro.addEventListener(
+      'change',
+      () => {
+        if (!raiz.dataset.tema) sincronizarEtiqueta();
+      },
+      { signal }
+    );
 
     sincronizarEtiqueta();
   }
+
+  document.addEventListener('astro:page-load', iniciar);
 </script>
 
 <style>
+  /* Ver la nota en CarruselBanners.astro: se oculta con CSS y no desde el
+     script, para que no haya salto de layout tras el primer pintado. */
+  :root:not([data-js]) .toggle-tema {
+    display: none;
+  }
+
   .toggle-tema {
     display: inline-flex;
     align-items: center;
@@ -98,7 +129,11 @@ import Icono from '../base/Icono.astro';
   }
 
   .toggle-tema:hover {
-    background-color: rgb(255 255 255 / 0.12); /* tokens-ok: velo translúcido sobre la marca; no es un color de la paleta sino una opacidad sobre lo que haya debajo. */
+    /* tokens-ok: velo translúcido sobre la marca; no es un color de la paleta
+       sino una opacidad sobre lo que haya debajo. La justificación va ENCIMA y
+       no al final de la línea porque el formateador parte las declaraciones
+       largas y dejaría el comentario separado del valor. */
+    background-color: rgb(255 255 255 / 0.12);
     border-color: var(--color-texto-tenue-sobre-marca);
   }
 

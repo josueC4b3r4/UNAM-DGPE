@@ -33,9 +33,9 @@ const secciones = headings.filter((h) => h.depth === 2);
 
 /* `relacionados` está validado por el esquema, así que estos getEntry no
    pueden devolver undefined por un slug mal escrito: el build habría fallado. */
-const relacionados = (
-  await Promise.all(datos.relacionados.map((ref) => getEntry(ref)))
-).filter((entrada) => entrada !== undefined);
+const relacionados = (await Promise.all(datos.relacionados.map((ref) => getEntry(ref)))).filter(
+  (entrada) => entrada !== undefined
+);
 
 const todos = await obtenerTramites();
 const posicion = todos.findIndex((t) => t.id === tramite.id);
@@ -43,12 +43,7 @@ const posicion = todos.findIndex((t) => t.id === tramite.id);
 
 <BaseLayout titulo={datos.titulo} descripcion={datos.resumen}>
   <div class="contenedor">
-    <Migas
-      migas={[
-        { texto: 'Trámites', href: '/tramites/' },
-        { texto: datos.titulo },
-      ]}
-    />
+    <Migas migas={[{ texto: 'Trámites', href: '/tramites/' }, { texto: datos.titulo }]} />
   </div>
 
   <article class="tramite">
@@ -486,19 +481,27 @@ const posicion = todos.findIndex((t) => t.id === tramite.id);
    * que acordarse de ponerlo: escribe una tabla normal y el scroll accesible
    * aparece solo.
    */
-  for (const tabla of document.querySelectorAll('.prosa table')) {
-    if (tabla.parentElement?.classList.contains('tabla-envoltura')) continue;
+  /* Se reejecuta en cada navegación (ver ToggleTema.astro para el porqué).
+     La guarda de `tabla-envoltura` ya existía y aquí gana un segundo sentido:
+     evita envolver dos veces la misma tabla si esto llegara a correr repetido
+     sobre el mismo documento. */
+  function envolverTablas() {
+    for (const tabla of document.querySelectorAll('.prosa table')) {
+      if (tabla.parentElement?.classList.contains('tabla-envoltura')) continue;
 
-    const envoltura = document.createElement('div');
-    envoltura.className = 'tabla-envoltura';
-    envoltura.setAttribute('role', 'region');
-    envoltura.setAttribute('tabindex', '0');
+      const envoltura = document.createElement('div');
+      envoltura.className = 'tabla-envoltura';
+      envoltura.setAttribute('role', 'region');
+      envoltura.setAttribute('tabindex', '0');
 
-    /* La región necesita nombre accesible; se toma del <h2> o <h3> anterior. */
-    const titulo = tabla.previousElementSibling?.textContent?.trim();
-    envoltura.setAttribute('aria-label', titulo ? `Tabla: ${titulo}` : 'Tabla desplazable');
+      /* La región necesita nombre accesible; se toma del <h2> o <h3> anterior. */
+      const titulo = tabla.previousElementSibling?.textContent?.trim();
+      envoltura.setAttribute('aria-label', titulo ? `Tabla: ${titulo}` : 'Tabla desplazable');
 
-    tabla.parentNode?.insertBefore(envoltura, tabla);
-    envoltura.appendChild(tabla);
+      tabla.parentNode?.insertBefore(envoltura, tabla);
+      envoltura.appendChild(tabla);
+    }
   }
+
+  document.addEventListener('astro:page-load', envolverTablas);
 </script>

@@ -99,10 +99,22 @@ const hayVideo = Boolean(webm || mp4);
 </section>
 
 <script>
-  const video = document.getElementById('dgpe-hero-video') as HTMLVideoElement | null;
-  const control = document.getElementById('dgpe-hero-control');
+  /*
+   * Se reengancha en cada navegación (ver ToggleTema.astro para el porqué).
+   * El AbortController es por el listener de `matchMedia`, que sobrevive al
+   * reemplazo del DOM y se acumularía en cada navegación.
+   */
+  let controlador: AbortController | null = null;
 
-  if (video && control) {
+  function montar() {
+    controlador?.abort();
+    controlador = new AbortController();
+    const { signal } = controlador;
+
+    const video = document.getElementById('dgpe-hero-video') as HTMLVideoElement | null;
+    const control = document.getElementById('dgpe-hero-control');
+    if (!video || !control) return;
+
     const etiqueta = control.querySelector('[data-etiqueta]');
     control.hidden = false;
 
@@ -141,10 +153,12 @@ const hayVideo = Boolean(webm || mp4);
     video.addEventListener('pause', sincronizar);
 
     /* Si el usuario cambia la preferencia del sistema con la página abierta. */
-    menosMovimiento.addEventListener('change', iniciar);
+    menosMovimiento.addEventListener('change', iniciar, { signal });
 
     iniciar();
   }
+
+  document.addEventListener('astro:page-load', montar);
 </script>
 
 <style>
