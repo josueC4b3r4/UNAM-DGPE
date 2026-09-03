@@ -14,7 +14,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "tokens": "node scripts/build-tokens.mjs",
-    "test": "node scripts/test-busqueda.mjs",
+    "test": "npm run test:busqueda && npm run test:cotizacion",
     "check": "astro check",
     "a11y:contraste": "node scripts/check-contraste.mjs",
     "a11y:tokens": "node scripts/check-hardcoded.mjs",
@@ -22,7 +22,9 @@
     "check:ficticios": "node scripts/check-datos-ficticios.mjs",
     "verificar": "npm run tokens && npm run test && npm run a11y:contraste && npm run a11y:tokens && npm run check:ficticios && npm run check",
     "format": "prettier --write \"**/*.{astro,ts,js,mjs,json,css,md}\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:busqueda": "node scripts/test-busqueda.mjs",
+    "test:cotizacion": "node scripts/test-cotizacion.mjs"
   },
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.2.5",

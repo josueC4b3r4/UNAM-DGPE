@@ -1,0 +1,231 @@
+---
+/**
+ * Cotizador de cursos.
+ *
+ * Es una MEJORA sobre la tabla de precios que hay debajo, no un sustituto. La
+ * tabla se genera en el build, se ve siempre, se imprime y no depende de nada;
+ * el cotizador solo ahorra la multiplicación. Por eso el formulario se oculta
+ * sin JavaScript en vez de mostrarse roto: quien no lo tenga sigue teniendo
+ * todos los precios delante, que es el mismo criterio de los filtros del
+ * listado de trámites.
+ *
+ * Los tres controles son <select> y no campos libres. No es casualidad: un
+ * <select> dispara `change` una vez, cuando la persona termina de elegir. Un
+ * campo numérico dispararía `input` en cada tecla, y como el total vive en una
+ * región `aria-live`, un lector de pantalla anunciaría "mil", "mil quinientos",
+ * "quince mil" mientras alguien escribe 15000. Eso obligaría a retrasar el
+ * anuncio; con selectores el problema no existe. Además los cursos ofrecen
+ * duraciones fijas, así que un campo libre permitiría pedir un imposible.
+ */
+import { getCollection } from 'astro:content';
+
+import ResultadoCotizacion from './ResultadoCotizacion.astro';
+import { cotizar, desglose } from '../../lib/cotizacion';
+import { ETIQUETAS_MODALIDAD } from '../../lib/constantes';
+
+const cursos = (await getCollection('cursos', ({ data }) => data.activo)).sort(
+  (a, b) => a.data.orden - b.data.orden
+);
+
+/* Lo que el cliente necesita para calcular, y nada más. */
+const datos = cursos.map((c) => ({
+  slug: c.id,
+  titulo: c.data.titulo,
+  tarifas: c.data.tarifas,
+  duraciones: c.data.duraciones,
+}));
+
+/*
+ * Estado inicial: el primer curso, su primera modalidad y su primera duración.
+ * Se calcula en el servidor para que el recuadro llegue con una cifra real y
+ * no con un hueco que se rellena al cargar — eso movería el contenido y es
+ * justo el salto de layout que costó 13 puntos de rendimiento en el home.
+ */
+const inicial = datos[0];
+const cotizacionInicial = cotizar(inicial.tarifas[0], inicial.duraciones[0].horas);
+---
+
+<form class="cotizador" id="dgpe-cotizador">
+  <div class="cotizador__campos">
+    <div class="cotizador__campo">
+      <label for="cot-curso">Curso</label>
+      <select id="cot-curso" name="curso">
+        {datos.map((c) => <option value={c.slug}>{c.titulo}</option>)}
+      </select>
+    </div>
+
+    <div class="cotizador__campo">
+      <label for="cot-modalidad">Modalidad</label>
+      <select id="cot-modalidad" name="modalidad">
+        {
+          inicial.tarifas.map((t) => (
+            <option value={t.modalidad}>{ETIQUETAS_MODALIDAD[t.modalidad]}</option>
+          ))
+        }
+      </select>
+    </div>
+
+    <div class="cotizador__campo">
+      <label for="cot-duracion">Duración</label>
+      <select id="cot-duracion" name="duracion">
+        {
+          inicial.duraciones.map((d) => (
+            <option value={String(d.horas)}>
+              {d.etiqueta} ({d.horas} h)
+            </option>
+          ))
+        }
+      </select>
+    </div>
+  </div>
+
+  <ResultadoCotizacion total={cotizacionInicial.total} desglose={desglose(cotizacionInicial)} />
+</form>
+
+<script
+  id="dgpe-cursos-datos"
+  type="application/json"
+  set:html={JSON.stringify(datos)}
+  is:inline
+/>
+
+<script>
+  import { cotizar, desglose, formatearPesos, tarifaDe } from '../../lib/cotizacion';
+  import { ETIQUETAS_MODALIDAD, type Modalidad } from '../../lib/constantes';
+
+  interface Duracion {
+    horas: number;
+    etiqueta: string;
+  }
+  interface Curso {
+    slug: string;
+    titulo: string;
+    /* `Modalidad` y no `string`: el JSON viene del servidor, donde el esquema
+       de Zod ya rechazó en el build cualquier valor fuera del vocabulario. No
+       es una promesa optimista, es una garantía que se comprueba al compilar. */
+    tarifas: { modalidad: Modalidad; tarifaHora: number }[];
+    duraciones: Duracion[];
+  }
+
+  /* Se reengancha en cada navegación (ver ToggleTema.astro para el porqué).
+     Todos los listeners cuelgan del formulario, que se va con el DOM, así que
+     aquí no hace falta AbortController. */
+  function iniciarCotizador() {
+    const formulario = document.getElementById('dgpe-cotizador') as HTMLFormElement | null;
+    const datos = document.getElementById('dgpe-cursos-datos');
+    const salidaTotal = document.getElementById('cot-total');
+    const salidaDesglose = document.getElementById('cot-desglose');
+
+    if (!formulario || !datos?.textContent || !salidaTotal || !salidaDesglose) return;
+
+    const cursos: Curso[] = JSON.parse(datos.textContent);
+
+    const campoCurso = formulario.elements.namedItem('curso') as HTMLSelectElement;
+    const campoModalidad = formulario.elements.namedItem('modalidad') as HTMLSelectElement;
+    const campoDuracion = formulario.elements.namedItem('duracion') as HTMLSelectElement;
+
+    /* Rellena modalidad y duración con lo que ofrece el curso elegido.
+       Conserva la selección anterior si el curso nuevo también la ofrece: quien
+       está comparando dos cursos en línea no quiere que se le cambie sola. */
+    function repoblar(curso: Curso) {
+      const modalidadPrevia = campoModalidad.value;
+      campoModalidad.replaceChildren(
+        ...curso.tarifas.map((t) => {
+          const o = document.createElement('option');
+          o.value = t.modalidad;
+          o.textContent = ETIQUETAS_MODALIDAD[t.modalidad];
+          return o;
+        })
+      );
+      if (curso.tarifas.some((t) => t.modalidad === modalidadPrevia)) {
+        campoModalidad.value = modalidadPrevia;
+      }
+
+      const duracionPrevia = campoDuracion.value;
+      campoDuracion.replaceChildren(
+        ...curso.duraciones.map((d) => {
+          const o = document.createElement('option');
+          o.value = String(d.horas);
+          o.textContent = `${d.etiqueta} (${d.horas} h)`;
+          return o;
+        })
+      );
+      if (curso.duraciones.some((d) => String(d.horas) === duracionPrevia)) {
+        campoDuracion.value = duracionPrevia;
+      }
+    }
+
+    function recalcular() {
+      const curso = cursos.find((c) => c.slug === campoCurso.value);
+      if (!curso) return;
+
+      const tarifa = tarifaDe(curso.tarifas, campoModalidad.value);
+      const horas = Number(campoDuracion.value);
+      if (!tarifa || !Number.isInteger(horas) || horas <= 0) return;
+
+      const resultado = cotizar(tarifa, horas);
+      salidaTotal!.textContent = formatearPesos(resultado.total);
+      salidaDesglose!.textContent = desglose(resultado);
+    }
+
+    campoCurso.addEventListener('change', () => {
+      const curso = cursos.find((c) => c.slug === campoCurso.value);
+      if (curso) repoblar(curso);
+      recalcular();
+    });
+
+    campoModalidad.addEventListener('change', recalcular);
+    campoDuracion.addEventListener('change', recalcular);
+  }
+
+  document.addEventListener('astro:page-load', iniciarCotizador);
+</script>
+
+<style>
+  /* Sin JavaScript no puede calcular nada, y la tabla de abajo tiene todos los
+     precios. Se oculta con CSS y desde el <head>, no desde el script, para que
+     no haya salto tras el primer pintado. */
+  :root:not([data-js]) .cotizador {
+    display: none;
+  }
+
+  .cotizador {
+    display: grid;
+    gap: var(--p-espacio-5);
+  }
+
+  @media (min-width: 48rem) {
+    .cotizador {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      align-items: start;
+    }
+  }
+
+  .cotizador__campos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-4);
+  }
+
+  .cotizador__campo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+  }
+
+  .cotizador__campo label {
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    color: var(--color-texto-secundario);
+  }
+
+  .cotizador__campo select {
+    min-height: var(--objetivo-tactil-min);
+    padding: var(--p-espacio-2) var(--p-espacio-3);
+
+    background-color: var(--color-superficie-elevada);
+    color: var(--color-texto-principal);
+    border: var(--p-borde-fino) solid var(--color-borde-fuerte);
+    border-radius: var(--radio-control);
+  }
+</style>

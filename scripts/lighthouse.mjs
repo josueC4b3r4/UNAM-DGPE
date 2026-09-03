@@ -56,6 +56,7 @@ const PAGINAS = [
   { ruta: '/tramites/', nombre: 'Listado de trámites' },
   { ruta: '/tramites/constancia-de-servicios/', nombre: 'Landing de trámite' },
   { ruta: '/perfil/academico/', nombre: 'Página de rol' },
+  { ruta: '/cursos/', nombre: 'Cursos y cotizador' },
 ];
 
 /*
