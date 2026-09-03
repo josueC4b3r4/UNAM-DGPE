@@ -303,12 +303,36 @@ Queda pendiente confirmarlo pulsando Tab a mano, y una pasada con lector de pant
 
 ## Lo que falta
 
-1. **Recorrido completo con teclado** en las cinco plantillas, documentando el resultado.
-2. **Prueba con lector de pantalla** (NVDA y Narrador), idealmente con personas que los usen a diario.
-3. **Zoom al 200 % y ancho de 320 px**, verificando que nada se desborde.
-4. **axe DevTools** sobre las páginas ya renderizadas: detecta combinaciones que el sistema de tokens no previó.
-5. **Lighthouse** en la home, con el video definitivo cargado.
-6. **Revisión del contraste sobre el video** cuando llegue el asset. Hoy el velo garantiza el fondo; con un video muy claro habría que subir su opacidad.
+1. **Prueba con lector de pantalla** (NVDA o Narrador), idealmente con personas
+   que los usen a diario. Es lo único de esta lista que no se puede automatizar,
+   y el guion está escrito: [prueba-lector-de-pantalla.md](prueba-lector-de-pantalla.md)
+   — unos veinte minutos, con el truco del visor de voz para hacerlo sin
+   auriculares y sin haber usado nunca un lector.
+
+   Se auditó el **árbol de accesibilidad**, que es el dato que el navegador
+   entrega al lector, y de ahí salieron dos correcciones: el `h1` del inicio no
+   era el primer encabezado, y el conteo del listado se anunciaba en cada tecla.
+   Pero el árbol no dice cómo *suena*.
+
+2. **Lighthouse en el inicio con el video definitivo cargado.** Hoy se mide con
+   el carrusel; el video aún no existe.
+
+3. **Revisión del contraste sobre el video** cuando llegue. El velo garantiza el
+   fondo, pero con un video muy claro habría que subir su opacidad.
+
+### Ya hecho
+
+- **Recorrido con teclado** en las cinco plantillas: 39 paradas en el inicio y
+  30 en el listado tras una transición, sin `tabindex` positivos y con anillo de
+  foco visible en todas.
+- **320 px y escalas de texto**: 45 combinaciones de página y ancho, más 21 de
+  página y escala. Descubrió tres incumplimientos del criterio 1.4.10 que
+  Lighthouse no veía, ya corregidos.
+- **Móvil**: 173 objetivos táctiles, nueve combinaciones de orientación, zoom
+  con los dedos permitido y cero afordances que dependan del ratón.
+- **Auditoría del HTML generado** (`npm run auditoria`): enlaces rotos, anclas
+  muertas, `id` duplicados, saltos de encabezado y nombres accesibles en las 24
+  páginas.
 
 ---
 
