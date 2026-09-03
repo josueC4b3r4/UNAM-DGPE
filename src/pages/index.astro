@@ -7,6 +7,7 @@ import ComoFunciona from '../components/home/ComoFunciona.astro';
 import CategoriasTramites from '../components/home/CategoriasTramites.astro';
 import FechasClave from '../components/home/FechasClave.astro';
 import PreguntasFrecuentes from '../components/home/PreguntasFrecuentes.astro';
+import DiagramaNavegacion from '../components/home/DiagramaNavegacion.astro';
 import CifrasVerificadas from '../components/home/CifrasVerificadas.astro';
 import CompromisoAccesible from '../components/home/CompromisoAccesible.astro';
 import TarjetaTramite from '../components/base/TarjetaTramite.astro';
@@ -145,6 +146,10 @@ const accesos = [
   <FechasClave />
 
   <PreguntasFrecuentes />
+
+  {/* Abre el bloque de argumento: primero el porqué en imagen, luego los
+      números que lo respaldan, luego los recibos, luego el resumen. */}
+  <DiagramaNavegacion />
 
   <CifrasVerificadas cifras={cifras} />
 

@@ -1,0 +1,284 @@
+---
+/**
+ * Diagrama que se dibuja solo: el argumento del rediseño en una imagen.
+ *
+ * TÉCNICA, tomada de gitbook.com. Su firma visual son ilustraciones SVG donde
+ * los conectores se trazan y las cajas se acomodan. Ellos lo mueven con Framer
+ * Motion; aquí no hace falta librería: `stroke-dashoffset` es una propiedad
+ * animable como cualquier otra, así que se ata a `animation-timeline: view()`
+ * y se dibuja con el scroll en vez de con un reloj.
+ *
+ * Atarlo al scroll y no al tiempo es mejor para esto: el trazo avanza al ritmo
+ * al que la persona baja, así que nunca termina antes de que mire ni sigue
+ * corriendo cuando ya pasó de largo.
+ *
+ * EL TRUCO DEL `pathLength="1"`. Para animar un trazo hay que conocer su
+ * longitud, y normalmente se mide con `getTotalLength()` en JavaScript.
+ * `pathLength="1"` le dice al navegador que trate la longitud del trazo como 1
+ * sin importar su geometría real, así que `stroke-dasharray: 1` y un
+ * `stroke-dashoffset` de 1 → 0 dibujan cualquier trazo completo. Cero medición,
+ * cero JavaScript, y se puede cambiar la geometría sin tocar la animación.
+ *
+ * ACCESIBILIDAD. El diagrama es una ilustración de algo que el texto de al lado
+ * ya dice completo. Lleva `role="img"` con título y descripción para quien lo
+ * encuentre con lector de pantalla, pero nadie depende de él para entender la
+ * sección: si no se dibuja, o si no se ve, no se pierde información.
+ */
+---
+
+<section class="seccion diagrama" aria-labelledby="diagrama-navegacion">
+  <div class="contenedor diagrama__rejilla">
+    <div class="diagrama__texto">
+      <p class="diagrama__antetitulo">El cambio de fondo</p>
+      <h2 id="diagrama-navegacion">Hoy hay que conocer el organigrama antes de encontrar el trámite</h2>
+
+      <p class="diagrama__parrafo">
+        Para llegar a un trámite en el sitio actual primero hay que acertar de qué subdirección
+        depende. Es una pregunta que la institución sí sabe responder y la persona no: nadie sabe si
+        su constancia la emite la misma área que tramita su licencia.
+      </p>
+
+      <p class="diagrama__parrafo">
+        La propuesta invierte el orden. La primera pregunta pasa a ser <strong>quién eres</strong>,
+        que cualquiera responde sin pensarlo, y el organigrama queda donde le corresponde: dentro,
+        resolviendo, no en la puerta.
+      </p>
+    </div>
+
+    <!--
+      viewBox de 660×400 con las cajas sobre una retícula: las coordenadas se
+      pueden comprobar por programa (que nada se salga del lienzo, que ningún
+      texto se salga de su caja) sin necesidad de mirar la imagen.
+    -->
+    <svg
+      class="lienzo"
+      viewBox="0 0 660 400"
+      role="img"
+      aria-labelledby="diagrama-titulo diagrama-desc"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <title id="diagrama-titulo">Comparación entre la navegación actual y la propuesta</title>
+      <desc id="diagrama-desc">
+        Arriba, la ruta actual: desde la persona salen cuatro caminos hacia cuatro subdirecciones
+        distintas, y de todas ellas hay que acertar cuál lleva al trámite. Abajo, la ruta propuesta:
+        de la persona sale un solo camino hacia su perfil, y del perfil al trámite.
+      </desc>
+
+      <!-- ============ Ruta actual ============ -->
+      <text class="lienzo__rotulo" x="0" y="16">Hoy</text>
+
+      <!-- Ocho conectores: cuatro de salida y cuatro de llegada. El desorden
+           es el mensaje, no un defecto del dibujo. -->
+      <g class="lienzo__trazos" fill="none">
+        <path pathLength="1" d="M110 120 C 160 120, 160 52, 200 52" />
+        <path pathLength="1" d="M110 120 C 160 120, 160 106, 200 106" />
+        <path pathLength="1" d="M110 120 C 160 120, 160 160, 200 160" />
+        <path pathLength="1" d="M110 120 C 160 120, 160 214, 200 214" />
+
+        <path pathLength="1" d="M400 52 C 450 52, 450 120, 500 120" />
+        <path pathLength="1" d="M400 106 C 450 106, 450 120, 500 120" />
+        <path pathLength="1" d="M400 160 C 450 160, 450 120, 500 120" />
+        <path pathLength="1" d="M400 214 C 450 214, 450 120, 500 120" />
+      </g>
+
+      <g class="lienzo__nodos">
+        <rect x="20" y="95" width="90" height="50" rx="8" />
+        <text class="lienzo__etiqueta" x="65" y="125">Tú</text>
+
+        <rect x="200" y="30" width="200" height="44" rx="8" />
+        <text class="lienzo__etiqueta" x="300" y="57">¿Constancias?</text>
+
+        <rect x="200" y="84" width="200" height="44" rx="8" />
+        <text class="lienzo__etiqueta" x="300" y="111">¿Nómina?</text>
+
+        <rect x="200" y="138" width="200" height="44" rx="8" />
+        <text class="lienzo__etiqueta" x="300" y="165">¿Prestaciones?</text>
+
+        <rect x="200" y="192" width="200" height="44" rx="8" />
+        <text class="lienzo__etiqueta" x="300" y="219">¿Licencias?</text>
+
+        <rect class="lienzo__meta" x="500" y="95" width="140" height="50" rx="8" />
+        <text class="lienzo__etiqueta" x="570" y="125">Tu trámite</text>
+      </g>
+
+      <!-- ============ Ruta propuesta ============ -->
+      <text class="lienzo__rotulo" x="0" y="286">Con el rediseño</text>
+
+      <g class="lienzo__trazos lienzo__trazos--directo" fill="none">
+        <path pathLength="1" d="M110 325 L 200 325" />
+        <path pathLength="1" d="M400 325 L 500 325" />
+      </g>
+
+      <g class="lienzo__nodos">
+        <rect x="20" y="300" width="90" height="50" rx="8" />
+        <text class="lienzo__etiqueta" x="65" y="330">Tú</text>
+
+        <rect class="lienzo__destacado" x="200" y="300" width="200" height="50" rx="8" />
+        <text class="lienzo__etiqueta" x="300" y="330">Tu perfil</text>
+
+        <rect class="lienzo__meta" x="500" y="300" width="140" height="50" rx="8" />
+        <text class="lienzo__etiqueta" x="570" y="330">Tu trámite</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<style>
+  .diagrama__rejilla {
+    display: grid;
+    gap: var(--espacio-bloque);
+    align-items: center;
+  }
+
+  @media (min-width: 60rem) {
+    .diagrama__rejilla {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--espacio-seccion);
+    }
+  }
+
+  .diagrama__antetitulo {
+    margin: 0 0 var(--p-espacio-2);
+    color: var(--color-acento-texto);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .diagrama__texto h2 {
+    margin: 0;
+    font-size: var(--tipo-titulo-1-tamano);
+    text-wrap: balance;
+  }
+
+  .diagrama__parrafo {
+    margin: var(--p-espacio-4) 0 0;
+    color: var(--color-texto-secundario);
+  }
+
+  /* --- Lienzo -------------------------------------------------------- */
+
+  .lienzo {
+    width: 100%;
+    height: auto;
+    /* Sin esto el SVG hereda el tamaño de fuente del cuerpo y los rótulos
+       quedan enormes al escalarse con el viewBox. */
+    font-family: var(--tipo-familia-base);
+  }
+
+  /*
+   * El borde va con `--color-borde-fuerte`, no con el medio.
+   *
+   * Medido: con el borde medio la caja daba 1.91:1 en tema oscuro y 1.6:1 en
+   * claro. Y en claro el relleno es blanco sobre fondo blanco —1:1—, así que
+   * el borde no es adorno: es lo ÚNICO que dibuja la caja. Eso lo convierte en
+   * un objeto gráfico necesario para entender el contenido, y le aplica el
+   * mínimo de 3:1 de la WCAG 1.4.11. El borde fuerte da 7.21:1.
+   *
+   * La trampa aquí es que axe no revisa el contraste del texto ni de las formas
+   * dentro de un SVG: Lighthouse daba 100 en accesibilidad con las cajas
+   * prácticamente invisibles.
+   */
+  .lienzo__nodos rect {
+    fill: var(--color-superficie-elevada);
+    stroke: var(--color-borde-fuerte);
+    stroke-width: 1.5;
+  }
+
+  /* Se repite `.lienzo__nodos` en el selector para ganar en especificidad a la
+     regla de arriba. Sin eso haría falta !important, y el único del proyecto
+     vive en el reset. */
+  .lienzo__nodos rect.lienzo__destacado {
+    fill: var(--color-superficie-marca-sutil);
+    stroke: var(--color-accion-primaria-fondo);
+    stroke-width: 2;
+  }
+
+  .lienzo__nodos rect.lienzo__meta {
+    stroke: var(--color-acento-linea);
+    stroke-width: 2;
+  }
+
+  .lienzo__etiqueta {
+    fill: var(--color-texto-principal);
+    font-size: var(--tipo-menudo-tamano);
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+
+  .lienzo__rotulo {
+    fill: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .lienzo__trazos path {
+    stroke: var(--color-borde-fuerte);
+    stroke-width: 1.5;
+  }
+
+  .lienzo__trazos--directo path {
+    stroke: var(--color-accion-primaria-fondo);
+    stroke-width: 2.5;
+  }
+
+  /*
+   * El dibujado. Fuera de aquí los trazos están completos: si el navegador no
+   * soporta líneas de tiempo de scroll, o si se pidió menos movimiento, el
+   * diagrama se ve entero y quieto. Nunca a medio dibujar.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .lienzo__trazos path {
+        stroke-dasharray: 1;
+        animation: trazar linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 55%;
+      }
+
+      @keyframes trazar {
+        from {
+          stroke-dashoffset: 1;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      /*
+       * Los cuatro caminos de la ruta actual se trazan escalonados, como en el
+       * revelado de rejillas: comparten posición vertical dentro del SVG, así
+       * que sin correr el rango entrarían los cuatro a la vez y se perdería la
+       * sensación de que el camino se va bifurcando.
+       */
+      /*
+       * El `:not(...)` no es cosmético. `.lienzo__trazos--directo path` tiene
+       * especificidad (0,1,1) y `.lienzo__trazos path:nth-child(2)` tiene
+       * (0,2,1): sin excluir al grupo directo, la regla escalonada le ganaría
+       * al segundo trazo de la ruta propuesta y se dibujaría antes de tiempo,
+       * rompiendo justo el orden que sostiene el argumento.
+       */
+      .lienzo__trazos:not(.lienzo__trazos--directo) path:nth-child(2) {
+        animation-range: entry 16% cover 61%;
+      }
+      .lienzo__trazos:not(.lienzo__trazos--directo) path:nth-child(3) {
+        animation-range: entry 22% cover 67%;
+      }
+      .lienzo__trazos:not(.lienzo__trazos--directo) path:nth-child(4) {
+        animation-range: entry 28% cover 73%;
+      }
+      .lienzo__trazos:not(.lienzo__trazos--directo) path:nth-child(n + 5) {
+        animation-range: entry 34% cover 79%;
+      }
+
+      /* La ruta propuesta se dibuja después: primero se ve el enredo, luego la
+         alternativa. Ese orden es el argumento. */
+      .lienzo__trazos--directo path {
+        animation-range: entry 45% cover 90%;
+      }
+    }
+  }
+</style>
