@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import HeroMedia from '../components/home/HeroMedia.astro';
+import CarruselBanners from '../components/home/CarruselBanners.astro';
 import BuscadorTramites from '../components/home/BuscadorTramites.astro';
 import RejillaRoles from '../components/home/RejillaRoles.astro';
 import TarjetaTramite from '../components/base/TarjetaTramite.astro';
@@ -37,12 +37,29 @@ const accesos = [
   titulo="Inicio"
   descripcion="Trámites de personal de la UNAM organizados por quién eres: personal académico, personal administrativo y jefaturas de dependencia."
 >
-  <HeroMedia
-    titulo="Tus trámites de personal, sin adivinar a qué área le tocan"
-    entradilla="Encuentra lo que necesitas por tu perfil o busca directamente el trámite. Sin recorrer el organigrama."
-  >
-    <BuscadorTramites indice={indice} />
-  </HeroMedia>
+  <CarruselBanners />
+
+  {/*
+    El <h1> vive aquí y no en el carrusel a propósito: es la afirmación estable
+    sobre el sitio. Dentro del carrusel sería un título que cambia cada 7
+    segundos, o cuatro <h1> de los que tres están ocultos.
+  */}
+  <section class="portada">
+    <div class="contenedor portada__contenido">
+      <div class="portada__texto">
+        <p class="portada__antetitulo">Dirección General de Personal</p>
+        <h1 class="portada__titulo">
+          Tus trámites de personal, sin adivinar a qué área le tocan
+        </h1>
+        <p class="portada__entradilla">
+          Encuentra lo que necesitas por tu perfil o busca directamente el trámite. Sin recorrer el
+          organigrama.
+        </p>
+      </div>
+
+      <BuscadorTramites indice={indice} />
+    </div>
+  </section>
 
   <RejillaRoles accesos={accesos} titulo="Empieza por quién eres" />
 
@@ -120,6 +137,52 @@ const accesos = [
 </BaseLayout>
 
 <style>
+  /* --- Banda de portada ------------------------------------------------ */
+
+  .portada {
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+
+    /* El buscador vive aquí dentro, sobre el azul: su anillo de foco necesita
+       la variante clara o se queda en 1.2:1 contra el fondo. */
+    --color-borde-foco: var(--color-borde-foco-sobre-marca);
+  }
+
+  .portada__contenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-7);
+    padding-block: var(--espacio-seccion);
+  }
+
+  .portada__texto {
+    max-width: 40rem;
+  }
+
+  .portada__antetitulo {
+    margin: 0 0 var(--p-espacio-2);
+    color: var(--color-acento-fondo);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .portada__titulo {
+    margin: 0;
+    font-size: var(--tipo-hero-tamano);
+    font-weight: var(--p-tipografia-peso-negrita);
+    color: var(--color-texto-sobre-marca);
+    text-wrap: balance;
+  }
+
+  .portada__entradilla {
+    margin: var(--p-espacio-4) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-tenue-sobre-marca);
+    max-width: var(--contenedor-ancho-texto);
+  }
+
   .encabezado-seccion {
     display: flex;
     flex-wrap: wrap;

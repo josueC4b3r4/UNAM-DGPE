@@ -1,0 +1,662 @@
+---
+/**
+ * Carrusel de banners del home.
+ *
+ * Los banners se editan en src/content/banners/ — un archivo por banner. El
+ * texto va en HTML, no dentro de la imagen: así se puede buscar, traducir,
+ * ampliar y leer en voz alta.
+ *
+ * Las imágenes son OPCIONALES. Se detectan en tiempo de build, igual que en
+ * HeroMedia.astro: basta con dejar el archivo en public/media/banners/ con el
+ * nombre que declara el frontmatter. Mientras no exista, el banner se dibuja
+ * con un degradado de marca y sigue siendo legible. La página nunca se ve rota
+ * por un asset que falta.
+ *
+ * Mejora progresiva. Sin JavaScript la pista es una tira con scroll-snap
+ * nativo: se recorre con el dedo, con la rueda y con la barra de scroll, y los
+ * cuatro banners son alcanzables. El script añade encima la rotación, las
+ * flechas, los puntos y la pausa — por eso esos controles nacen con `hidden` y
+ * es el script el que los muestra: un botón de pausa sin nada que pausar sería
+ * mentira.
+ *
+ * Accesibilidad:
+ * - Región con aria-roledescription="carrusel" y nombre propio; cada
+ *   diapositiva es un grupo "N de M".
+ * - Solo la diapositiva visible es interactiva. Las demás llevan `inert`, que
+ *   las saca del árbol de accesibilidad y del orden de tabulación: tabular
+ *   nunca cae en un enlace que no se ve.
+ * - La región aria-live anuncia el cambio SOLO cuando lo pide el usuario. Si
+ *   anunciara también cada rotación automática, un lector de pantalla estaría
+ *   interrumpiendo al usuario cada 7 segundos.
+ * - Botón de pausa siempre visible (WCAG 2.2.2): cualquier movimiento
+ *   automático de más de 5 segundos tiene que poder detenerse.
+ * - Con prefers-reduced-motion: reduce no arranca solo. Como en HeroMedia, esa
+ *   decisión vive en el script y no en el HTML, para poder consultar la
+ *   preferencia ANTES de mover nada.
+ * - El contraste del texto sobre la imagen lo garantiza el velo, no el color
+ *   del texto. Ver la nota sobre .banner__velo en el CSS.
+ */
+import { existsSync } from 'node:fs';
+import { getCollection } from 'astro:content';
+import Icono from '../base/Icono.astro';
+
+interface Props {
+  /** Nombre accesible de la región. */
+  etiqueta?: string;
+  /**
+   * Raíz de los identificadores. Solo hace falta cambiarlo si algún día hay
+   * dos carruseles en la misma página: los id duplicados romperían aria-controls.
+   */
+  id?: string;
+  /** Milisegundos entre banners. */
+  intervalo?: number;
+}
+
+const {
+  etiqueta = 'Avisos destacados',
+  id = 'carrusel-banners',
+  intervalo = 7000,
+} = Astro.props;
+
+const RUTA_PUBLICA = 'public/media/banners';
+
+const banners = (await getCollection('banners'))
+  .filter((banner) => banner.data.activo)
+  .sort((a, b) => a.data.orden - b.data.orden)
+  .map((banner) => ({
+    ...banner.data,
+    src:
+      banner.data.imagen && existsSync(`${RUTA_PUBLICA}/${banner.data.imagen}`)
+        ? `/media/banners/${banner.data.imagen}`
+        : null,
+    externo: /^https?:\/\//.test(banner.data.href),
+  }));
+
+const total = banners.length;
+const ID_PISTA = `${id}-pista`;
+---
+
+{
+  total > 0 && (
+    <section
+      class="carrusel"
+      role="region"
+      aria-roledescription="carrusel"
+      aria-label={etiqueta}
+      data-carrusel
+      data-intervalo={intervalo}
+    >
+      <div class="contenedor">
+        <div class="carrusel__pista" id={ID_PISTA} data-pista>
+          {banners.map((banner, i) => (
+            <div
+              class="banner"
+              role="group"
+              aria-roledescription="diapositiva"
+              aria-label={`${i + 1} de ${total}`}
+              data-diapositiva
+              style={`--i: ${i};`}
+            >
+              {banner.src && (
+                <img
+                  class="banner__imagen"
+                  src={banner.src}
+                  alt={banner.alt}
+                  width="1600"
+                  height="900"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              )}
+              {banner.src && <div class="banner__velo" aria-hidden="true" />}
+
+              <div class="banner__cuerpo">
+                <h2 class="banner__titulo" data-titulo>
+                  {banner.titulo}
+                </h2>
+                <p class="banner__texto">{banner.texto}</p>
+                <a
+                  class="banner__accion"
+                  href={banner.href}
+                  rel={banner.externo ? 'noopener external' : undefined}
+                >
+                  {banner.etiquetaAccion}
+                  {banner.externo && <span class="visualmente-oculto"> (sitio externo)</span>}
+                  <span class="banner__accion-icono">
+                    <Icono nombre="flecha" tamano={1} />
+                  </span>
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div class="carrusel__controles" hidden data-controles>
+          <button
+            type="button"
+            class="carrusel__flecha carrusel__flecha--anterior"
+            aria-controls={ID_PISTA}
+            data-anterior
+          >
+            <span class="carrusel__flecha-icono">
+              <Icono nombre="flecha" tamano={1.1} />
+            </span>
+            <span class="visualmente-oculto">Banner anterior</span>
+          </button>
+
+          <ul class="carrusel__puntos lista-limpia" role="list">
+            {banners.map((banner, i) => (
+              <li>
+                <button
+                  type="button"
+                  class="carrusel__punto"
+                  aria-controls={ID_PISTA}
+                  data-punto={i}
+                >
+                  <span class="carrusel__punto-marca" aria-hidden="true" />
+                  <span class="visualmente-oculto">{`Banner ${i + 1}: ${banner.titulo}`}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            class="carrusel__flecha"
+            aria-controls={ID_PISTA}
+            data-siguiente
+          >
+            <span class="carrusel__flecha-icono">
+              <Icono nombre="flecha" tamano={1.1} />
+            </span>
+            <span class="visualmente-oculto">Banner siguiente</span>
+          </button>
+
+          <button type="button" class="carrusel__pausa" data-pausa data-estado="reproduciendo">
+            <span class="carrusel__pausa-icono carrusel__pausa-icono--pausa">
+              <Icono nombre="pausa" tamano={1} />
+            </span>
+            <span class="carrusel__pausa-icono carrusel__pausa-icono--reproducir">
+              <Icono nombre="reproducir" tamano={1} />
+            </span>
+            <span data-etiqueta>Pausar rotación</span>
+          </button>
+        </div>
+
+        <p class="visualmente-oculto" aria-live="polite" data-anuncio />
+      </div>
+    </section>
+  )
+}
+
+<script>
+  const menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function iniciarCarrusel(seccion: HTMLElement) {
+    const pista = seccion.querySelector<HTMLElement>('[data-pista]');
+    const controles = seccion.querySelector<HTMLElement>('[data-controles]');
+    const botonPausa = seccion.querySelector<HTMLButtonElement>('[data-pausa]');
+    const anuncio = seccion.querySelector<HTMLElement>('[data-anuncio]');
+    if (!pista || !controles || !botonPausa) return;
+
+    const diapositivas = Array.from(pista.querySelectorAll<HTMLElement>('[data-diapositiva]'));
+    const puntos = Array.from(seccion.querySelectorAll<HTMLButtonElement>('[data-punto]'));
+
+    /* Con un solo banner no hay nada que rotar y los controles sobran. */
+    if (diapositivas.length < 2) return;
+
+    const intervalo = Number(seccion.dataset.intervalo) || 7000;
+    const etiquetaPausa = botonPausa.querySelector('[data-etiqueta]');
+
+    let actual = 0;
+    let temporizador: number | undefined;
+    /* Arranca pausado si el sistema pide menos movimiento. El botón queda
+       disponible: si aun así lo pulsan, es una decisión explícita del usuario. */
+    let pausadoPorUsuario = menosMovimiento.matches;
+    /* Puntero encima o foco dentro. Es transitorio y NO cambia el botón: el
+       botón refleja la decisión del usuario, no el estado momentáneo. */
+    let pausadoPorInteraccion = false;
+
+    controles.hidden = false;
+    seccion.dataset.mejorado = '';
+
+    const detener = () => {
+      if (temporizador !== undefined) {
+        clearTimeout(temporizador);
+        temporizador = undefined;
+      }
+    };
+
+    const irA = (indice: number, manual: boolean) => {
+      const destino = (indice + diapositivas.length) % diapositivas.length;
+      /*
+       * El destino se conoce aquí, así que el estado se fija aquí mismo y no se
+       * espera a observar dónde acabó la pista. Delegar eso en un observador
+       * costó un fallo real: cuando la rotación daba la vuelta del último banner
+       * al primero, el observador no reportaba el salto, el estado se quedaba en
+       * el banner 4 con el 1 a la vista y —como el reloj solo se rearmaba desde
+       * ahí— la rotación se detenía para siempre.
+       */
+      pista.scrollTo({ left: diapositivas[destino].offsetLeft });
+      marcarActual(destino);
+      programar();
+
+      /*
+       * Red de seguridad. Fijar el estado por adelantado hace que pulsar dos
+       * veces seguidas avance dos banners en vez de repetir el mismo, pero deja
+       * abierta la posibilidad de prometer un destino al que la pista no llegue
+       * —maquetación todavía sin resolver, un desplazamiento que el navegador
+       * ignora—. Cuando eso pasa, manda lo que de verdad se ve: más vale un
+       * estado feo y cierto que uno bonito y falso.
+       */
+      window.setTimeout(asentar, 700);
+
+      if (manual && anuncio) {
+        const titulo = diapositivas[destino].querySelector('[data-titulo]')?.textContent ?? '';
+        anuncio.textContent = `${destino + 1} de ${diapositivas.length}: ${titulo}`;
+      }
+    };
+
+    const programar = () => {
+      detener();
+      if (pausadoPorUsuario || pausadoPorInteraccion || document.hidden) return;
+      temporizador = window.setTimeout(() => irA(actual + 1, false), intervalo);
+    };
+
+    const marcarActual = (indice: number) => {
+      actual = indice;
+
+      diapositivas.forEach((diapositiva, i) => {
+        diapositiva.inert = i !== indice;
+      });
+
+      puntos.forEach((punto, i) => {
+        if (i === indice) punto.setAttribute('aria-current', 'true');
+        else punto.removeAttribute('aria-current');
+      });
+    };
+
+    const sincronizarPausa = () => {
+      if (etiquetaPausa) {
+        etiquetaPausa.textContent = pausadoPorUsuario ? 'Reanudar rotación' : 'Pausar rotación';
+      }
+      botonPausa.dataset.estado = pausadoPorUsuario ? 'pausado' : 'reproduciendo';
+    };
+
+    /** La diapositiva cuyo inicio queda más cerca de la posición del scroll. */
+    const indiceVisible = () => {
+      let cercana = 0;
+      let menorDistancia = Infinity;
+      diapositivas.forEach((diapositiva, i) => {
+        const distancia = Math.abs(diapositiva.offsetLeft - pista.scrollLeft);
+        if (distancia < menorDistancia) {
+          menorDistancia = distancia;
+          cercana = i;
+        }
+      });
+      return cercana;
+    };
+
+    /*
+     * Recoge los desplazamientos que NO pasan por irA: el dedo, la rueda y la
+     * barra de scroll. Se espera a que la pista se detenga, porque durante un
+     * desplazamiento suave la posición pasa por diapositivas intermedias que no
+     * son el destino.
+     */
+    const asentar = () => {
+      const indice = indiceVisible();
+      if (indice === actual) return;
+      marcarActual(indice);
+      /* El reloj se reinicia al LLEGAR: los 7 segundos se cuentan desde que el
+         banner está a la vista, lo haya traído la rotación o el dedo. */
+      programar();
+    };
+
+    let reposo: number | undefined;
+    pista.addEventListener('scroll', () => {
+      if (reposo !== undefined) clearTimeout(reposo);
+      reposo = window.setTimeout(asentar, 120);
+    });
+
+    botonPausa.addEventListener('click', () => {
+      pausadoPorUsuario = !pausadoPorUsuario;
+      sincronizarPausa();
+      programar();
+    });
+
+    seccion.querySelector('[data-anterior]')?.addEventListener('click', () => irA(actual - 1, true));
+    seccion.querySelector('[data-siguiente]')?.addEventListener('click', () => irA(actual + 1, true));
+
+    puntos.forEach((punto, i) => {
+      punto.addEventListener('click', () => irA(i, true));
+    });
+
+    seccion.addEventListener('keydown', (evento) => {
+      if (evento.key !== 'ArrowLeft' && evento.key !== 'ArrowRight') return;
+      evento.preventDefault();
+      irA(evento.key === 'ArrowLeft' ? actual - 1 : actual + 1, true);
+    });
+
+    const marcarInteraccion = (activa: boolean) => {
+      pausadoPorInteraccion = activa;
+      programar();
+    };
+
+    seccion.addEventListener('mouseenter', () => marcarInteraccion(true));
+    seccion.addEventListener('mouseleave', () => marcarInteraccion(false));
+    seccion.addEventListener('focusin', () => marcarInteraccion(true));
+    seccion.addEventListener('focusout', (evento) => {
+      if (!seccion.contains(evento.relatedTarget as Node | null)) marcarInteraccion(false);
+    });
+
+    /* En una pestaña de fondo no hay a quién mostrarle el banner. */
+    document.addEventListener('visibilitychange', programar);
+
+    /* Si cambian la preferencia con la página abierta. */
+    menosMovimiento.addEventListener('change', () => {
+      pausadoPorUsuario = menosMovimiento.matches;
+      sincronizarPausa();
+      programar();
+    });
+
+    marcarActual(indiceVisible());
+    sincronizarPausa();
+    programar();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-carrusel]').forEach(iniciarCarrusel);
+</script>
+
+<style>
+  .carrusel {
+    padding-block: var(--espacio-componente);
+    background-color: var(--color-superficie-base);
+  }
+
+  /* --- La pista ------------------------------------------------------ */
+
+  /*
+   * Es un contenedor con scroll horizontal y scroll-snap, no una tira movida
+   * con transform. Así el deslizamiento táctil, su inercia y su rebote son los
+   * del navegador — se sienten bien y no cuestan una línea de JavaScript — y
+   * sin JS la tira sigue siendo recorrible.
+   */
+  .carrusel__pista {
+    position: relative;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    border-radius: var(--radio-tarjeta);
+    background-color: var(--color-superficie-marca);
+  }
+
+  /* La barra de scroll sólo se oculta cuando hay flechas y puntos que la
+     sustituyan. Sin JavaScript se queda visible: es el único modo de recorrer
+     la tira con el ratón. */
+  .carrusel[data-mejorado] .carrusel__pista {
+    scrollbar-width: none;
+  }
+
+  .carrusel[data-mejorado] .carrusel__pista::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .carrusel__pista {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* --- Una diapositiva ----------------------------------------------- */
+
+  .banner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    /* Relación fija: la altura no depende de que la imagen haya cargado, así
+       que no hay salto de maquetación. min-height es el suelo para que el
+       texto quepa aunque el ancho sea muy pequeño. */
+    aspect-ratio: 4 / 3;
+    min-height: 21rem;
+
+    color: var(--color-texto-sobre-marca);
+
+    /* El anillo de foco por defecto es azul.700, casi el mismo tono que el
+       fondo de marca. Dentro del banner se cambia por la variante clara y todo
+       lo enfocable que haya aquí dentro la hereda. */
+    --color-borde-foco: var(--color-borde-foco-sobre-marca);
+
+    /*
+     * Respaldo cuando no hay imagen. Usa primitivos a propósito: este degradado
+     * NO debe cambiar con el tema. Es el lienzo sobre el que va texto blanco, y
+     * los tres tonos son los mismos que el sistema ya verifica para
+     * texto-sobre-marca (el más claro, azul.700, da 12.6:1). Un token semántico
+     * de superficie viraría a claro en un tema y dejaría el texto sin contraste.
+     * Mismo criterio que el respaldo de HeroMedia.astro.
+     */
+    background-image: linear-gradient(
+      calc(115deg + var(--i, 0) * 24deg),
+      var(--p-color-azul-900),
+      var(--p-color-azul-700) 55%,
+      var(--p-color-azul-800)
+    );
+  }
+
+  @media (min-width: 48em) {
+    .banner {
+      aspect-ratio: 24 / 9;
+      min-height: 19rem;
+    }
+  }
+
+  .banner__imagen {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /*
+   * Velo sobre la imagen. Es lo que garantiza el contraste del texto blanco sin
+   * importar qué imagen entregue diseño.
+   *
+   * Los porcentajes están elegidos, no puestos a ojo. En su punto MÁS
+   * transparente (68 %) sobre una imagen totalmente blanca, el texto blanco
+   * conserva 5.4:1 — por encima del 4.5:1 que pide WCAG 1.4.3. Cualquier imagen
+   * real es más oscura que eso, así que 5.4:1 es el suelo, no el promedio.
+   *
+   * Si una imagen se ve demasiado clara, sube estos porcentajes. No aclares el
+   * texto: el texto ya es blanco y no hay a dónde subir.
+   *
+   * Se construye con color-mix sobre el token de marca en vez de un color
+   * literal con alfa: así el velo sigue al tema y no hace falta el escape
+   * tokens-ok.
+   */
+  .banner__velo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-superficie-marca) 95%, transparent),
+      color-mix(in srgb, var(--color-superficie-marca) 68%, transparent)
+    );
+  }
+
+  @media (min-width: 48em) {
+    /* En horizontal el texto ocupa la mitad izquierda: el velo se degrada hacia
+       la derecha para que la imagen se vea donde no hay texto. */
+    .banner__velo {
+      background-image: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-superficie-marca) 95%, transparent),
+        color-mix(in srgb, var(--color-superficie-marca) 68%, transparent)
+      );
+    }
+  }
+
+  .banner__cuerpo {
+    padding: var(--p-espacio-6);
+    max-width: 34rem;
+  }
+
+  .banner__titulo {
+    margin: 0;
+    font-size: var(--tipo-titulo-2-tamano);
+    color: var(--color-texto-sobre-marca);
+    text-wrap: balance;
+  }
+
+  .banner__texto {
+    margin: var(--p-espacio-3) 0 0;
+    color: var(--color-texto-tenue-sobre-marca);
+  }
+
+  /* Invertido respecto al resto del sitio: fondo claro y texto de marca. Sobre
+     el velo azul es el par de más contraste que existe en el sistema. */
+  .banner__accion {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+
+    min-height: var(--objetivo-tactil-min);
+    margin-block-start: var(--p-espacio-5);
+    padding-inline: var(--p-espacio-5);
+
+    background-color: var(--color-texto-sobre-marca);
+    border-radius: var(--radio-control);
+    color: var(--color-superficie-marca);
+    font-weight: var(--p-tipografia-peso-semi);
+    text-decoration: none;
+  }
+
+  .banner__accion:hover {
+    background-color: var(--color-acento-fondo);
+  }
+
+  .banner__accion-icono {
+    display: inline-flex;
+  }
+
+  /* --- Controles ------------------------------------------------------ */
+
+  .carrusel__controles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacio-elemento);
+    margin-block-start: var(--espacio-componente);
+  }
+
+  .carrusel__flecha,
+  .carrusel__punto,
+  .carrusel__pausa {
+    min-height: var(--objetivo-tactil-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .carrusel__flecha {
+    min-width: var(--objetivo-tactil-min);
+    background-color: var(--color-accion-secundaria-fondo);
+    border: var(--p-borde-fino) solid var(--color-accion-secundaria-borde);
+    border-radius: var(--radio-control);
+    color: var(--color-accion-secundaria-texto);
+  }
+
+  .carrusel__flecha:hover {
+    background-color: var(--color-accion-secundaria-fondo-hover);
+  }
+
+  .carrusel__flecha-icono {
+    display: inline-flex;
+  }
+
+  .carrusel__flecha--anterior .carrusel__flecha-icono {
+    rotate: 180deg;
+  }
+
+  .carrusel__puntos {
+    display: flex;
+    align-items: center;
+    margin: 0;
+  }
+
+  /* El punto que se ve mide 0.75rem; el que se puede tocar mide 44. */
+  .carrusel__punto {
+    min-width: var(--objetivo-tactil-min);
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radio-control);
+  }
+
+  .carrusel__punto-marca {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--radio-pastilla);
+    background-color: var(--color-borde-fuerte);
+  }
+
+  /* El banner activo se distingue por color Y por tamaño: el color solo no
+     basta (WCAG 1.4.1). */
+  .carrusel__punto[aria-current] .carrusel__punto-marca {
+    background-color: var(--color-accion-primaria-fondo);
+    scale: 1.45;
+  }
+
+  .carrusel__punto:hover .carrusel__punto-marca {
+    background-color: var(--color-accion-primaria-fondo-hover);
+  }
+
+  .carrusel__pausa {
+    gap: var(--p-espacio-2);
+    padding-inline: var(--p-espacio-4);
+    background-color: var(--color-accion-secundaria-fondo);
+    border: var(--p-borde-fino) solid var(--color-accion-secundaria-borde);
+    border-radius: var(--radio-control);
+    color: var(--color-accion-secundaria-texto);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .carrusel__pausa:hover {
+    background-color: var(--color-accion-secundaria-fondo-hover);
+  }
+
+  /* Se muestra el icono de la ACCIÓN disponible, no el del estado actual:
+     mientras rota, el botón ofrece pausar. Igual que en HeroMedia. */
+  .carrusel__pausa-icono {
+    display: none;
+  }
+
+  .carrusel__pausa[data-estado='reproduciendo'] .carrusel__pausa-icono--pausa,
+  .carrusel__pausa[data-estado='pausado'] .carrusel__pausa-icono--reproducir {
+    display: inline-flex;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .carrusel__punto-marca,
+    .carrusel__flecha,
+    .carrusel__pausa,
+    .banner__accion {
+      transition:
+        background-color var(--movimiento-duracion-rapida) var(--movimiento-curva),
+        scale var(--movimiento-duracion-rapida) var(--movimiento-curva);
+    }
+  }
+</style>

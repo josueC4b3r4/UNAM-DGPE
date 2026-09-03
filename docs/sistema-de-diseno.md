@@ -202,7 +202,7 @@ Hay una salida de emergencia, deliberadamente incómoda: un comentario `tokens-o
 npm run a11y:contraste
 ```
 
-36 pares × 2 temas = **72 combinaciones verificadas**, con los umbrales de WCAG 2.1 (4.5:1 texto, 3:1 elementos de interfaz). Resultado actual y detalle par por par: [`resultado-contraste.md`](resultado-contraste.md).
+38 pares × 2 temas = **76 combinaciones verificadas**, con los umbrales de WCAG 2.1 (4.5:1 texto, 3:1 elementos de interfaz). Resultado actual y detalle par por par: [`resultado-contraste.md`](resultado-contraste.md).
 
 El generador además **falla el build si un token existe en un tema y no en el otro**. Sin esa comprobación, un token olvidado en `oscuro` se manifestaría como un color que simplemente no se aplica, sin ningún error.
 

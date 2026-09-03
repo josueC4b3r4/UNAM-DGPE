@@ -67,13 +67,13 @@ Rendimiento subió de 86 a **100** y el CLS quedó en 0. Comprobado además en e
 
 ### 1.4.3 Contraste mínimo (AA) — ✅ VERIFICADO
 
-**72 de 72 pares cumplen.** Ver el reporte completo en [`resultado-contraste.md`](resultado-contraste.md).
+**76 de 76 pares cumplen.** Ver el reporte completo en [`resultado-contraste.md`](resultado-contraste.md).
 
 ```bash
 npm run a11y:contraste
 ```
 
-36 combinaciones × 2 temas, con los umbrales de 4.5:1 (texto), 3:1 (texto grande) y 3:1 (elementos de interfaz, criterio 1.4.11).
+38 combinaciones × 2 temas, con los umbrales de 4.5:1 (texto), 3:1 (texto grande) y 3:1 (elementos de interfaz, criterio 1.4.11).
 
 Tres hallazgos reales que la verificación obligó a corregir:
 
@@ -83,11 +83,21 @@ Tres hallazgos reales que la verificación obligó a corregir:
 
 Ambos habrían pasado desapercibidos en una revisión visual.
 
-#### Por qué 72 pares de tokens no bastan
+#### El carrusel de banners — ✅ VERIFICADO
+
+El texto de un banner cae sobre una imagen que todavía no existe y que entregará diseño. Su contraste no lo puede garantizar la paleta, porque no depende de un par de tokens sino de lo clara que sea cada foto.
+
+Lo garantiza el **velo**: una capa del color de marca sobre la imagen, del 95 % de opacidad donde va el texto al 68 % en el extremo opuesto. Esos porcentajes están calculados, no puestos a ojo.
+
+En su punto **más transparente**, sobre una imagen completamente blanca —el peor caso posible—, el texto blanco conserva **5.4:1**. Cualquier imagen real es más oscura, así que ese valor es el suelo y no el promedio.
+
+De ahí se sigue la regla para quien edite: si una imagen se ve demasiado clara, **se sube la opacidad del velo, no se aclara el texto**. El texto ya es blanco y no hay a dónde subir.
+
+#### Por qué 76 pares de tokens no bastan
 
 El verificador compara **pares de tokens**. Eso no cubre la **composición**: qué color hereda un elemento cuando se renderiza dentro de otro.
 
-Un barrido en el navegador —recorriendo cada elemento de texto, subiendo por el DOM hasta el primer fondo no transparente y midiendo contra el umbral que le toca por tamaño y peso— encontró un fallo que los 72 pares daban por bueno:
+Un barrido en el navegador —recorriendo cada elemento de texto, subiendo por el DOM hasta el primer fondo no transparente y midiendo contra el umbral que le toca por tamaño y peso— encontró un fallo que los 76 pares daban por bueno:
 
 > **Las sugerencias del buscador eran blanco sobre blanco en tema claro. Contraste 1.00:1. Invisibles.**
 
@@ -122,7 +132,7 @@ Corregido moviendo esas reglas a un bloque `<style is:global>` acotado bajo `.bu
 
 ### 1.4.11 Contraste no textual (AA) — ✅ VERIFICADO
 
-Incluido en los 72 pares: bordes de campos, anillo de foco, siluetas de botones y bordes de mensajes de estado.
+Incluido en los 76 pares: bordes de campos, anillo de foco, siluetas de botones y bordes de mensajes de estado.
 
 ### 1.4.12 Espaciado del texto (AA)
 
@@ -145,6 +155,9 @@ Incluido en los 72 pares: bordes de campos, anillo de foco, siluetas de botones 
 | ✅ | Tab nunca queda atrapado | Con la lista abierta, `Tab` la cierra siempre (`aria-expanded` pasa a `false`). |
 | ✅ | Tablas desplazables | La región lleva `tabindex="0"`, `role="region"` y nombre accesible generado del encabezado anterior (comprobado: «Tabla: Documentos que necesitas»). |
 | ✅ | Menú móvil | A 375 px: cerrado `aria-expanded="false"` y **cero enlaces alcanzables con Tab**; abierto, `true` y los 4 enlaces alcanzables; `Escape` cierra, vuelve a dejar 0 alcanzables y **devuelve el foco al botón**. El fallo habitual —ocultar el menú a la vista pero dejarlo tabulable, con lo que el foco desaparece de pantalla— no se produce. |
+| ✅ | Carrusel: se opera entero | Flechas anterior/siguiente y un punto por banner, todos `<button>` reales. Además, ← y → cambian de banner cuando el foco está dentro. Comprobado el recorrido completo `0→1→2→3→0` y la vuelta hacia atrás `0→3→2`. |
+| ✅ | Carrusel: sin enlaces invisibles | Las tres diapositivas que no se ven llevan `inert`. Comprobado llamando a `.focus()` sobre sus tres enlaces: **ninguno lo acepta**; el de la diapositiva visible sí. Es el mismo fallo que el del menú móvil —dejar tabulable lo que está fuera de pantalla— y aquí tampoco se produce. |
+| ✅ | Carrusel sin JavaScript | La pista es un contenedor con scroll y `scroll-snap` nativo, así que los cuatro banners se recorren con el dedo, la rueda y la barra de scroll aunque el script no cargue. Los controles que sí necesitan JS nacen con `hidden` y es el script el que los muestra. |
 
 ### Recorrido con teclado — ✅ VERIFICADO
 
@@ -195,6 +208,10 @@ Queda pendiente confirmarlo pulsando Tab a mano, y una pasada con lector de pant
 | --- | --- | --- |
 | 🔧 | Video en bucle | Botón de pausa/reproducción siempre visible sobre el hero. Es un requisito, no un extra: cualquier movimiento automático de más de 5 segundos debe poder detenerse. |
 | 🔧 | `prefers-reduced-motion` | Con la preferencia activa el video **no se reproduce**. El `autoplay` no está en el HTML precisamente para poder decidirlo antes de que empiece. |
+| ✅ | Carrusel: botón de pausa | Siempre visible bajo la pista, nunca superpuesto al banner. Comprobado: pulsarlo detiene la rotación y la etiqueta pasa a «Reanudar rotación». Con 7 segundos por banner, este botón no es un detalle de cortesía sino lo que hace que el carrusel cumpla el criterio. |
+| ✅ | Carrusel: se detiene solo | Comprobado que la rotación se para con el cursor encima y al recibir foco de teclado, y que se reanuda al salir. Si el foco se mueve de un control a otro **dentro** del carrusel sigue en pausa: de lo contrario la rotación podría llevarse por delante el enlace que alguien acaba de enfocar. |
+| ✅ | Carrusel: la pausa manda | El cursor y el foco pausan de forma transitoria y **no cambian la etiqueta del botón**, que refleja solo lo que decidió la persona. Quitar el cursor no reanuda algo que se pausó a propósito. |
+| 🔧 | Carrusel y `prefers-reduced-motion` | Con la preferencia activa **no arranca solo**: se queda en el primer banner y se navega a mano. Como en el hero, esa decisión vive en el script y no en el HTML, para poder consultar la preferencia antes de mover nada. El botón sigue disponible por si alguien quiere activarlo de todos modos. |
 
 ### 2.4.1 Evitar bloques (A)
 
@@ -260,6 +277,10 @@ Queda pendiente confirmarlo pulsando Tab a mano, y una pasada con lector de pant
 | 🔧 | Menú móvil | `aria-expanded` y `aria-controls`, sincronizados con el estado real. |
 | 🔧 | Cambio de tema | El nombre accesible describe la acción ("Tema oscuro" = pulsa para cambiar a oscuro). |
 | 🔧 | Tamaño de texto | Radios nativos: el lector anuncia "1 de 3" y las flechas navegan sin JavaScript propio. |
+| 🔧 | Carrusel: qué es | `role="region"` con `aria-roledescription="carrusel"` y nombre propio («Avisos destacados»). El lector no anuncia «región» a secas, sino que esto es un carrusel. |
+| 🔧 | Carrusel: dónde estoy | Cada diapositiva es un `role="group"` con `aria-roledescription="diapositiva"` y `aria-label="1 de 4"`. Sin eso, quien no ve la pantalla no tiene forma de saber cuántos banners hay ni en cuál está. |
+| ✅ | Carrusel: los puntos | Son `<button>` reales con nombre accesible completo («Banner 2: Programa mensual de cursos»), no `<div>` con click. El activo lleva `aria-current="true"`, y se distingue **por color y por tamaño** —12 px frente a 17.4 px medidos—, no solo por color (1.4.1). |
+| ✅ | Carrusel: objetivo táctil | Flechas y puntos ocupan los 44 px de `--objetivo-tactil-min`. El punto que se ve mide 12 px; el que se puede tocar, 44. |
 
 ### 4.1.3 Mensajes de estado (AA)
 
@@ -267,6 +288,7 @@ Queda pendiente confirmarlo pulsando Tab a mano, y una pasada con lector de pant
 | --- | --- | --- |
 | 🔧 | Resultados del buscador | `role="status"` (educado, no interrumpe en cada tecla). |
 | 🔧 | Conteo del listado | Misma región viva, presente en el DOM desde la carga. |
+| ✅ | Carrusel: cambio de banner | Región `aria-live="polite"` que anuncia «3 de 4: Programa anual de capacitación» **solo cuando navega la persona**. Comprobado que en las rotaciones automáticas se queda vacía: si anunciara también esas, un lector de pantalla estaría interrumpiendo cada 7 segundos a alguien que está leyendo otra cosa. |
 
 ---
 
