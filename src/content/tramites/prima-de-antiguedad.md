@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: jubilacion
+area: 'sistemas-nomina'
 modalidad: presencial
 duracion: 45 días hábiles
 costo: Gratuito

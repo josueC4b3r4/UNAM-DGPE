@@ -116,7 +116,12 @@ export function buscar(
  */
 export function filtrar(
   indice: TramiteIndexado[],
-  { texto = '', categoria = '', rol = '' }: { texto?: string; categoria?: string; rol?: string }
+  {
+    texto = '',
+    categoria = '',
+    rol = '',
+    area = '',
+  }: { texto?: string; categoria?: string; rol?: string; area?: string }
 ): TramiteIndexado[] {
   const porTexto =
     texto.trim().length >= MINIMO_CARACTERES
@@ -127,6 +132,7 @@ export function filtrar(
     if (porTexto && !porTexto.has(t.slug)) return false;
     if (categoria && t.categoria !== categoria) return false;
     if (rol && !t.roles.includes(rol as TramiteIndexado['roles'][number])) return false;
+    if (area && t.area !== area) return false;
     return true;
   });
 }

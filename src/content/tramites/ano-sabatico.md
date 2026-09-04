@@ -4,6 +4,7 @@ resumen: Periodo de un año o dos semestres para dedicarte a un proyecto académ
 roles:
   - academico
 categoria: licencias
+area: 'personal-academico'
 modalidad: mixta
 duracion: 60 días hábiles
 costo: Gratuito

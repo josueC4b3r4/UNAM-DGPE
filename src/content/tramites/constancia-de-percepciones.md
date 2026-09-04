@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: pagos
+area: 'sistemas-nomina'
 modalidad: linea
 duracion: Inmediato
 costo: Gratuito

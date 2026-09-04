@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: jubilacion
+area: 'administracion'
 modalidad: presencial
 duracion: 120 días hábiles
 costo: Gratuito

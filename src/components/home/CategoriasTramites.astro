@@ -13,7 +13,9 @@
 import Icono from '../base/Icono.astro';
 import type { NombreIcono } from '../base/iconos';
 import type { Categoria } from '../../lib/constantes';
+import { AREAS, ETIQUETAS_AREA } from '../../lib/constantes';
 import EncabezadoSeccion from '../base/EncabezadoSeccion.astro';
+import { getCollection } from 'astro:content';
 
 interface Props {
   categorias: Array<{ clave: Categoria; etiqueta: string; total: number }>;
@@ -31,16 +33,27 @@ const ICONOS: Record<Categoria, NombreIcono> = {
   licencias: 'reloj',
   jubilacion: 'sol',
 };
+
+/* El conteo por área se calcula aquí, en el build, desde la propia colección:
+   así no puede desincronizarse de lo que el listado acaba mostrando. */
+const tramites = await getCollection('tramites');
+const areas = AREAS.map((clave) => ({
+  clave,
+  etiqueta: ETIQUETAS_AREA[clave],
+  total: tramites.filter((t) => t.data.area === clave).length,
+})).filter((a) => a.total > 0);
 ---
 
 <section class="seccion seccion--sutil categorias" aria-labelledby="por-categoria">
   <div class="contenedor">
     <EncabezadoSeccion
       id="por-categoria"
-      titulo="O empieza por el tema"
-      subtitulo="Si no te reconoces en ninguno de los tres perfiles, entra por aquí. Cada tema abre el listado ya filtrado."
+      titulo="Otras formas de llegar"
+      subtitulo="Si no te reconoces en ninguno de los tres perfiles, entra por el tema o por el área. Cualquiera de las dos abre el listado ya filtrado."
       class:list={['revelar--amplio']}
     />
+
+    <h3 class="subtitulo-bloque">Por tema</h3>
 
     <ul class="rejilla lista-limpia revelar-escalonado" role="list" style="--rejilla-min: 17rem;">
       {
@@ -63,13 +76,45 @@ const ICONOS: Record<Categoria, NombreIcono> = {
         ))
       }
     </ul>
+
+    <!--
+      Las áreas de la dirección, la segunda vía.
+
+      Van DEBAJO del tema y no arriba, y esa jerarquía es el argumento del
+      prototipo: la primera pregunta debería ser quién eres, la segunda de qué
+      trata, y solo la tercera de qué área depende. El sitio actual las pone
+      como accesos grandes en la portada, que es justo lo que el diagrama de más
+      abajo señala como el problema.
+
+      Pero quien lleva veinte años en la Universidad y sabe que su asunto lo ve
+      Relaciones Laborales tiene derecho a entrar por ahí. Ofrecerlo no
+      contradice la tesis; obligarlo, sí.
+    -->
+    <h3 class="subtitulo-bloque">Por área que lo resuelve</h3>
+
+    <ul class="areas lista-limpia revelar-escalonado" role="list">
+      {
+        areas.map(({ clave, etiqueta, total }) => (
+          <li>
+            <a class="area" href={`/tramites/?area=${clave}`}>
+              <span class="area__etiqueta">{etiqueta}</span>
+              <span class="area__conteo">
+                {total} {total === 1 ? 'trámite' : 'trámites'}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="areas__nota">
+      La asignación de cada trámite a un área está inventada para este prototipo. Los nombres de las
+      áreas son públicos; qué resuelve cada una habría que confirmarlo con la dependencia.
+    </p>
   </div>
 </section>
 
 <style>
-
-
-
   /*
    * Toda la tarjeta es el enlace, no solo el título. Un objetivo grande cumple
    * 2.5.5 con holgura y evita el patrón de "tarjeta clicable" que se implementa
@@ -135,5 +180,66 @@ const ICONOS: Record<Categoria, NombreIcono> = {
     .categoria:hover {
       transform: translateY(-2px);
     }
+  }
+
+  /* --- Áreas ---------------------------------------------------------- */
+
+  .subtitulo-bloque {
+    margin: var(--espacio-bloque) 0 var(--p-espacio-5);
+    font-size: var(--tipo-titulo-3-tamano);
+    text-align: center;
+  }
+
+  /* El primero va pegado al encabezado de sección, que ya deja aire. */
+  .subtitulo-bloque:first-of-type {
+    margin-block-start: 0;
+  }
+
+  /*
+   * Las áreas se ven MENOS que los temas, y es deliberado: son la tercera vía,
+   * después del perfil y del tema. Pastillas en vez de tarjetas con icono.
+   */
+  .areas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--p-espacio-3);
+    margin: 0;
+  }
+
+  .area {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-1);
+
+    min-height: var(--objetivo-tactil-min);
+    padding: var(--p-espacio-3) var(--p-espacio-5);
+
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-fuerte);
+    border-radius: var(--radio-control);
+    text-decoration: none;
+  }
+
+  .area:hover {
+    border-color: var(--color-accion-primaria-fondo);
+  }
+
+  .area__etiqueta {
+    color: var(--color-texto-principal);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  .area__conteo {
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .areas__nota {
+    max-width: var(--contenedor-ancho-texto);
+    margin: var(--p-espacio-5) auto 0;
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+    text-align: center;
   }
 </style>

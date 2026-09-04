@@ -4,6 +4,7 @@ resumen: Cubre temporalmente una plaza vacante o con titular en licencia. Lo tra
 roles:
   - jefe
 categoria: nombramientos
+area: 'personal-academico'
 modalidad: mixta
 duracion: 20 días hábiles
 costo: Gratuito

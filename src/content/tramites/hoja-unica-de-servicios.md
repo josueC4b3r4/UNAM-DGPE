@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: constancias
+area: 'administracion'
 modalidad: mixta
 duracion: 15 días hábiles
 costo: Gratuito

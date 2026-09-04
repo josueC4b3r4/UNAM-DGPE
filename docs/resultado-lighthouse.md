@@ -10,7 +10,7 @@ Medido en `http://localhost:4322` con la configuración móvil por defecto de Li
 
 | Página | Rendimiento | Accesibilidad | Buenas prácticas | SEO |
 | --- | --- | --- | --- | --- |
-| Inicio | **98** ✓ | **100** ✓ | **100** ✓ | 66 — |
+| Inicio | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Listado de trámites | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Landing de trámite | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Página de rol | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
@@ -21,7 +21,6 @@ Medido en `http://localhost:4322` con la configuración móvil por defecto de Li
 
 | Auditoría | Nota | Detalle | Afecta a |
 | --- | --- | --- | --- |
-| Speed Index | 85 | 3.7 s | Rendimiento |
 | First Contentful Paint | 98 | 1.3 s | Rendimiento |
 
 ## Listado de trámites — auditorías con margen de mejora
