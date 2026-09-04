@@ -41,31 +41,32 @@ const COLUMNAS = [
   },
 ];
 
-const anio = new Date().getFullYear();
+/*
+ * Fecha y versión SALEN DEL BUILD, no están escritas a mano.
+ *
+ * El pie de la DGPE muestra "Actualizado al 25 de agosto de 2026" y "Versión
+ * 6.0.0.10.0.0.5". Copiar ese formato con números inventados sería fingir una
+ * precisión que este prototipo no tiene: en cuanto la fecha se quedara vieja,
+ * estaría mintiendo sin que nadie lo notara.
+ *
+ * Estos dos valores se calculan al compilar. La fecha es la de la compilación
+ * real, y la "versión" es el commit del que salió, que Netlify expone en
+ * COMMIT_REF. Cualquiera puede cotejar ese identificador contra el repositorio;
+ * un "6.0.0.10.0.0.5" no se puede cotejar contra nada.
+ *
+ * En local no hay COMMIT_REF y se muestra "desarrollo", que es exactamente lo
+ * que es.
+ */
+const construidoEl = new Date();
+const fechaDeBuild = new Intl.DateTimeFormat('es-MX', { dateStyle: 'long' }).format(construidoEl);
+const version = process.env.COMMIT_REF?.slice(0, 7) ?? 'desarrollo';
+
+const anio = construidoEl.getFullYear();
 ---
 
 <footer class="pie">
   <div class="contenedor">
     <div class="pie__columnas">
-      <div class="pie__identidad">
-        <p class="pie__sigla">DGPE</p>
-        <p class="pie__nombre">Dirección General de Personal</p>
-        <p class="pie__direccion">
-          Universidad Nacional Autónoma de México<br />
-          Ciudad Universitaria, Coyoacán, 04510, Ciudad de México
-        </p>
-        <!--
-          Teléfono de relleno a propósito. Aquí estuvo el conmutador REAL de la
-          UNAM, en las 23 páginas: publicado en un prototipo con contenido
-          ficticio, invitaba a llamar a la Universidad de verdad a preguntar
-          por trámites inventados. Lo vigila `npm run check:ficticios`.
-        -->
-        <p class="pie__contacto">
-          <Icono nombre="telefono" tamano={1} />
-          <span>55 0000 0000</span>
-        </p>
-      </div>
-
       {
         COLUMNAS.map(({ titulo, enlaces }) => (
           <nav class="pie__columna" aria-label={titulo}>
@@ -90,18 +91,49 @@ const anio = new Date().getFullYear();
           </nav>
         ))
       }
-    </div>
 
-    <div class="pie__legal">
-      <p>
-        <strong>Este sitio es un prototipo.</strong> Se elaboró como propuesta de rediseño en el marco
-        de un servicio social. Los trámites, plazos y datos de contacto son ejemplos ilustrativos y <strong
-          >no tienen validez oficial</strong
-        >.
-      </p>
-      <p class="pie__derechos">
-        Hecho en la UNAM &middot; {anio}. Todos los derechos reservados.
-      </p>
+      <!--
+        Bloque legal y de identidad, a la derecha de los enlaces, como en el
+        pie de la DGPE. Allí es donde viven la dirección, los términos de uso,
+        la fecha de actualización y la versión.
+
+        El aviso de prototipo va PRIMERO y no al final. En el pie original ese
+        primer renglón es el de derechos reservados; aquí lo que más necesita
+        leer alguien que llegue de rebote es que nada de esto tiene validez.
+      -->
+      <div class="pie__institucional">
+        <p class="pie__sigla">DGPE</p>
+        <p class="pie__nombre">Dirección General de Personal</p>
+
+        <p class="pie__aviso">
+          <strong>Este sitio es un prototipo.</strong> Se elaboró como propuesta de rediseño en el marco
+          de un servicio social. Los trámites, plazos, costos y datos de contacto son ejemplos ilustrativos
+          y <strong>no tienen validez oficial</strong>.
+        </p>
+
+        <p>
+          Universidad Nacional Autónoma de México &middot; Ciudad Universitaria, Coyoacán, 04510,
+          Ciudad de México.
+        </p>
+
+        <!--
+          Buzón y teléfono de relleno, con TLD reservado por la RFC 2606 para
+          que no puedan resolver a ninguna parte. Aquí estuvieron el conmutador
+          y los correos REALES de la UNAM, en las 23 páginas: publicados en un
+          prototipo con contenido ficticio, invitaban a contactar a la
+          Universidad de verdad para preguntar por trámites inventados. Lo
+          vigila `npm run check:ficticios`, que rompe el build si vuelven.
+        -->
+        <p class="pie__contacto">
+          <Icono nombre="telefono" tamano={1} />
+          <span>55 0000 0000 &middot; soporte@dgpe.example</span>
+        </p>
+
+        <p class="pie__meta">
+          Compilado el {fechaDeBuild} &middot; versión <code>{version}</code><br />
+          Hecho en la UNAM &middot; {anio}
+        </p>
+      </div>
     </div>
   </div>
 </footer>
@@ -119,10 +151,32 @@ const anio = new Date().getFullYear();
     --color-borde-foco: var(--color-borde-foco-sobre-marca);
   }
 
+  /*
+   * Enlaces a la izquierda y bloque institucional a la derecha, como en el pie
+   * de la DGPE. La última columna es más ancha porque lleva prosa, no una
+   * lista: con el mismo ancho que las otras tres el texto legal quedaba en
+   * renglones de cuatro palabras.
+   *
+   * En móvil se apila todo en una sola columna, con el bloque institucional al
+   * final: quien recorre el pie con el pulgar busca enlaces, no la versión del
+   * build.
+   */
   .pie__columnas {
     display: grid;
     gap: var(--p-espacio-7);
-    grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 48rem) {
+    .pie__columnas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .pie__columnas {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.7fr);
+    }
   }
 
   .pie__sigla {
@@ -137,17 +191,36 @@ const anio = new Date().getFullYear();
     font-weight: var(--p-tipografia-peso-semi);
   }
 
-  .pie__direccion,
-  .pie__contacto {
-    margin: 0 0 var(--p-espacio-2);
+  /* --- Bloque institucional ------------------------------------------ */
+
+  .pie__institucional p {
+    margin: 0 0 var(--p-espacio-3);
     color: var(--color-texto-tenue-sobre-marca);
     font-size: var(--tipo-menudo-tamano);
+  }
+
+  .pie__institucional strong {
+    color: var(--color-texto-sobre-marca);
+  }
+
+  .pie__aviso {
+    padding-inline-start: var(--p-espacio-4);
+    /* Filete de acento en el borde: distingue el aviso del resto del bloque
+       sin necesidad de un fondo, que sobre la marca se vería como un parche. */
+    border-inline-start: var(--p-borde-grueso) solid var(--color-acento-linea-sobre-marca);
   }
 
   .pie__contacto {
     display: flex;
     align-items: center;
     gap: var(--p-espacio-2);
+  }
+
+  .pie__meta code {
+    /* Sin fondo ni caja: es un identificador, no un bloque de código. La
+       tipografía monoespaciada basta para que se lea como algo que se copia.
+       El token existe, así que no hace falta respaldo. */
+    font-family: var(--p-tipografia-familia-mono);
   }
 
   .pie__titulo {
@@ -161,6 +234,29 @@ const anio = new Date().getFullYear();
     flex-direction: column;
     gap: var(--p-espacio-2);
     margin: 0;
+  }
+
+  /*
+   * Los topos de los enlaces, como en el pie de la DGPE.
+   *
+   * Se dibujan con CSS y no con un carácter de texto por el mismo motivo que
+   * los separadores de las migas: un lector de pantalla leería "círculo" o
+   * "punto" antes de cada uno de los nueve enlaces. Al ser un ::before
+   * decorativo no existe para el árbol de accesibilidad.
+   */
+  .pie__columna li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--p-espacio-3);
+  }
+
+  .pie__columna li::before {
+    content: '';
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border: var(--p-borde-medio) solid var(--color-acento-linea-sobre-marca);
+    border-radius: var(--radio-pastilla);
   }
 
   .pie a {
@@ -177,24 +273,9 @@ const anio = new Date().getFullYear();
     text-decoration-thickness: 2px;
   }
 
-  .pie__legal {
-    margin-block-start: var(--p-espacio-7);
-    padding-block-start: var(--p-espacio-5);
+  .pie__meta {
+    margin-block: var(--p-espacio-5) 0;
+    padding-block-start: var(--p-espacio-4);
     border-block-start: var(--p-borde-fino) solid rgb(255 255 255 / 0.2); /* tokens-ok: separador translúcido sobre la marca. */
-    color: var(--color-texto-tenue-sobre-marca);
-    font-size: var(--tipo-menudo-tamano);
-  }
-
-  .pie__legal p {
-    max-width: var(--contenedor-ancho-texto);
-    margin: 0 0 var(--p-espacio-3);
-  }
-
-  .pie__legal strong {
-    color: var(--color-texto-sobre-marca);
-  }
-
-  .pie__derechos {
-    margin-block-end: 0;
   }
 </style>
