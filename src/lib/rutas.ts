@@ -20,3 +20,7 @@ export function rutaTramite(slug: string): string {
 export function rutaRol(clave: Rol): string {
   return `/perfil/${clave}/`;
 }
+
+export function rutaPublicacion(slug: string): string {
+  return `/publicaciones/${slug}/`;
+}

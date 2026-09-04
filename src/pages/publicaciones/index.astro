@@ -1,0 +1,366 @@
+---
+/**
+ * Listado completo de publicaciones, con filtro por tipo.
+ *
+ * Mismo criterio que el listado de trámites: la lista completa se genera en el
+ * build y se ve siempre; el filtro es una mejora que se oculta sin JavaScript.
+ * Y como la portada enlaza aquí con `?tipo=circular`, el filtro lee ese
+ * parámetro al cargar — que es como llega quien pulsó «Ver 5 circulares».
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Migas from '../../components/layout/Migas.astro';
+import Icono from '../../components/base/Icono.astro';
+import { obtenerPublicaciones, fechaCorta, fechaISO } from '../../lib/publicaciones';
+import {
+  ETIQUETAS_TIPO_PUBLICACION,
+  ETIQUETA_TIPO_SINGULAR,
+  ICONO_TIPO_PUBLICACION,
+  TIPOS_PUBLICACION,
+} from '../../lib/constantes';
+
+const publicaciones = await obtenerPublicaciones();
+
+const conteos = TIPOS_PUBLICACION.map((tipo) => ({
+  tipo,
+  total: publicaciones.filter((p) => p.data.tipo === tipo).length,
+}));
+---
+
+<BaseLayout
+  titulo="Publicaciones"
+  descripcion="Circulares, avisos y convocatorias de capacitación de la Dirección General de Personal, de la más reciente a la más antigua."
+>
+  <div class="contenedor">
+    <Migas migas={[{ texto: 'Publicaciones' }]} />
+  </div>
+
+  <div class="contenedor listado">
+    <header class="listado__encabezado">
+      <h1>Publicaciones</h1>
+      <p class="listado__entradilla">
+        {publicaciones.length} publicaciones, de la más reciente a la más antigua.
+      </p>
+    </header>
+
+    <p class="listado__ficticias">
+      <Icono nombre="aviso" tamano={1.1} />
+      <span>
+        <strong>Contenido de ejemplo.</strong> Los folios, fechas y textos están inventados para mostrar
+        el formato. No corresponden a publicaciones reales de la Dirección General de Personal.
+      </span>
+    </p>
+
+    <!-- Se oculta sin JavaScript: sin él no puede filtrar nada, y abajo está
+         la lista completa. Mismo criterio que los filtros de trámites. -->
+    <form class="filtros" id="dgpe-filtros-pub">
+      <fieldset>
+        <legend class="visualmente-oculto">Filtrar por tipo</legend>
+        <div class="filtros__grupo">
+          <label class="filtro">
+            <input type="radio" name="tipo" value="" checked />
+            <span>Todas ({publicaciones.length})</span>
+          </label>
+          {
+            conteos.map(({ tipo, total }) => (
+              <label class="filtro">
+                <input type="radio" name="tipo" value={tipo} />
+                <span>
+                  {ETIQUETAS_TIPO_PUBLICACION[tipo]} ({total})
+                </span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+    </form>
+
+    <p class="listado__conteo" id="dgpe-conteo-pub">
+      Mostrando las {publicaciones.length} publicaciones
+    </p>
+    <p class="visualmente-oculto" id="dgpe-anuncio-pub" role="status" aria-live="polite"></p>
+
+    <ul class="listado__lista lista-limpia" id="dgpe-lista-pub" role="list">
+      {
+        publicaciones.map((p) => (
+          <li data-tipo={p.data.tipo}>
+            <article class="fila">
+              <Icono nombre={ICONO_TIPO_PUBLICACION[p.data.tipo] as never} tamano={1.15} />
+
+              <div class="fila__cuerpo">
+                <p class="fila__tipo">{ETIQUETA_TIPO_SINGULAR[p.data.tipo]}</p>
+                <h2 class="fila__titulo">
+                  <a href={`/publicaciones/${p.id}/`}>
+                    {p.data.folio && <span class="fila__folio">{p.data.folio}</span>}
+                    {p.data.titulo}
+                  </a>
+                </h2>
+                {p.data.resumen && <p class="fila__resumen">{p.data.resumen}</p>}
+              </div>
+
+              <time class="fila__fecha" datetime={fechaISO(p.data.fecha)}>
+                {fechaCorta(p.data.fecha)}
+              </time>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="listado__vacio" id="dgpe-vacio-pub" hidden>
+      No hay publicaciones de ese tipo.
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  /* Se reengancha en cada navegación (ver ToggleTema.astro para el porqué).
+     Todos los listeners cuelgan del formulario, que se va con el DOM. */
+  function iniciarFiltroPublicaciones() {
+    const formulario = document.getElementById('dgpe-filtros-pub') as HTMLFormElement | null;
+    const lista = document.getElementById('dgpe-lista-pub');
+    const conteo = document.getElementById('dgpe-conteo-pub');
+    const anuncio = document.getElementById('dgpe-anuncio-pub');
+    const vacio = document.getElementById('dgpe-vacio-pub');
+    if (!formulario || !lista || !conteo || !vacio) return;
+
+    const elementos = [...lista.querySelectorAll<HTMLElement>('[data-tipo]')];
+
+    function aplicar() {
+      const elegido = (formulario!.elements.namedItem('tipo') as RadioNodeList).value;
+      let visibles = 0;
+
+      for (const li of elementos) {
+        const coincide = !elegido || li.dataset.tipo === elegido;
+        li.hidden = !coincide;
+        if (coincide) visibles++;
+      }
+
+      const texto =
+        visibles === elementos.length
+          ? `Mostrando las ${elementos.length} publicaciones`
+          : `${visibles} ${visibles === 1 ? 'publicación' : 'publicaciones'}`;
+
+      conteo!.textContent = texto;
+      if (anuncio) anuncio.textContent = texto;
+      vacio!.hidden = visibles > 0;
+      lista!.hidden = visibles === 0;
+
+      const parametros = new URLSearchParams();
+      if (elegido) parametros.set('tipo', elegido);
+      const cadena = parametros.toString();
+      history.replaceState(null, '', cadena ? `?${cadena}` : location.pathname);
+    }
+
+    /* Estado inicial desde la URL: así llega quien pulsó "Ver 5 circulares"
+       en la portada. */
+    const tipoInicial = new URLSearchParams(location.search).get('tipo');
+    if (tipoInicial) {
+      const radio = formulario.querySelector<HTMLInputElement>(`input[value="${CSS.escape(tipoInicial)}"]`);
+      if (radio) {
+        radio.checked = true;
+        aplicar();
+      }
+    }
+
+    formulario.addEventListener('change', aplicar);
+  }
+
+  document.addEventListener('astro:page-load', iniciarFiltroPublicaciones);
+</script>
+
+<style>
+  .listado {
+    padding-block-end: var(--espacio-seccion);
+  }
+
+  .listado__encabezado {
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--p-espacio-5);
+  }
+
+  .listado__encabezado h1 {
+    margin: 0;
+  }
+
+  .listado__entradilla {
+    margin: var(--p-espacio-3) 0 0;
+    font-size: var(--tipo-cuerpo-grande-tamano);
+    color: var(--color-texto-secundario);
+  }
+
+  .listado__ficticias {
+    display: flex;
+    align-items: start;
+    gap: var(--p-espacio-3);
+
+    max-width: var(--contenedor-ancho-texto);
+    margin-block-end: var(--p-espacio-6);
+    padding: var(--p-espacio-4);
+
+    background-color: var(--color-alerta-fondo);
+    color: var(--color-alerta-texto);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-alerta-borde);
+    border-radius: var(--radio-control);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  /* --- Filtros -------------------------------------------------------- */
+
+  :root:not([data-js]) .filtros {
+    display: none;
+  }
+
+  .filtros {
+    margin-block-end: var(--p-espacio-5);
+  }
+
+  .filtros fieldset {
+    padding: 0;
+    border: 0;
+    margin: 0;
+  }
+
+  .filtros__grupo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--p-espacio-3);
+  }
+
+  .filtro {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--objetivo-tactil-min);
+    padding-inline: var(--p-espacio-4);
+
+    background-color: var(--color-superficie-sutil);
+    border: var(--p-borde-fino) solid var(--color-borde-fuerte);
+    border-radius: var(--radio-pastilla);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  /*
+   * El radio se recorta a un píxel en vez de ocultarse con display:none.
+   * Un control con display:none no es enfocable y desaparece del árbol de
+   * accesibilidad: el grupo dejaría de poder recorrerse con las flechas.
+   */
+  .filtro input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+  }
+
+  .filtro:has(input:checked) {
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    border-color: var(--color-superficie-marca);
+    font-weight: var(--p-tipografia-peso-semi);
+  }
+
+  /* El foco vive en el input, pero quien se ve es la píldora. */
+  .filtro:has(input:focus-visible) {
+    outline: var(--p-borde-grueso) solid var(--color-borde-foco);
+    outline-offset: 2px;
+  }
+
+  /* --- Lista ---------------------------------------------------------- */
+
+  .listado__conteo {
+    margin: 0 0 var(--p-espacio-4);
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .listado__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+  }
+
+  .listado__lista > li {
+    border-block-start: var(--p-borde-fino) solid var(--color-borde-sutil);
+  }
+
+  .listado__lista > li:last-child {
+    border-block-end: var(--p-borde-fino) solid var(--color-borde-sutil);
+  }
+
+  .fila {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--p-espacio-3) var(--p-espacio-4);
+    align-items: start;
+    padding-block: var(--p-espacio-5);
+  }
+
+  @media (min-width: 48rem) {
+    .fila {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+    }
+  }
+
+  .fila :global(.icono) {
+    color: var(--color-acento-linea);
+    margin-block-start: 0.2em;
+  }
+
+  .fila__tipo {
+    margin: 0 0 var(--p-espacio-1);
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .fila__titulo {
+    margin: 0;
+    font-size: var(--tipo-titulo-4-tamano);
+  }
+
+  .fila__titulo a {
+    color: var(--color-texto-principal);
+    text-decoration: none;
+  }
+
+  .fila__titulo a:hover {
+    color: var(--color-texto-enlace-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .fila__folio {
+    display: block;
+    color: var(--color-texto-enlace);
+    font-family: var(--p-tipografia-familia-mono);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-normal);
+  }
+
+  .fila__resumen {
+    margin: var(--p-espacio-2) 0 0;
+    color: var(--color-texto-secundario);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .fila__fecha {
+    grid-column: 2;
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 48rem) {
+    .fila__fecha {
+      grid-column: 3;
+    }
+  }
+
+  .listado__vacio {
+    padding: var(--p-espacio-6);
+    background-color: var(--color-superficie-sutil);
+    border-radius: var(--radio-tarjeta);
+    text-align: center;
+  }
+</style>

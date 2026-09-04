@@ -15,12 +15,13 @@ Medido en `http://localhost:4322` con la configuración móvil por defecto de Li
 | Landing de trámite | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Página de rol | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 | Cursos y cotizador | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
+| Publicaciones | **100** ✓ | **100** ✓ | **100** ✓ | 66 — |
 
 ## Inicio — auditorías con margen de mejora
 
 | Auditoría | Nota | Detalle | Afecta a |
 | --- | --- | --- | --- |
-| Speed Index | 86 | 3.6 s | Rendimiento |
+| Speed Index | 85 | 3.7 s | Rendimiento |
 | First Contentful Paint | 98 | 1.3 s | Rendimiento |
 
 ## Listado de trámites — auditorías con margen de mejora
@@ -28,9 +29,3 @@ Medido en `http://localhost:4322` con la configuración móvil por defecto de Li
 | Auditoría | Nota | Detalle | Afecta a |
 | --- | --- | --- | --- |
 | First Contentful Paint | 99 | 1.1 s | Rendimiento |
-
-## Página de rol — auditorías con margen de mejora
-
-| Auditoría | Nota | Detalle | Afecta a |
-| --- | --- | --- | --- |
-| Speed Index | 99 | 2.0 s | Rendimiento |

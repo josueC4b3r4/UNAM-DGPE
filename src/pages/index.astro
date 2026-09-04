@@ -2,6 +2,7 @@
 import EncabezadoSeccion from '../components/base/EncabezadoSeccion.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CarruselBanners from '../components/home/CarruselBanners.astro';
+import PublicacionesRecientes from '../components/home/PublicacionesRecientes.astro';
 import BuscadorTramites from '../components/home/BuscadorTramites.astro';
 import RejillaRoles from '../components/home/RejillaRoles.astro';
 import ComoFunciona from '../components/home/ComoFunciona.astro';
@@ -110,6 +111,19 @@ const accesos = [
       <BuscadorTramites indice={indice} />
     </div>
   </section>
+
+  {/*
+    Va justo después del hero, y por dos motivos.
+
+    De contenido: es lo único de la portada que cambia cada semana. Quien ya
+    conoce el sitio vuelve a ver qué hay nuevo, no a leer otra vez cómo
+    funciona un trámite.
+
+    De maquetación: el hero usa fondo de marca, así que este es el único punto
+    donde cabe una sección nueva sin invertir el fondo de las seis siguientes.
+    La alternancia queda marca → sutil → base → sutil → base…, intacta.
+  */}
+  <PublicacionesRecientes />
 
   <RejillaRoles accesos={accesos} titulo="Empieza por quién eres" />
 

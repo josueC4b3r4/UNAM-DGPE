@@ -1,6 +1,6 @@
 import { defineCollection, reference, z } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { CATEGORIAS, MODALIDADES, ROLES } from './lib/constantes';
+import { CATEGORIAS, MODALIDADES, ROLES, TIPOS_PUBLICACION } from './lib/constantes';
 
 /*
  * Esquemas de contenido.
@@ -194,4 +194,48 @@ const cursos = defineCollection({
   }),
 });
 
-export const collections = { tramites, roles, banners, cursos };
+/*
+ * Circulares, avisos y convocatorias: lo que la dirección publica cada semana.
+ *
+ * Es la única colección de contenido CADUCO. Un trámite se describe una vez y
+ * dura años; una circular nace con fecha y envejece. Por eso `fecha` es
+ * obligatoria y el orden por defecto es del más reciente al más viejo: una
+ * portada que muestra la circular de hace ocho meses arriba es una portada
+ * que nadie está manteniendo.
+ */
+const publicaciones = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/publicaciones' }),
+  schema: z
+    .object({
+      tipo: z.enum(TIPOS_PUBLICACION),
+
+      titulo: z.string().min(8),
+
+      /**
+       * Folio oficial, del estilo "DGPE/031/2026".
+       *
+       * Solo lo llevan las circulares, y para ellas es obligatorio: es como las
+       * citan las dependencias entre sí. Un aviso o un curso no tienen folio, y
+       * ponerles uno inventado sería darles una formalidad que no tienen.
+       */
+      folio: z.string().optional(),
+
+      fecha: z.coerce.date(),
+
+      /** Una frase de contexto bajo el título. */
+      resumen: z.string().min(15).max(200).optional(),
+
+      /** Baja una publicación de la portada sin borrar el archivo. */
+      vigente: z.boolean().default(true),
+    })
+    .refine((d) => d.tipo !== 'circular' || Boolean(d.folio), {
+      message: 'Una circular necesita folio: es como la citan las dependencias entre sí.',
+      path: ['folio'],
+    })
+    .refine((d) => d.tipo === 'circular' || !d.folio, {
+      message: 'Solo las circulares llevan folio; un aviso con folio finge una formalidad que no tiene.',
+      path: ['folio'],
+    }),
+});
+
+export const collections = { tramites, roles, banners, cursos, publicaciones };

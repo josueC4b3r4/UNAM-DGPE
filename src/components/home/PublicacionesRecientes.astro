@@ -1,0 +1,243 @@
+---
+/**
+ * Circulares, avisos y cursos: las tres columnas de la portada.
+ *
+ * Es la estructura del sitio real de la DGPE, y era el hueco más grande del
+ * prototipo: una dirección de personal publica circulares cada semana, y hasta
+ * ahora el sitio no tenía dónde ponerlas.
+ *
+ * DOS DIFERENCIAS CON EL ORIGINAL, las dos deliberadas.
+ *
+ * 1. Allí la columna de circulares se DESPLAZA dentro de su caja para no
+ *    crecer. Aquí se corta a cinco y se enlaza al listado completo. Un scroll
+ *    dentro de una columna de una portada hay que descubrirlo: no se ve que
+ *    haya más, la rueda del ratón lo activa sin querer al pasar por encima, y
+ *    en un teléfono compite con el desplazamiento de la página.
+ *
+ * 2. La fecha va visible en cada elemento. En el original no aparece, y en
+ *    contenido que caduca es la primera cosa que alguien necesita saber:
+ *    una circular de agosto y una de hace dos años se ven igual sin ella.
+ */
+import Icono from '../base/Icono.astro';
+import EncabezadoSeccion from '../base/EncabezadoSeccion.astro';
+import { rutaPublicacion } from '../../lib/rutas';
+import { fechaCorta, fechaISO, obtenerPorTipo } from '../../lib/publicaciones';
+import {
+  ARTICULO_TIPO_PUBLICACION,
+  ETIQUETAS_TIPO_PUBLICACION,
+  ICONO_TIPO_PUBLICACION,
+} from '../../lib/constantes';
+
+const columnas = await obtenerPorTipo(5);
+---
+
+<section class="seccion seccion--sutil publicaciones" aria-labelledby="publicaciones">
+  <div class="contenedor">
+    <EncabezadoSeccion
+      id="publicaciones"
+      titulo="Lo más reciente"
+      subtitulo="Circulares con folio, avisos operativos y convocatorias de capacitación. Lo que la dirección publica cada semana."
+      class:list={['revelar--amplio']}
+    >
+      <p class="publicaciones__aviso">
+        <Icono nombre="aviso" tamano={1.1} />
+        <span>
+          <strong>Publicaciones de ejemplo.</strong> Los folios, fechas y textos están inventados para
+          mostrar el formato. No corresponden a ninguna circular real.
+        </span>
+      </p>
+    </EncabezadoSeccion>
+
+    <div class="publicaciones__columnas revelar-escalonado">
+      {
+        columnas.map(({ tipo, items, total }) => (
+          <section class="columna" aria-labelledby={`col-${tipo}`}>
+            <h3 class="columna__titulo" id={`col-${tipo}`}>
+              {ETIQUETAS_TIPO_PUBLICACION[tipo]}
+            </h3>
+
+            <ul class="columna__lista lista-limpia" role="list">
+              {items.map((p) => (
+                <li class="publicacion">
+                  {/* El icono es decorativo: el tipo ya lo dice el título de la
+                      columna, y repetirlo en cada elemento sería ruido. */}
+                  <Icono nombre={ICONO_TIPO_PUBLICACION[tipo] as never} tamano={1.05} />
+
+                  <div class="publicacion__cuerpo">
+                    <a class="publicacion__enlace" href={rutaPublicacion(p.id)}>
+                      {p.data.folio ? (
+                        <span class="publicacion__folio">{p.data.folio}</span>
+                      ) : null}
+                      {p.data.titulo}
+                    </a>
+
+                    {p.data.resumen && <p class="publicacion__resumen">{p.data.resumen}</p>}
+
+                    {/*
+                      <time> con datetime en ISO: la fecha legible cambia con el
+                      idioma, el atributo no. Es lo que permite que una máquina
+                      —o un lector de pantalla en otra configuración regional—
+                      la interprete bien.
+                    */}
+                    <time class="publicacion__fecha" datetime={fechaISO(p.data.fecha)}>
+                      {fechaCorta(p.data.fecha)}
+                    </time>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/*
+              El enlace va SIEMPRE, no solo cuando hay más de los que caben.
+
+              La primera versión lo condicionaba a `total > items.length`, y con
+              cinco circulares y un límite de cinco la condición nunca se
+              cumplía: las tres columnas quedaban sin salida al listado y el
+              enlace profundo con `?tipo=` no se ejercitaba nunca. Un enlace que
+              aparece o no según cuántas publicaciones haya esa semana es un
+              enlace que nadie va a probar.
+
+              El número dice cuántas hay en total, así que sigue informando aunque
+              se estén viendo todas.
+            */}
+            <p class="columna__pie">
+              <a href={`/publicaciones/?tipo=${tipo}`}>
+                Ver {ARTICULO_TIPO_PUBLICACION[tipo]} {total}{' '}
+                {ETIQUETAS_TIPO_PUBLICACION[tipo].toLowerCase()}
+                <Icono nombre="flecha" tamano={0.9} />
+              </a>
+            </p>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .publicaciones__aviso {
+    display: flex;
+    align-items: start;
+    gap: var(--p-espacio-3);
+
+    max-width: var(--contenedor-ancho-texto);
+    margin: var(--p-espacio-5) auto 0;
+    padding: var(--p-espacio-4);
+
+    background-color: var(--color-alerta-fondo);
+    color: var(--color-alerta-texto);
+    border: var(--p-borde-fino) solid var(--color-alerta-borde);
+    border-radius: var(--radio-control);
+    font-size: var(--tipo-menudo-tamano);
+    text-align: start;
+  }
+
+  .publicaciones__columnas {
+    display: grid;
+    gap: var(--espacio-componente);
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  }
+
+  /* --- Columna ------------------------------------------------------- */
+
+  .columna {
+    display: flex;
+    flex-direction: column;
+    /* Sin esto la columna no encoge por debajo de su contenido y la rejilla
+       desborda. Ver la nota larga en Cotizador.astro. */
+    min-width: 0;
+
+    background-color: var(--color-superficie-elevada);
+    border: var(--p-borde-fino) solid var(--color-borde-sutil);
+    border-radius: var(--radio-tarjeta);
+    overflow: hidden;
+  }
+
+  /* La cinta de encabezado, como en el sitio real. */
+  .columna__titulo {
+    margin: 0;
+    padding: var(--p-espacio-3) var(--p-espacio-4);
+
+    background-color: var(--color-superficie-marca);
+    color: var(--color-texto-sobre-marca);
+    font-size: var(--tipo-titulo-4-tamano);
+    text-align: center;
+  }
+
+  .columna__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-4);
+
+    /* `1 1 auto` para que las tres columnas midan lo mismo aunque una tenga
+       menos elementos: el pie con el enlace queda alineado abajo. */
+    flex: 1 1 auto;
+    margin: 0;
+    padding: var(--p-espacio-4);
+  }
+
+  .publicacion {
+    display: flex;
+    align-items: start;
+    gap: var(--p-espacio-3);
+    min-width: 0;
+  }
+
+  .publicacion :global(.icono) {
+    flex: none;
+    margin-block-start: 0.15em;
+    color: var(--color-acento-linea);
+  }
+
+  .publicacion__cuerpo {
+    min-width: 0;
+  }
+
+  .publicacion__enlace {
+    color: var(--color-texto-principal);
+    font-weight: var(--p-tipografia-peso-medio);
+    text-decoration: none;
+  }
+
+  .publicacion__enlace:hover {
+    color: var(--color-texto-enlace-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /* El folio va en bloque y en monoespaciada: es un identificador que se copia
+     y se cita, no parte de la frase del título. */
+  .publicacion__folio {
+    display: block;
+    color: var(--color-texto-enlace);
+    font-family: var(--p-tipografia-familia-mono);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .publicacion__resumen {
+    margin: var(--p-espacio-1) 0 0;
+    color: var(--color-texto-secundario);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .publicacion__fecha {
+    display: block;
+    margin-block-start: var(--p-espacio-2);
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .columna__pie {
+    margin: 0;
+    padding: var(--p-espacio-3) var(--p-espacio-4);
+    border-block-start: var(--p-borde-fino) solid var(--color-borde-sutil);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .columna__pie a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--p-espacio-2);
+    min-height: var(--objetivo-tactil-min);
+  }
+</style>

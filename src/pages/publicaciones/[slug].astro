@@ -1,0 +1,171 @@
+---
+/**
+ * Detalle de una circular, aviso o convocatoria.
+ *
+ * Existe por una razón concreta: sin ella, los elementos de las tres columnas
+ * de la portada serían texto que no lleva a ninguna parte, y este proyecto ya
+ * dedicó un PR entero a que ningún enlace haga eso.
+ *
+ * En el sitio real cada circular apunta a un PDF. Una página HTML es mejor: se
+ * puede buscar, se lee con lector de pantalla, se amplía sin pixelarse y no
+ * obliga a descargar nada para saber de qué va.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Migas from '../../components/layout/Migas.astro';
+import Icono from '../../components/base/Icono.astro';
+import { obtenerPublicaciones, fechaCorta, fechaISO } from '../../lib/publicaciones';
+import {
+  ETIQUETA_TIPO_SINGULAR,
+  ETIQUETAS_TIPO_PUBLICACION,
+  otrasUOtros,
+} from '../../lib/constantes';
+import { render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const { obtenerPublicaciones } = await import('../../lib/publicaciones');
+  const publicaciones = await obtenerPublicaciones();
+  return publicaciones.map((publicacion) => ({
+    params: { slug: publicacion.id },
+    props: { publicacion },
+  }));
+}
+
+const { publicacion } = Astro.props;
+const { Content } = await render(publicacion);
+const { tipo, titulo, folio, fecha, resumen } = publicacion.data;
+
+/* Publicaciones vecinas del mismo tipo, para no dejar la página sin salida. */
+const todas = await obtenerPublicaciones();
+const relacionadas = todas.filter((p) => p.data.tipo === tipo && p.id !== publicacion.id).slice(0, 3);
+---
+
+<BaseLayout titulo={titulo} descripcion={resumen ?? `${ETIQUETA_TIPO_SINGULAR[tipo]} de la DGPE.`}>
+  <div class="contenedor">
+    <Migas
+      migas={[
+        { texto: 'Publicaciones', href: '/publicaciones/' },
+        { texto: ETIQUETAS_TIPO_PUBLICACION[tipo], href: `/publicaciones/?tipo=${tipo}` },
+        { texto: folio ?? titulo },
+      ]}
+    />
+  </div>
+
+  <article class="contenedor contenedor--texto publicacion">
+    <header class="publicacion__encabezado">
+      <p class="publicacion__tipo">{ETIQUETA_TIPO_SINGULAR[tipo]}</p>
+      {folio && <p class="publicacion__folio">{folio}</p>}
+      <h1>{titulo}</h1>
+      <time class="publicacion__fecha" datetime={fechaISO(fecha)}>{fechaCorta(fecha)}</time>
+    </header>
+
+    <!--
+      El aviso va ARRIBA del cuerpo, no al pie. Alguien que llegue a esta página
+      desde un buscador o un enlace compartido tiene que saber que el contenido
+      es inventado ANTES de leerlo, no después.
+    -->
+    <p class="publicacion__ficticia">
+      <Icono nombre="aviso" tamano={1.1} />
+      <span>
+        <strong>Contenido de ejemplo.</strong> Este texto, su folio y su fecha se inventaron para un prototipo
+        de rediseño. No es una publicación real de la Dirección General de Personal y no tiene validez
+        alguna.
+      </span>
+    </p>
+
+    <div class="flujo">
+      <Content />
+    </div>
+
+    {
+      relacionadas.length > 0 && (
+        <section class="vecinas" aria-labelledby="otras">
+          {/* "Otras circulares" pero "Otros avisos": el género sale del
+              vocabulario, no de una suposición. */}
+          <h2 id="otras">
+            {otrasUOtros(tipo)} {ETIQUETAS_TIPO_PUBLICACION[tipo].toLowerCase()}
+          </h2>
+          <ul class="lista-limpia" role="list">
+            {relacionadas.map((p) => (
+              <li>
+                <a href={`/publicaciones/${p.id}/`}>
+                  {p.data.folio ? `${p.data.folio} · ` : ''}
+                  {p.data.titulo}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .publicacion {
+    padding-block-end: var(--espacio-seccion);
+  }
+
+  .publicacion__encabezado {
+    margin-block-end: var(--p-espacio-6);
+  }
+
+  .publicacion__tipo {
+    margin: 0;
+    color: var(--color-acento-texto);
+    font-size: var(--tipo-menudo-tamano);
+    font-weight: var(--p-tipografia-peso-semi);
+    letter-spacing: var(--p-tipografia-espaciado-amplio);
+    text-transform: uppercase;
+  }
+
+  .publicacion__folio {
+    margin: var(--p-espacio-2) 0 0;
+    color: var(--color-texto-enlace);
+    font-family: var(--p-tipografia-familia-mono);
+  }
+
+  .publicacion__encabezado h1 {
+    margin: var(--p-espacio-2) 0 0;
+    text-wrap: balance;
+  }
+
+  .publicacion__fecha {
+    display: block;
+    margin-block-start: var(--p-espacio-3);
+    color: var(--color-texto-tenue);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .publicacion__ficticia {
+    display: flex;
+    align-items: start;
+    gap: var(--p-espacio-3);
+
+    margin-block-end: var(--espacio-bloque);
+    padding: var(--p-espacio-4);
+
+    background-color: var(--color-alerta-fondo);
+    color: var(--color-alerta-texto);
+    border-inline-start: var(--p-borde-grueso) solid var(--color-alerta-borde);
+    border-radius: var(--radio-control);
+    font-size: var(--tipo-menudo-tamano);
+  }
+
+  .vecinas {
+    margin-block-start: var(--espacio-bloque);
+    padding-block-start: var(--p-espacio-5);
+    border-block-start: var(--p-borde-fino) solid var(--color-borde-sutil);
+  }
+
+  .vecinas h2 {
+    margin: 0 0 var(--p-espacio-4);
+    font-size: var(--tipo-titulo-3-tamano);
+  }
+
+  .vecinas ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-espacio-3);
+    margin: 0;
+  }
+</style>
