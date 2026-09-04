@@ -216,3 +216,53 @@ El generador además **falla el build si un token existe en un tema y no en el o
 4. Corre `npm run verificar`.
 
 El paso 3 es el que sostiene el sistema: un token de color sin par declarado es un token que nadie está verificando.
+
+## Paleta divisional
+
+Cinco colores de apoyo del manual de identidad, «extraídos de la página
+oficial». **El azul y el oro siguen siendo la marca**; estos son secundarios.
+
+Viven como primitivos (`--p-color-divisional-*`) y todavía no tienen uso
+semántico: el manual no dice para qué sirve cada uno, así que esa decisión está
+pendiente. Lo que sí se puede adelantar es **cuáles son usables y para qué**,
+porque eso no es opinable.
+
+| Token | Hex | Sobre blanco | Texto blanco encima | Uso seguro |
+| --- | --- | --- | --- | --- |
+| `divisional-50` | `#bef7fd` | 1.17 | 1.17 | **Solo fondo claro** (texto oscuro encima: 14.11) |
+| `divisional-100` | `#b1eefb` | 1.27 | 1.27 | **Solo fondo claro** (texto oscuro encima: 12.99) |
+| `divisional-300` | `#0dcaf0` | 1.96 | 1.96 | **Solo fondo claro** (texto oscuro encima: 8.45) |
+| `divisional-600` | `#1991a2` | 3.74 | 3.74 | ⚠ **Ni texto normal ni fondo con texto blanco** |
+| `divisional-800` | `#114d56` | 9.46 | 9.46 | Texto sobre claro **y** superficie oscura |
+
+### Las tres reglas que salen de esa tabla
+
+**`#114d56` es el único que sirve para todo.** 9.46:1 tanto de texto sobre
+blanco como de fondo con texto blanco. Es el verde azulado del pie del sitio
+actual, y funciona.
+
+**Los tres claros son solo fondo.** Con 1.17, 1.27 y 1.96 sobre blanco no
+pueden ser texto, ni un icono, ni un borde: ni siquiera llegan al 3:1 que exige
+la 1.4.11 para elementos gráficos. Como fondo con texto oscuro encima van
+sobrados.
+
+**`#1991a2` es la trampa.** Da 3.74:1 en las dos direcciones, así que *parece*
+usable y no lo es para texto normal, que exige 4.5:1. Es exactamente el tono al
+que uno echa mano para un botón o un enlace, y ahí falla en los dos sentidos:
+ni como color de texto sobre blanco, ni como fondo con letras blancas.
+
+Solo vale para texto grande —24 px, o 18.66 px en negrita— y para elementos
+gráficos. Si hace falta un verde azulado para un botón, el que sirve es
+`#114d56`.
+
+### Un error del manual, sin resolver
+
+El sexto color divisional declara valores contradictorios:
+
+- **RGB 8 | 36 | 90** y **HSL 219° 84% 19%**, que son `#08245A` — el azul
+  institucional.
+- **HEX `#003F63`**, que es RGB 0 | 63 | 99, otro color distinto.
+
+No se ha añadido a la paleta porque no se puede saber cuál de los dos es el
+bueno. Si son el azul institucional, ya existe como `azul-800` y sobra
+repetirlo; si es `#003F63`, hay que declararlo aparte. Pendiente de confirmar.
