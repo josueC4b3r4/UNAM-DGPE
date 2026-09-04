@@ -20,6 +20,39 @@ export const CATEGORIAS = [
 ] as const;
 export type Categoria = (typeof CATEGORIAS)[number];
 
+/*
+ * Áreas de la dirección: la segunda vía de entrada, no la principal.
+ *
+ * Son las que el sitio actual pone como accesos grandes en su portada. Aquí van
+ * DEBAJO de los perfiles y a propósito: la tesis del prototipo es que la
+ * primera pregunta sea "quién eres" y no "de qué área depende esto", porque lo
+ * segundo la institución sí lo sabe y la persona no.
+ *
+ * Pero quien ya trabaja en la Universidad y conoce las áreas tiene derecho a
+ * entrar por donde le resulta natural. Ofrecerlo como alternativa no contradice
+ * el argumento; obligar a usarlo, sí.
+ *
+ * ⚠ La ASIGNACIÓN de cada trámite a un área está inventada. Los nombres de las
+ * áreas son públicos, pero qué trámite resuelve cada una es algo que habría que
+ * confirmar con la dependencia.
+ */
+export const AREAS = [
+  'administracion',
+  'relaciones-laborales',
+  'personal-academico',
+  'sistemas-nomina',
+  'cendi',
+] as const;
+export type Area = (typeof AREAS)[number];
+
+export const ETIQUETAS_AREA: Record<Area, string> = {
+  administracion: 'Administración de Personal',
+  'relaciones-laborales': 'Relaciones Laborales',
+  'personal-academico': 'Personal Académico',
+  'sistemas-nomina': 'Sistemas y Nómina',
+  cendi: 'CENDI y Jardín de Niños',
+};
+
 export const MODALIDADES = ['linea', 'presencial', 'mixta'] as const;
 export type Modalidad = (typeof MODALIDADES)[number];
 

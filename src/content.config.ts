@@ -1,6 +1,6 @@
 import { defineCollection, reference, z } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { CATEGORIAS, MODALIDADES, ROLES, TIPOS_PUBLICACION } from './lib/constantes';
+import { AREAS, CATEGORIAS, MODALIDADES, ROLES, TIPOS_PUBLICACION } from './lib/constantes';
 
 /*
  * Esquemas de contenido.
@@ -27,6 +27,17 @@ const tramites = defineCollection({
     roles: z.array(z.enum(ROLES)).min(1),
 
     categoria: z.enum(CATEGORIAS),
+
+    /**
+     * Área de la dirección que lo resuelve.
+     *
+     * Es la SEGUNDA vía de entrada, no la principal: sirve a quien ya conoce la
+     * estructura de la dependencia. La categoría —el lenguaje de quien busca—
+     * sigue mandando en el listado y en el buscador.
+     *
+     * ⚠ La asignación está inventada. Ver la nota en lib/constantes.ts.
+     */
+    area: z.enum(AREAS),
 
     modalidad: z.enum(MODALIDADES),
 

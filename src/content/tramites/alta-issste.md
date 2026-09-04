@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: prestaciones
+area: 'administracion'
 modalidad: presencial
 duracion: 10 días hábiles
 costo: Gratuito

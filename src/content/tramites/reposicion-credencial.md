@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: constancias
+area: 'administracion'
 modalidad: presencial
 duracion: 7 días hábiles
 costo: Gratuito la primera reposición al año

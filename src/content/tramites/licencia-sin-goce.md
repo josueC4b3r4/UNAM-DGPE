@@ -6,6 +6,7 @@ roles:
   - administrativo
   - jefe
 categoria: licencias
+area: 'relaciones-laborales'
 modalidad: mixta
 duracion: 30 días hábiles
 costo: Gratuito

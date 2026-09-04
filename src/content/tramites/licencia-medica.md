@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: licencias
+area: 'relaciones-laborales'
 modalidad: linea
 duracion: 5 días hábiles
 costo: Gratuito

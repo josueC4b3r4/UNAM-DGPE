@@ -5,9 +5,10 @@ import {
   type Categoria,
   type Modalidad,
   type Rol,
+  type Area,
 } from './constantes';
 
-export type { Categoria, Modalidad, Rol };
+export type { Area, Categoria, Modalidad, Rol };
 export type Tramite = CollectionEntry<'tramites'>;
 
 /**
@@ -22,6 +23,7 @@ export interface TramiteIndexado {
   titulo: string;
   resumen: string;
   categoria: Categoria;
+  area: Area;
   categoriaEtiqueta: string;
   roles: Rol[];
   modalidad: Modalidad;
@@ -54,7 +56,7 @@ export async function obtenerTramitesPorRol(rol: Rol): Promise<Tramite[]> {
 }
 
 export function aIndexado(tramite: Tramite): TramiteIndexado {
-  const { titulo, resumen, categoria, roles, modalidad, duracion, sinonimos, destacado } =
+  const { titulo, resumen, categoria, area, roles, modalidad, duracion, sinonimos, destacado } =
     tramite.data;
 
   return {
@@ -63,6 +65,7 @@ export function aIndexado(tramite: Tramite): TramiteIndexado {
     resumen,
     categoria,
     categoriaEtiqueta: ETIQUETAS_CATEGORIA[categoria],
+    area,
     roles,
     modalidad,
     duracion,

@@ -5,6 +5,7 @@ roles:
   - academico
   - administrativo
 categoria: constancias
+area: 'administracion'
 modalidad: linea
 duracion: 3 días hábiles
 costo: Gratuito

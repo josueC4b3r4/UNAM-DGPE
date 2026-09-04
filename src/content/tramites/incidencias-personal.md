@@ -4,6 +4,7 @@ resumen: Registro quincenal de faltas, retardos, permisos y vacaciones del perso
 roles:
   - jefe
 categoria: nombramientos
+area: 'relaciones-laborales'
 modalidad: linea
 duracion: Inmediato
 costo: Gratuito

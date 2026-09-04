@@ -4,6 +4,7 @@ resumen: Programa de Primas al Desempeño del Personal Académico de Tiempo Comp
 roles:
   - academico
 categoria: pagos
+area: 'personal-academico'
 modalidad: linea
 duracion: 90 días hábiles
 costo: Gratuito
