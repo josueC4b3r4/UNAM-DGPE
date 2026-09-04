@@ -244,7 +244,8 @@ const publicaciones = defineCollection({
       path: ['folio'],
     })
     .refine((d) => d.tipo === 'circular' || !d.folio, {
-      message: 'Solo las circulares llevan folio; un aviso con folio finge una formalidad que no tiene.',
+      message:
+        'Solo las circulares llevan folio; un aviso con folio finge una formalidad que no tiene.',
       path: ['folio'],
     }),
 });

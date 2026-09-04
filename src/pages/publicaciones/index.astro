@@ -106,9 +106,7 @@ const conteos = TIPOS_PUBLICACION.map((tipo) => ({
       }
     </ul>
 
-    <p class="listado__vacio" id="dgpe-vacio-pub" hidden>
-      No hay publicaciones de ese tipo.
-    </p>
+    <p class="listado__vacio" id="dgpe-vacio-pub" hidden>No hay publicaciones de ese tipo.</p>
   </div>
 </BaseLayout>
 
@@ -155,7 +153,9 @@ const conteos = TIPOS_PUBLICACION.map((tipo) => ({
        en la portada. */
     const tipoInicial = new URLSearchParams(location.search).get('tipo');
     if (tipoInicial) {
-      const radio = formulario.querySelector<HTMLInputElement>(`input[value="${CSS.escape(tipoInicial)}"]`);
+      const radio = formulario.querySelector<HTMLInputElement>(
+        `input[value="${CSS.escape(tipoInicial)}"]`
+      );
       if (radio) {
         radio.checked = true;
         aplicar();

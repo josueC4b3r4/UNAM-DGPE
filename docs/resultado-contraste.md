@@ -10,8 +10,8 @@ npm run a11y:contraste
 
 ## Resumen
 
-- **Pares evaluados:** 76 (38 combinaciones × 2 temas)
-- **Cumplen WCAG 2.1 AA:** 76
+- **Pares evaluados:** 78 (39 combinaciones × 2 temas)
+- **Cumplen WCAG 2.1 AA:** 78
 - **No cumplen:** 0
 - **Par con menor margen:** Línea de acento decorativa-informativa en tema claro — 4.41:1 (mínimo 3.0:1)
 
@@ -67,6 +67,7 @@ npm run a11y:contraste
 | claro | Borde del mensaje de advertencia | `alertaBorde` sobre `alertaFondo` | #8a5a0b / #fdf3e3 | **5.39:1** | 3.0:1 | ✅ |
 | claro | Borde del mensaje de error | `errorBorde` sobre `errorFondo` | #a12119 / #fdeceb | **6.69:1** | 3.0:1 | ✅ |
 | claro | Acento oro sobre marca | `acentoLineaSobreMarca` sobre `superficieMarca` | #bd9500 / #08245a | **5.29:1** | 3.0:1 | ✅ |
+| claro | Icono sobre su pastilla de marca | `textoEnlace` sobre `superficieMarcaSutil` | #0d3073 / #eff3fb | **11.19:1** | 3.0:1 | ✅ |
 | oscuro | Cuerpo sobre fondo de página | `textoPrincipal` sobre `superficieBase` | #eef0f4 / #0f1319 | **16.32:1** | 4.5:1 | ✅ |
 | oscuro | Cuerpo sobre sección alterna | `textoPrincipal` sobre `superficieSutil` | #eef0f4 / #1a1f27 | **14.50:1** | 4.5:1 | ✅ |
 | oscuro | Cuerpo dentro de tarjeta | `textoPrincipal` sobre `superficieElevada` | #eef0f4 / #29313b | **11.53:1** | 4.5:1 | ✅ |
@@ -105,6 +106,7 @@ npm run a11y:contraste
 | oscuro | Borde del mensaje de advertencia | `alertaBorde` sobre `alertaFondo` | #d8a23f / #3a2504 | **6.33:1** | 3.0:1 | ✅ |
 | oscuro | Borde del mensaje de error | `errorBorde` sobre `errorFondo` | #e8756c / #450e0a | **5.45:1** | 3.0:1 | ✅ |
 | oscuro | Acento oro sobre marca | `acentoLineaSobreMarca` sobre `superficieMarca` | #efcc4d / #05193d | **11.06:1** | 3.0:1 | ✅ |
+| oscuro | Icono sobre su pastilla de marca | `textoEnlace` sobre `superficieMarcaSutil` | #82a4e3 / #030f26 | **7.61:1** | 3.0:1 | ✅ |
 
 ## Qué NO cubre esta verificación
 

@@ -82,12 +82,7 @@ const cotizacionInicial = cotizar(inicial.tarifas[0], inicial.duraciones[0].hora
   <ResultadoCotizacion total={cotizacionInicial.total} desglose={desglose(cotizacionInicial)} />
 </form>
 
-<script
-  id="dgpe-cursos-datos"
-  type="application/json"
-  set:html={JSON.stringify(datos)}
-  is:inline
-/>
+<script id="dgpe-cursos-datos" type="application/json" set:html={JSON.stringify(datos)} is:inline />
 
 <script>
   import { cotizar, desglose, formatearPesos, tarifaDe } from '../../lib/cotizacion';

@@ -55,17 +55,17 @@ import PaginaSimple from '../layouts/PaginaSimple.astro';
     <code>input</code>), orden de foco que sigue al orden visual, indicador de foco de 3 px y el
     patrón ARIA de combobox en el buscador. Se recorrió completo: <strong
       >39 paradas en el inicio y 30 en el listado, sin ninguna trampa de foco</strong
-    > y con el orden de tabulación siguiendo al orden visual en toda la ruta. El menú móvil devuelve
-    el foco al botón que lo abrió al cerrarse con <kbd>Esc</kbd>.
+    > y con el orden de tabulación siguiendo al orden visual en toda la ruta. El menú móvil devuelve el
+    foco al botón que lo abrió al cerrarse con <kbd>Esc</kbd>.
   </p>
 
   <h3>✅ Comprobado — sin errores mecánicos de accesibilidad</h3>
 
   <p>
-    Lighthouse, que usa axe-core, da <strong>100 en accesibilidad</strong> en las cuatro plantillas
-    del sitio. Conviene leer ese número con cuidado: axe cubre alrededor de un tercio de los
-    criterios de las WCAG, así que un 100 significa que no hay errores <em>detectables por máquina</em>,
-    no que el sitio sea accesible. Por eso la prueba con lector de pantalla sigue siendo necesaria.
+    Lighthouse, que usa axe-core, da <strong>100 en accesibilidad</strong> en las cuatro plantillas del
+    sitio. Conviene leer ese número con cuidado: axe cubre alrededor de un tercio de los criterios de
+    las WCAG, así que un 100 significa que no hay errores <em>detectables por máquina</em>, no que
+    el sitio sea accesible. Por eso la prueba con lector de pantalla sigue siendo necesaria.
   </p>
 
   <h3>⏳ Pendiente de prueba — lector de pantalla</h3>
@@ -85,8 +85,8 @@ import PaginaSimple from '../layouts/PaginaSimple.astro';
       completo y recuerda la elección.
     </li>
     <li>
-      <strong>Tema claro y oscuro</strong>, con contraste verificado en ambos. Respeta la preferencia
-      del sistema operativo mientras no elijas una.
+      <strong>Tema claro y oscuro</strong>, con contraste verificado en ambos. Respeta la
+      preferencia del sistema operativo mientras no elijas una.
     </li>
     <li>
       <strong>Enlace para saltar al contenido</strong> como primer elemento enfocable de cada página.
@@ -94,8 +94,9 @@ import PaginaSimple from '../layouts/PaginaSimple.astro';
     <li>
       <strong>Respeto a <code>prefers-reduced-motion</code></strong>: si tu sistema pide menos
       movimiento no hay revelados al hacer scroll, ni parallax, ni transiciones entre páginas, ni
-      rotación automática del carrusel, ni reproducción automática de video. Lo único que se mantiene
-      es el panel que acompaña a su sección al desplazarse, que es posicionamiento y no animación.
+      rotación automática del carrusel, ni reproducción automática de video. Lo único que se
+      mantiene es el panel que acompaña a su sección al desplazarse, que es posicionamiento y no
+      animación.
     </li>
     <li>
       <strong>Ninguna animación toca la opacidad del texto.</strong> Solo se desplaza. Un texto que cumple
@@ -106,9 +107,9 @@ import PaginaSimple from '../layouts/PaginaSimple.astro';
       <strong>Áreas de toque de 44 píxeles</strong> como mínimo en todos los controles.
     </li>
     <li>
-      <strong>Funciona sin JavaScript</strong>: el contenido y la navegación siguen disponibles; solo
-      se pierden el autocompletado, los filtros y los contadores animados, que muestran su valor final
-      directamente.
+      <strong>Funciona sin JavaScript</strong>: el contenido y la navegación siguen disponibles;
+      solo se pierden el autocompletado, los filtros y los contadores animados, que muestran su
+      valor final directamente.
     </li>
   </ul>
 
@@ -130,15 +131,15 @@ import PaginaSimple from '../layouts/PaginaSimple.astro';
       herramienta detecta.
     </li>
     <li>
-      <strong>Tablas anchas.</strong> En pantallas angostas se desplazan horizontalmente dentro de su propio
-      contenedor. Es navegable con teclado, pero no es la solución ideal.
+      <strong>Tablas anchas.</strong> En pantallas angostas se desplazan horizontalmente dentro de su
+      propio contenedor. Es navegable con teclado, pero no es la solución ideal.
     </li>
   </ul>
 
   <h2>Comentarios</h2>
 
   <p>
-    Si encuentras una barrera de accesibilidad en este prototipo, avísanos: es exactamente el tipo de
-    hallazgo que buscamos antes de proponer el rediseño.
+    Si encuentras una barrera de accesibilidad en este prototipo, avísanos: es exactamente el tipo
+    de hallazgo que buscamos antes de proponer el rediseño.
   </p>
 </PaginaSimple>

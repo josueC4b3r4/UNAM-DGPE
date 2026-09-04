@@ -32,9 +32,9 @@ export async function obtenerPublicaciones(): Promise<Publicacion[]> {
  * igual con teclado y no esconde contenido tras un scroll que hay que
  * descubrir.
  */
-export async function obtenerPorTipo(limite = 5): Promise<
-  { tipo: TipoPublicacion; items: Publicacion[]; total: number }[]
-> {
+export async function obtenerPorTipo(
+  limite = 5
+): Promise<{ tipo: TipoPublicacion; items: Publicacion[]; total: number }[]> {
   const todas = await obtenerPublicaciones();
   return TIPOS_PUBLICACION.map((tipo) => {
     const items = todas.filter((p) => p.data.tipo === tipo);

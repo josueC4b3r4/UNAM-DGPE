@@ -59,8 +59,9 @@ const tablas = cursos.map((curso) => ({
     <div class="cursos__advertencia" role="note">
       <h2 class="cursos__advertencia-titulo">Los precios de esta página son inventados</h2>
       <p>
-        Este sitio es un <strong>prototipo de rediseño</strong>, no el portal de la Dirección General
-        de Personal. Los cursos, sus costos y sus duraciones se inventaron para probar el diseño y
+        Este sitio es un <strong>prototipo de rediseño</strong>, no el portal de la Dirección
+        General de Personal. Los cursos, sus costos y sus duraciones se inventaron para probar el
+        diseño y
         <strong>no corresponden a ningún tabulador real</strong>. No sirven para presupuestar, ni
         para comparar, ni para reclamar un cobro.
       </p>
@@ -116,9 +117,7 @@ const tablas = cursos.map((curso) => ({
                         {fila.etiqueta} <span class="curso__horas">({fila.horas} h)</span>
                       </th>
                       {fila.celdas.map((celda, i) =>
-                        curso.modalidades.includes(MODALIDADES[i]) ? (
-                          <td>{celda}</td>
-                        ) : null
+                        curso.modalidades.includes(MODALIDADES[i]) ? <td>{celda}</td> : null
                       )}
                     </tr>
                   ))}

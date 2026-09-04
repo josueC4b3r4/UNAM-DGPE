@@ -112,7 +112,8 @@ const accesos = [
     </div>
   </section>
 
-  {/*
+  {
+    /*
     Va justo después del hero, y por dos motivos.
 
     De contenido: es lo único de la portada que cambia cada semana. Quien ya
@@ -122,7 +123,8 @@ const accesos = [
     De maquetación: el hero usa fondo de marca, así que este es el único punto
     donde cabe una sección nueva sin invertir el fondo de las seis siguientes.
     La alternancia queda marca → sutil → base → sutil → base…, intacta.
-  */}
+  */
+  }
   <PublicacionesRecientes />
 
   <RejillaRoles accesos={accesos} titulo="Empieza por quién eres" />
@@ -131,6 +133,7 @@ const accesos = [
     <div class="contenedor">
       <EncabezadoSeccion
         id="destacados"
+        icono="estrella"
         titulo="Los que más se consultan"
         subtitulo="Cinco trámites concentran la mayoría de las visitas a esta dirección."
       />
@@ -145,9 +148,11 @@ const accesos = [
         }
       </ul>
 
-      {/* La llamada baja de la cabecera al pie de la rejilla: así el encabezado
+      {
+        /* La llamada baja de la cabecera al pie de la rejilla: así el encabezado
           queda igual que el de las demás secciones, y el botón aparece cuando
-          ya se vieron los cinco y tiene sentido pedir el resto. */}
+          ya se vieron los cinco y tiene sentido pedir el resto. */
+      }
       <p class="seccion__cierre">
         <Boton href="/tramites/" variante="secundario">
           Ver los {indice.length} trámites
@@ -165,8 +170,10 @@ const accesos = [
 
   <PreguntasFrecuentes />
 
-  {/* Abre el bloque de argumento: primero el porqué en imagen, luego los
-      números que lo respaldan, luego los recibos, luego el resumen. */}
+  {
+    /* Abre el bloque de argumento: primero el porqué en imagen, luego los
+      números que lo respaldan, luego los recibos, luego el resumen. */
+  }
   <DiagramaNavegacion />
 
   <CifrasVerificadas cifras={cifras} />
@@ -175,13 +182,17 @@ const accesos = [
 
   <section class="seccion seccion--sutil revelar" aria-labelledby="que-cambia">
     <div class="contenedor contenedor--texto flujo flujo--amplio">
-      <h2 id="que-cambia">Qué propone este prototipo</h2>
-
-      <p>
-        Este sitio es un ejercicio de rediseño, no el portal oficial. Se construyó para mostrar
-        cuatro cambios concretos frente a la versión actual, y para poder discutirlos sobre algo
-        navegable en lugar de sobre una lámina.
-      </p>
+      {
+        /* Era el último encabezado suelto del inicio. Pasa al patrón común para
+          que las once secciones se lean como una serie y no como bloques
+          resueltos cada uno a su manera. */
+      }
+      <EncabezadoSeccion
+        id="que-cambia"
+        icono="bombilla"
+        titulo="Qué propone este prototipo"
+        subtitulo="Un ejercicio de rediseño, no el portal oficial. Se construyó para mostrar cuatro cambios concretos frente a la versión actual, y para poder discutirlos sobre algo navegable en lugar de sobre una lámina."
+      />
 
       <ul class="propuestas lista-limpia" role="list">
         <li class="propuesta">

@@ -36,7 +36,9 @@ const { tipo, titulo, folio, fecha, resumen } = publicacion.data;
 
 /* Publicaciones vecinas del mismo tipo, para no dejar la página sin salida. */
 const todas = await obtenerPublicaciones();
-const relacionadas = todas.filter((p) => p.data.tipo === tipo && p.id !== publicacion.id).slice(0, 3);
+const relacionadas = todas
+  .filter((p) => p.data.tipo === tipo && p.id !== publicacion.id)
+  .slice(0, 3);
 ---
 
 <BaseLayout titulo={titulo} descripcion={resumen ?? `${ETIQUETA_TIPO_SINGULAR[tipo]} de la DGPE.`}>
