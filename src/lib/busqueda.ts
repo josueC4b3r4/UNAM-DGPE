@@ -55,11 +55,7 @@ const PESOS = {
  *   2. PUNTUAR — con la consulta completa, para que una coincidencia al inicio
  *      del título pese más que una mención suelta en el resumen.
  */
-export function buscar(
-  indice: TramiteIndexado[],
-  consulta: string,
-  limite = 8
-): Resultado[] {
+export function buscar(indice: TramiteIndexado[], consulta: string, limite = 8): Resultado[] {
   const q = normalizar(consulta.trim());
   if (q.length < MINIMO_CARACTERES) return [];
 
@@ -99,8 +95,7 @@ export function buscar(
 
     /* Rango a resaltar: solo si la consulta completa aparece en el título. */
     const desde = titulo.indexOf(q);
-    const coincidencia: [number, number] | null =
-      desde === -1 ? null : [desde, desde + q.length];
+    const coincidencia: [number, number] | null = desde === -1 ? null : [desde, desde + q.length];
 
     resultados.push({ tramite, puntaje, coincidencia });
   }

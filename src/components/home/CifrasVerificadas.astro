@@ -42,6 +42,7 @@ const { cifras } = Astro.props;
   <div class="contenedor">
     <EncabezadoSeccion
       id="cifras"
+      icono="grafica"
       titulo="Lo que se puede comprobar"
       subtitulo="Cada número de aquí abajo sale de una verificación que se vuelve a correr con un comando. No son estimaciones."
       class:list={['revelar--amplio']}
@@ -144,9 +145,6 @@ const { cifras } = Astro.props;
     background-color: var(--color-superficie-marca);
     color: var(--color-texto-sobre-marca);
   }
-
-
-
 
   .cifras__lista {
     display: grid;

@@ -18,10 +18,22 @@
  * El filete es decorativo: no aporta información que el título no dé, así que
  * va con aria-hidden para no anunciarse.
  */
+import Icono from './Icono.astro';
+import type { NombreIcono } from './iconos';
+
 interface Props {
   /** Se enlaza con el aria-labelledby de la sección. */
   id: string;
   titulo: string;
+  /**
+   * Ancla visual de la sección. DECORATIVO: no lleva etiqueta, así que no se
+   * anuncia. El título ya dice de qué va la sección, y un icono que el lector
+   * de pantalla lee además del título es ruido, no información.
+   *
+   * Sirve para que once secciones seguidas se distingan de un vistazo en vez de
+   * leerse como un mismo bloque largo.
+   */
+  icono?: NombreIcono;
   /** Una frase. Si no hay, no se dibuja el hueco. */
   subtitulo?: string;
   /**
@@ -43,11 +55,26 @@ interface Props {
   class?: string;
 }
 
-const { id, titulo, subtitulo, alineacion = 'centro', nivel = 2, class: clase } = Astro.props;
+const {
+  id,
+  titulo,
+  subtitulo,
+  icono,
+  alineacion = 'centro',
+  nivel = 2,
+  class: clase,
+} = Astro.props;
 const Titulo = `h${nivel}` as 'h2' | 'h3';
 ---
 
 <div class:list={['enc', clase]} data-alineacion={alineacion}>
+  {
+    icono && (
+      <span class="enc__icono">
+        <Icono nombre={icono} tamano={1.5} />
+      </span>
+    )
+  }
   <Titulo id={id} class="enc__titulo">{titulo}</Titulo>
   {subtitulo && <p class="enc__subtitulo">{subtitulo}</p>}
   <span class="enc__filete" aria-hidden="true"></span>
@@ -65,6 +92,41 @@ const Titulo = `h${nivel}` as 'h2' | 'h3';
        párrafo ancho obliga a buscar el inicio de cada línea. */
     max-width: var(--contenedor-ancho-texto);
     margin-inline: auto;
+  }
+
+  /*
+   * Misma pastilla que los iconos de las categorías, a propósito: así los
+   * encabezados de sección y las tarjetas se leen como un mismo sistema en vez
+   * de como dos tratamientos distintos del mismo icono.
+   */
+  .enc__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 3rem;
+    height: 3rem;
+    margin-block-end: var(--p-espacio-4);
+
+    /*
+     * `texto-enlace` y NO `acento-texto`, aunque la pastilla de las categorías
+     * usaba lo segundo.
+     *
+     * Medido: `acento-texto` sobre `superficie-marca-sutil` da 1.02:1 en tema
+     * oscuro — el icono desaparece. El token no está roto; está usado fuera de
+     * su par: `acentoTexto` se declaró para ir SOBRE EL ORO, donde cumple de
+     * sobra, y ahí sí está verificado. Contra un fondo azul oscuro no lo está.
+     *
+     * Por eso el verificador de contraste no lo cazó: comprueba los pares
+     * declarados en tokens.json, no toda combinación que un componente decida
+     * inventarse. El par nuevo queda declarado para que no vuelva a pasar.
+     *
+     * `texto-enlace` da 11.19:1 en claro y 7.61:1 en oscuro, y es color de
+     * marca: mantiene el acento sin parecer texto corriente.
+     */
+    color: var(--color-texto-enlace);
+    background-color: var(--color-superficie-marca-sutil);
+    border-radius: var(--radio-pastilla);
   }
 
   .enc__titulo {

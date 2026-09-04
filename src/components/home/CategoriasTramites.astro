@@ -48,6 +48,7 @@ const areas = AREAS.map((clave) => ({
   <div class="contenedor">
     <EncabezadoSeccion
       id="por-categoria"
+      icono="brujula"
       titulo="Otras formas de llegar"
       subtitulo="Si no te reconoces en ninguno de los tres perfiles, entra por el tema o por el área. Cualquiera de las dos abre el listado ya filtrado."
       class:list={['revelar--amplio']}
@@ -150,7 +151,9 @@ const areas = AREAS.map((clave) => ({
     width: var(--objetivo-tactil-min);
     height: var(--objetivo-tactil-min);
 
-    color: var(--color-acento-texto);
+    /* Estaba en `acento-texto` y daba 1.02:1 en tema oscuro: los seis iconos
+       eran invisibles. Ver la nota larga en EncabezadoSeccion.astro. */
+    color: var(--color-texto-enlace);
     background-color: var(--color-superficie-marca-sutil);
     border-radius: var(--radio-control);
   }

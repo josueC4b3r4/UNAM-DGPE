@@ -58,12 +58,15 @@ const hitos = [
   <div class="contenedor">
     <EncabezadoSeccion
       id="fechas-clave"
+      icono="calendario"
       titulo="El año, de un vistazo"
       subtitulo="Los periodos en que se concentra la demanda. Sirve para adelantarse: casi todo lo que se atasca en diciembre se puede resolver en agosto."
       class:list={['revelar--amplio']}
     >
-      {/* El aviso va por el slot, debajo del filete: es parte del encabezado,
-          no del contenido, y tiene que verse antes que las fechas. */}
+      {
+        /* El aviso va por el slot, debajo del filete: es parte del encabezado,
+          no del contenido, y tiene que verse antes que las fechas. */
+      }
       <p class="fechas__aviso">
         <Icono nombre="aviso" tamano={1.1} />
         <span>
@@ -97,9 +100,6 @@ const hitos = [
 </section>
 
 <style>
-
-
-
   .fechas__aviso {
     display: flex;
     align-items: start;

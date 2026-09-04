@@ -35,6 +35,7 @@ const columnas = await obtenerPorTipo(5);
   <div class="contenedor">
     <EncabezadoSeccion
       id="publicaciones"
+      icono="campana"
       titulo="Lo más reciente"
       subtitulo="Circulares con folio, avisos operativos y convocatorias de capacitación. Lo que la dirección publica cada semana."
       class:list={['revelar--amplio']}
@@ -65,9 +66,7 @@ const columnas = await obtenerPorTipo(5);
 
                   <div class="publicacion__cuerpo">
                     <a class="publicacion__enlace" href={rutaPublicacion(p.id)}>
-                      {p.data.folio ? (
-                        <span class="publicacion__folio">{p.data.folio}</span>
-                      ) : null}
+                      {p.data.folio ? <span class="publicacion__folio">{p.data.folio}</span> : null}
                       {p.data.titulo}
                     </a>
 

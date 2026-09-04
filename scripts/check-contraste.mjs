@@ -111,6 +111,23 @@ const PARES = [
 
   // --- Títulos grandes: umbral relajado a 3:1 (WCAG 1.4.3 "large text") ----
   ['color.acentoLineaSobreMarca', 'color.superficieMarca', AA_TEXTO_GRANDE, 'Acento oro sobre marca'],
+
+  /*
+   * Iconos dentro de su pastilla, en los encabezados de sección y en las
+   * tarjetas de categoría.
+   *
+   * Este par existe porque su ausencia costó un fallo real: los componentes
+   * usaban `acentoTexto` sobre este mismo fondo y daba 1.02:1 en tema oscuro
+   * —seis iconos invisibles— sin que este script dijera nada. El token no
+   * estaba mal: `acentoTexto` SÍ está verificado, pero contra `acentoFondo`,
+   * que es el oro. Nadie había declarado la combinación que los componentes
+   * usaban de verdad.
+   *
+   * La lección, y el motivo de esta nota: este verificador solo sabe de los
+   * pares que alguien escribe aquí. Cada vez que un componente ponga un color
+   * sobre un fondo nuevo, el par se declara aquí o no está comprobado.
+   */
+  ['color.textoEnlace', 'color.superficieMarcaSutil', AA_UI, 'Icono sobre su pastilla de marca'],
 ];
 
 const tokens = leerTokens();
