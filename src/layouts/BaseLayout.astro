@@ -118,8 +118,8 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
         /*
          * Marca el documento como "con JavaScript" ANTES del primer pintado.
          *
-         * Los controles que sólo sirven con JS (tema, tamaño de texto, filtros
-         * del listado, controles del carrusel) se ocultan con CSS mientras esta
+         * Los controles que sólo sirven con JS (tema, filtros del listado,
+         * controles del carrusel) se ocultan con CSS mientras esta
          * marca no esté, en vez de revelarse desde el script al terminar de
          * cargar. La diferencia se mide: revelarlos después del pintado movía
          * el contenido y costaba 13 puntos de rendimiento en el home, con un
@@ -136,8 +136,8 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
            * Al intercambiar el documento, Astro copia los atributos del <html>
            * nuevo —que viene del servidor y no la trae— sobre el actual, y
            * `data-js` se pierde. Con el CSS que depende de ella, eso hacía
-           * desaparecer el botón de tema, el control de tamaño de texto y los
-           * filtros del listado en cuanto navegabas una vez.
+           * desaparecer el botón de tema y los filtros del listado en cuanto
+           * navegabas una vez.
            */
           document.documentElement.dataset.js = 'true';
 
@@ -145,11 +145,6 @@ const canonica = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
             var tema = localStorage.getItem('dgpe-tema');
             if (tema === 'claro' || tema === 'oscuro') {
               document.documentElement.dataset.tema = tema;
-            }
-
-            var escala = localStorage.getItem('dgpe-escala-texto');
-            if (escala) {
-              document.documentElement.style.setProperty('--escala-texto', escala);
             }
           } catch (e) {
             /* Almacenamiento bloqueado: se usan los valores por defecto. */

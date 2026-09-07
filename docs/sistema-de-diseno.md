@@ -130,15 +130,15 @@ En tema oscuro las superficies **suben de tono al elevarse** (`base` es más osc
 
 Modular ≈1.2, del paso 100 (0.75rem) al 900 (3rem). Los tamaños grandes usan `clamp()` para escalar con el viewport sin media queries.
 
-**Todo en `rem`, sin excepción.** Es lo que hace funcionar el control de tamaño de texto del encabezado:
+**Todo en `rem`, sin excepción.** Es lo que hace que el sitio obedezca al tamaño de letra que la persona tenga configurado en su navegador:
 
 ```css
 html {
-  font-size: calc(100% * var(--escala-texto, 1));
+  font-size: 100%;
 }
 ```
 
-Un solo valor cambia y el sitio entero escala. Si un componente escribiera `font-size: 14px`, ese texto se quedaría chico para quien más lo necesita.
+Esa línea parece que sobra, y no sobra. Es la que deja el `rem` anclado a la preferencia del usuario: si dijera `font-size: 16px` —lo habitual en muchas hojas de estilo— el sitio pisaría esa preferencia y quien la hubiera subido seguiría viendo el texto pequeño. Por lo mismo, si un componente escribiera `font-size: 14px`, ese texto se quedaría chico justo para quien más lo necesita.
 
 ### Interlineado
 
