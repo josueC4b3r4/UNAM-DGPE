@@ -3,15 +3,21 @@
  * Encabezado del sitio.
  *
  * Dos franjas:
- *   1. Barra de utilidades — controles de accesibilidad. Siempre visible,
- *      también en 375 px, con espacio propio para no competir con el logotipo.
+ *   1. Barra de utilidades — los perfiles, el aviso de prototipo y el cambio de
+ *      tema. Siempre visible, también en 375 px.
  *   2. Franja principal — identidad y navegación.
+ *
+ * Aquí vivió también un control propio de tamaño de texto, y se quitó: el
+ * navegador ya ofrece lo mismo, y para todos los sitios a la vez.
+ *
+ * No se ganó espacio con ello, aunque lo pareciera: medido, la barra ocupa
+ * 105 px a 320 px de ancho tanto con el control como sin él. La altura la fija
+ * el desplazador horizontal de perfiles. Ver docs/accesibilidad.md, 1.4.4.
  *
  * La navegación está organizada POR ROL, que es la corrección central frente
  * al sitio actual: primero se pregunta quién eres, no de qué subdirección
  * depende el trámite.
  */
-import ControlTamanoTexto from '../a11y/ControlTamanoTexto.astro';
 import ToggleTema from '../a11y/ToggleTema.astro';
 import Icono from '../base/Icono.astro';
 
@@ -84,7 +90,6 @@ const enSeccion = (href: string) => rutaActual.startsWith(normalizar(href));
         </p>
 
         <div class="utilidades__controles">
-          <ControlTamanoTexto />
           <ToggleTema />
         </div>
       </div>

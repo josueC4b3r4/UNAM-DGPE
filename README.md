@@ -49,7 +49,7 @@ Para detenerlo: `Ctrl + C` en la terminal.
 | **Navegación por rol** | El home pregunta *quién eres* antes que *qué área lo atiende*. Cuatro accesos grandes, no un submenú escondido. |
 | **Buscador de trámites** | Autocompletado sobre 14 trámites. Cada uno guarda sus sinónimos, así que "carta laboral" encuentra "Constancia de servicios". |
 | **Sistema de diseño** | 225 tokens en `design/tokens.json`, en formato compatible con Tokens Studio de Figma. Ningún color escrito a mano en el código. |
-| **Accesibilidad** | WCAG 2.1 AA con verificación automatizada de contraste, navegación completa por teclado y control de tamaño de texto. |
+| **Accesibilidad** | WCAG 2.1 AA con verificación automatizada de contraste, navegación completa por teclado y una escala tipográfica que obedece al tamaño de letra del navegador. |
 | **Responsive** | Diseñado primero para 375 px. Sin menús rotos ni desbordamientos horizontales. |
 | **Rendimiento** | Sitio estático, cero JavaScript de framework, tipografía autohospedada. |
 | **Hero con video** | Componente listo para recibir el asset, con fallback a imagen y respeto a `prefers-reduced-motion`. |
@@ -106,7 +106,7 @@ Recomendaciones para el asset:
 ├─ scripts/                ← Utilidades de build y verificación
 └─ src/
    ├─ components/
-   │  ├─ a11y/             ← Control de tamaño de texto, cambio de tema
+   │  ├─ a11y/             ← Cambio de tema claro / oscuro
    │  ├─ base/             ← Botón, tarjeta, pastilla, iconos
    │  ├─ home/             ← Hero, rejilla de roles, buscador
    │  └─ layout/           ← Encabezado, pie, migas de pan

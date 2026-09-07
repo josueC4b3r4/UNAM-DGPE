@@ -5,12 +5,23 @@
 
 html {
   /*
-   * Control de tamaño de texto del header. --escala-texto la fija un script
-   * (1 | 1.15 | 1.3) y como TODA la escala tipográfica está en rem, cambiarla
-   * escala el sitio entero sin recalcular un solo componente.
-   * tokens-ok: es una multiplicación de la escala del usuario, no un tamaño fijo.
+   * 100 %, es decir: exactamente el tamaño de letra que la persona tenga
+   * configurado en su navegador.
+   *
+   * Parece una línea que sobra y no lo es. Si en su lugar se fijara aquí un
+   * tamaño en píxeles —lo habitual en muchas hojas de estilo— el sitio
+   * ignoraría esa preferencia, y quien la hubiera subido seguiría viendo el
+   * texto pequeño. Escrito así, el `rem` de toda la escala tipográfica queda
+   * anclado a lo que el usuario pidió.
+   *
+   * Antes esto multiplicaba una variable que fijaba un control de tamaño de
+   * texto propio, en el encabezado. El control se retiró: el navegador ya hace
+   * lo mismo, y mejor, porque el ajuste vale para todos los sitios y no solo
+   * para este. Ver docs/accesibilidad.md, criterio 1.4.4.
+   *
+   * tokens-ok: es un porcentaje heredado, no un tamaño fijo.
    */
-  font-size: calc(100% * var(--escala-texto, 1));
+  font-size: 100%;
 }
 
 body {

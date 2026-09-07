@@ -53,7 +53,7 @@ Rendimiento subió de 86 a **100** y el CLS quedó en 0. Comprobado además en e
 | 🔧 | Jerarquía de encabezados | Un solo `<h1>` por página, sin saltos de nivel. `TarjetaTramite` recibe el nivel como prop en vez de fijarlo. |
 | 🔧 | Puntos de referencia | `header`, `nav`, `main`, `footer`, `search`, `aside`. Cada `<nav>` con su propio `aria-label`. |
 | 🔧 | Listas | Las listas sin marcador conservan `role="list"`, que Safari elimina al quitar `list-style`. |
-| 🔧 | Formularios | Todo control tiene `<label>` asociado por `for`/`id`. El control de tamaño de texto usa `<fieldset>` con `<legend>`. |
+| 🔧 | Formularios | Todo control tiene `<label>` asociado por `for`/`id`. Los grupos de controles relacionados usan `<fieldset>` con `<legend>`. |
 | 🔧 | Tablas | `<th>` en encabezados. Envueltas en una región desplazable con nombre accesible. |
 
 ### 1.4.1 Uso del color (A)
@@ -115,9 +115,13 @@ Corregido moviendo esas reglas a un bloque `<style is:global>` acotado bajo `.bu
 
 | | Criterio | Cómo se resolvió |
 | --- | --- | --- |
-| 🔧 | Escala hasta 200 % | Toda la tipografía en `rem`. El control del encabezado multiplica `--escala-texto` sobre el `<html>`. |
+| 🔧 | Escala hasta 200 % | Toda la tipografía en `rem`, y `html { font-size: 100% }` sin ningún tamaño en píxeles en la raíz. Así el `rem` queda anclado a la preferencia de tamaño de letra del navegador y no a un valor fijo del sitio. |
 | ✅ | Prueba con texto al 200 % | Medido en navegador sobre la landing de trámite a 1280 px con `html { font-size: 200% }`: `scrollWidth` = ancho del viewport, **sin scroll horizontal** y sin bloques desbordados. |
-| ✅ | Control propio del sitio al máximo | Con `--escala-texto: 1.3` tampoco aparece scroll horizontal, ni a 1280 px ni a 320 px. |
+| ✅ | Prueba a 320 px | Con el texto al 200 % tampoco aparece scroll horizontal en el ancho mínimo, que es donde el reflujo suele romperse. |
+
+> **El sitio tuvo un control propio de tamaño de texto en la barra superior, con tres niveles, y se retiró.** No porque fallara —cumplía— sino porque duplicaba algo que el navegador ya hace mejor: su ajuste vale para todos los sitios y viaja entre dispositivos, mientras que el del sitio vivía en un `localStorage` que solo servía aquí. Lo que el criterio 1.4.4 exige es que el texto **pueda** llegar al 200 % sin pérdida de contenido ni de funcionalidad, no que el sitio ofrezca su propio control para conseguirlo.
+>
+> **Lo que quitarlo NO hizo, aunque se dijo al proponerlo: recuperar espacio en móvil.** Medido en los dos a la vez, la barra de utilidades a 320 px ocupa **105 px con el control y 105 px sin él**. La altura la fija el desplazador horizontal de perfiles, no el número de controles; el problema de los 152 px que esa barra tuvo lo había resuelto ya ese desplazador, en un cambio anterior. Se anota porque la suposición parecía razonable y era falsa.
 
 ### 1.4.10 Reflujo (AA) — ✅ VERIFICADO
 
@@ -276,7 +280,6 @@ Queda pendiente confirmarlo pulsando Tab a mano, y una pasada con lector de pant
 | 🔧 | Combobox | `role`, `aria-expanded`, `aria-controls`, `aria-autocomplete`, `aria-activedescendant`, `aria-selected`. |
 | 🔧 | Menú móvil | `aria-expanded` y `aria-controls`, sincronizados con el estado real. |
 | 🔧 | Cambio de tema | El nombre accesible describe la acción ("Tema oscuro" = pulsa para cambiar a oscuro). |
-| 🔧 | Tamaño de texto | Radios nativos: el lector anuncia "1 de 3" y las flechas navegan sin JavaScript propio. |
 | 🔧 | Carrusel: qué es | `role="region"` con `aria-roledescription="carrusel"` y nombre propio («Avisos destacados»). El lector no anuncia «región» a secas, sino que esto es un carrusel. |
 | 🔧 | Carrusel: dónde estoy | Cada diapositiva es un `role="group"` con `aria-roledescription="diapositiva"` y `aria-label="1 de 4"`. Sin eso, quien no ve la pantalla no tiene forma de saber cuántos banners hay ni en cuál está. |
 | ✅ | Carrusel: los puntos | Son `<button>` reales con nombre accesible completo («Banner 2: Programa mensual de cursos»), no `<div>` con click. El activo lleva `aria-current="true"`, y se distingue **por color y por tamaño** —12 px frente a 17.4 px medidos—, no solo por color (1.4.1). |
